@@ -5,6 +5,7 @@ __pycache__/
 # Environments
 .env
 venv/
+.idea
 
 # Mac files
 *DS_Store
