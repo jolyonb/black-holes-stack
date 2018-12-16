@@ -58,6 +58,9 @@ def compute_quad_results(func, pbh, prob, n, params):
     standard_mu4 = moment_4 - 4*I*moment_3 + 6*I**2*moment_2 - 3*I**4
     standard_vve = standard_mu4/n - (n-3)/n/(n-1)*standard_var**2
 
+    print("Standard integration: quadrature results:")
+    print(f"Integral: {I}, Variance: {standard_var}, 4th moment: {standard_mu4}, evve: {standard_vve}")
+
     # Do the coin flip MC integration results next
     # Compute moments for the coinflip integral
     g = lambda x: func(x) / prob(x)
@@ -70,12 +73,15 @@ def compute_quad_results(func, pbh, prob, n, params):
 
     coin_var = moment_2 - I**2
     coin_err = sqrt(coin_var / n)
-    coin_mu4 = moment_4 - 3*I*moment_3 + 3*I**2*moment_2 - 3*I**4
-    coin_vve = coin_mu4/n - (n-3)/n/(n-1)*standard_var**2
+    coin_mu4 = moment_4 - 4*I*moment_3 + 6*I**2*moment_2 - 3*I**4
+    coin_vve = coin_mu4/n - (n-3)/n/(n-1)*coin_var**2
+
+    print("Coinflip integration: quadrature results:")
+    print(f"Integral: {I}, Variance: {coin_var}, 4th moment: {coin_mu4}, evve: {coin_vve}")
 
     # Compute the minimum possible variance
     lamda = quad(lambda x: func(x) * sqrt(pbh(x)),
-                 params['lower'], params['upper'], **opts)[0] **2
+                 params['lower'], params['upper'], **opts)[0] ** 2
     coin_minvar = lamda - I*I
 
     return (I, standard_var, standard_err, standard_vve,
@@ -124,6 +130,8 @@ coinflip_int = Integrator(sampler, func_coinflip(sigmoid, dndnux))
 mccf_result, mccf_var, mccf_error, mccf_vve = coinflip_int.integrate(n=n)
 
 # Compare results
+print()
+
 print("Test 1 results: Standard MC integration vs quadrature")
 print("Integral:")
 print(f"MC evaluation: {mc_result}")
@@ -149,4 +157,7 @@ print(f"MC evaluation: {mccf_var}")
 print(f"Error estimate: {sqrt(mccf_vve)}")
 print(f"Expected error: {sqrt(coin_vve)}")
 print(f"Actual error: {abs(coin_var - mccf_var)}")
+
+print()
+
 print(f"Minimum variance: {coin_minvar}, {coin_var/coin_minvar}")

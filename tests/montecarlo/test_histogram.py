@@ -73,12 +73,12 @@ def compute_quad_results(func, pbh, prob, n, params):
 
     coin_var = moment_2 - I**2
     coin_err = sqrt(coin_var / n)
-    coin_mu4 = moment_4 - 3*I*moment_3 + 3*I**2*moment_2 - 3*I**4
-    coin_vve = coin_mu4/n - (n-3)/n/(n-1)*standard_var**2
+    coin_mu4 = moment_4 - 4*I*moment_3 + 6*I**2*moment_2 - 3*I**4
+    coin_vve = coin_mu4/n - (n-3)/n/(n-1)*coin_var**2
 
     # Compute the minimum possible variance
     lamda = quad(lambda x: func(x) * sqrt(pbh(x)),
-                 params['lower'], params['upper'], **opts)[0] **2
+                 params['lower'], params['upper'], **opts)[0] ** 2
     coin_minvar = lamda - I*I
 
     return (I, standard_var, standard_err, standard_vve,
@@ -112,8 +112,8 @@ dndnux = interp1d(nu, peaksnu, kind='linear')
 
 # Construct a sampler
 sampler = TruncatedNormal(params)
-samples = 100
-runs = 20000
+samples = 10
+runs = 40000
 
 # Obtain the quadrature results
 (quad_result, _, _, _, quad_var, _,
