@@ -6,8 +6,8 @@ Code to perform Monte Carlo integration
 import statistics
 import random
 import numpy as np
-from numpy import sqrt, exp
-from scipy.integrate import quad
+from numpy import sqrt, exp, pi
+from scipy.special import erf
 
 class Sampler(object):
     """Abstract class describing methods to sample from a distribution"""
@@ -23,6 +23,17 @@ class Sampler(object):
         """Generate a new sample. Returns (value, probability density at value)"""
         raise NotImplementedError()
 
+def truncated_norm(x0, sigma, a, b):
+    """
+    Returns the integral of exp(-(x-x0)^2/2/sigma^2) from a to b
+    :param x0: center of Gaussian
+    :param sigma: standard deviation of Gaussian
+    :param a: lower limit
+    :param b: upper limit
+    :return: integral result (float)
+    """
+    return sqrt(pi/2) * sigma * (erf((b-x0)/sqrt(2)/sigma) - erf((a-x0)/sqrt(2)/sigma))
+
 class TruncatedNormal(Sampler):
     """Generates samples from a truncated normal distribution"""
     def __init__(self, parameters):
@@ -30,14 +41,10 @@ class TruncatedNormal(Sampler):
         super().__init__(parameters)
         self.x0 = parameters["x0"]
         self.sigma = parameters["sigma"]
-        self.sigma2 = 2*self.sigma * self.sigma
+        self.sigma2 = self.sigma * self.sigma
         self.upper = parameters["upper"]
         self.lower = parameters["lower"]
-
-        # Normalize our Gaussian section
-        def func(x):
-            return exp(-(x-self.x0)**2/self.sigma2)
-        self.norm = quad(func, self.lower, self.upper)[0]
+        self.norm = truncated_norm(self.x0, self.sigma, self.lower, self.upper)
 
     def gen_sample(self):
         x = self.lower - 1
@@ -46,7 +53,7 @@ class TruncatedNormal(Sampler):
         return x, self.prob(x)
 
     def prob(self, x):
-        return exp(-(x-self.x0)**2/self.sigma2) / self.norm
+        return exp(-(x-self.x0)**2/2/self.sigma2) / self.norm
 
 class Integrator(object):
     """MC integration class"""
