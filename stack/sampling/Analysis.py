@@ -33,8 +33,8 @@ samples = data['samples']
 droopmean = data['droopmean']
 droopvar = data['droopvar']
 nsamples = data['nsamples']
-print ("NSAMPLES")
-print (nsamples)
+print("NSAMPLES")
+print(nsamples)
 
 axes=[]
 fig1, ax1 = plt.subplots()
@@ -74,7 +74,7 @@ r'$\bar{\nu}=1.0$'+'\n',
 r'$N=8$']
 textstr=''.join(textlist)
 
-print (textstr)
+print(textstr)
 
 axes[0].text(0.85, 0.95, textstr, transform=axes[0].transAxes, fontsize=18,verticalalignment='top', bbox=props)
 #axes[0].text(0.85, 0.55, textstr, transform=axes[0].transAxes, fontsize=18,verticalalignment='top', bbox=props)
