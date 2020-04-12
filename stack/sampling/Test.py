@@ -38,11 +38,11 @@ if compute_cov==True:
 #===============Sample 00 Phi Mode==============#
 cov.Load("covariances.npz")
 samp = Sampler(cov)
-print "===============Sampling Phi00=============="
+print("===============Sampling Phi00==============")
 samps = samp.GetSamples(nubar,nfields,nsamples)
 
 #==============Compute mean w/droop=============#
-print "===================Computing Mean=================="
+print("===================Computing Mean==================")
 #Recompute the rho splines.
 #Ideally we would store the splines, but we can't
 #store arbitrary objects in the .npz file, and 
@@ -64,7 +64,7 @@ droopy_mean-=rhod_vec
 droopy_mean*=np.sqrt(4.0*np.pi)*cov.sigma0**2
 
 #==============Compute variance w/droop=============#
-print "===================Computing Mean=================="
+print("===================Computing Mean==================")
 npoints = len(cov.rgrid)
 droopy_variance = np.zeros(npoints)
 rhoc_vec = np.asarray([cov.rho_c_spline(r) for r in cov.rgrid])

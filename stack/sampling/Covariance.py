@@ -60,7 +60,7 @@ class Covariance(object):
 		self.fname_spectrum = fname_spectrum
 		#self.LoadPowerSpectrum(fname_spectrum)
 		#FIXME
-		print "Loading Power Spectrum"
+		print("Loading Power Spectrum")
 		self.LoadDummyPowerSpectrum()
 
 		self.sigma0 = self.ComputeSigmaN(0)
@@ -76,21 +76,21 @@ class Covariance(object):
 			self.r_step = r_step 
 		#Define uniform radial grid (+1 to include both endpoints!).
 		self.gridpoints = int(np.ceil(self.r_max/self.r_step))+1
-		print "Gridpoints: ",self.gridpoints
+		print("Gridpoints: ",self.gridpoints)
 		self.rgrid = np.linspace(0.0,self.r_max,num=self.gridpoints,endpoint=True)
 		
 		#Compute RhoC and RhoD splines.
-		print "Computing RhoC Spline"
+		print("Computing RhoC Spline")
 		self.ComputeRhoCSpline()
 		#Compute RhoC over the rgrid for later usage in Sampler (to compute means).
 		self.rho_c_vec = np.asarray([self.rho_c_spline(r) for r in self.rgrid])
-		print "Computing RhoD Spline"
+		print("Computing RhoD Spline")
 		self.ComputeRhoDSpline()
 		#Compute covariance matrices.
-		print "Computing Covariance Matrices"
+		print("Computing Covariance Matrices")
 		self.ComputeCovarianceMatrices()
 		#Compute square roots of covariance matrices.
-		print "Computing Sqrt Covariance Matrices"
+		print("Computing Sqrt Covariance Matrices")
 		self.ComputeSqrtCovariances()
 
 	def LoadDummyPowerSpectrum(self):
@@ -163,7 +163,7 @@ class Covariance(object):
 		npoints = (2*self.r_max)/(self.r_step/self.hires_factor)+1
 		self.rho_c_grid = np.linspace(0.0,2.0*self.r_max,num=npoints,endpoint=True)
 		#Only compute high resolution discretization if not already computed.
-		if self.rho_c_hires==None:
+		if self.rho_c_hires is None:
 			ylist = []
 			for r in tqdm(self.rho_c_grid):
 				ylist.append(self.ComputeRhoC(r))
@@ -179,7 +179,7 @@ class Covariance(object):
 		npoints = self.r_max/(self.r_step/self.hires_factor)+1
 		self.rho_d_grid = np.linspace(0.0,self.r_max,num=npoints,endpoint=True)
 		#Only compute high resolution discretization if not already computed.
-		if self.rho_d_hires==None:
+		if self.rho_d_hires is None:
 			ylist = []
 			for r in tqdm(self.rho_d_grid):
 				ylist.append(self.ComputeRhoD(r))
