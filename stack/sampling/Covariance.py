@@ -239,7 +239,7 @@ class Covariance(object):
 		# our variables of the matrix are phi(0), phi''(0), phi(r_i) 
 		# we will first piece-wise construct the matrix
 
-		# assemble the first two rows and columns
+		# input the first two entries of rows 1 and 2
 		self.submatrix1 = np.empty([2,2])
 		self.submatrix1[0,0] = (4.0*np.pi)*(self.sigma0**2)
 		self.submatrix1[0,1] = (-4.0*np.pi/3)*(self.sigma1**2)
@@ -273,7 +273,6 @@ class Covariance(object):
 		self.Covariance_l0[2:2+self.gridpoints,0] = column2radial
 		self.Covariance_l0[2:2+self.gridpoints,2:2+self.gridpoints] = submatrix2
 
-
 	def ComputeBiasedCovariancesl0(self,mat):
 		""" Computes biased covariance matrix for l=0 over the radial grid. """
 
@@ -284,11 +283,26 @@ class Covariance(object):
 		sigma12 = self.Covariance_l0[0,1:3+self.gridpoints]
 		sigma21 = self.Covariance_l0[1:3+self.gridpoints,0]
 		sigma22 = self.Covariance_l0[1:3+self.gridpoints,1:3+self.gridpoints]
-		
+
 		# perform the matrix multiplcation from Alan's StatPeaks1-ag.pdf
 		sigma11inverse = np.reciprocal(sigma)
 		self.sigmaB22l0 = sigma22 - (sigma11inverse)*(np.matmul(sigma21,sigma12))
 		return sigmaB22l0
+
+	def ComputeUnbiasedCovariancesl1(self):
+		""" Computes unbiased covariance matrix for l=0 over the radial grid. """
+		
+		# l=1, alpha=1
+		# our variables of the matrix are phi(0), phi(r_i) 
+		# we will first piece-wise construct the matrix
+
+		# assemble the first row/column
+		self.submatrix1 = np.empty([2,2])
+		self.submatrix1[0,0] = (4.0*np.pi)*(self.sigma0**2)
+		self.submatrix1[0,1] = (-4.0*np.pi/3)*(self.sigma1**2)
+		self.submatrix1[1,0] = (-4.0*np.pi/3)*(self.sigma1**2)
+		self.submatrix1[1,1] = (4.0*np.pi/9)*(self.sigma2**2)
+
 
 
 	def ScrubNegativeEigenvalues(self,eigvals):
