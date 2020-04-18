@@ -135,10 +135,34 @@ class Covariance(object):
 	def ComputeKN(self,n,r):
 		""" Returns the n^th moment of K_n evaluated at radius [r] as defined in the Overleaf write-up. """
 		""" TO-DO: check that the arguments have been passed in correctly """
-		def func(k,m):
-			return k**(2+2*m) * self.spectrum(k) * special.spherical_jn(0,k*r)
+		def func(k,m,z):
+			return k**(2+2*m) * self.spectrum(k) * special.spherical_jn(0,k*z)
 		(integral,err) = integrate.quad(func,self.k_low,self.k_high,args=(n,r))
 		return sqrt(4*np.pi*integral)
+
+	def ComputeD(self,r):
+		""" Returns D_ evaluated at radius [r] as defined in the Overleaf write-up. """
+		""" TO-DO: check that the arguments have been passed in correctly """
+		def func(k,z):
+			return k**(3) * self.spectrum(k) * special.spherical_jn(1,k*z)
+		(integral,err) = integrate.quad(func,self.k_low,self.k_high,args=(r))
+		return sqrt(4*np.pi*integral)
+
+	def ComputeGl(self,l,r1,r2):
+		""" Returns the l^th moment of G_n evaluated at radius [r] as defined in the Overleaf write-up. """
+		""" TO-DO: check that the arguments have been passed in correctly """
+		def func(k,m,y,z):
+			return k**(2) * self.spectrum(k) * special.spherical_jn(m,k*y) * special.spherical_jn(m,k*z)
+		(integral,err) = integrate.quad(func,self.k_low,self.k_high,args=(n,r1,r2))
+		return sqrt(4*np.pi*integral)	
+
+	def ComputeQl(self,l,r):
+		""" Returns the l^th moment of Q_n evaluated at radius [r] as defined in the Overleaf write-up. """
+		""" TO-DO: check that the arguments have been passed in correctly """
+		def func(k,m,z):
+			return k**(2+m) * self.spectrum(k) * special.spherical_jn(m,k*y) * special.spherical_jn(m,k*z)
+		(integral,err) = integrate.quad(func,self.k_low,self.k_high,args=(n,r1,r2))
+		return sqrt(4*np.pi*integral)	
 
 	def ComputeRhoC(self,r):
 		""" Returns RhoC evaluated at radius [r] using the levin integrator."""
@@ -248,21 +272,21 @@ class Covariance(object):
 
 		# assemble the first row/column without the first two entries
 		self.row1radial = np.empty([self.gridpoints])
-		for n1 in enumerate(self.rgridpoints):
-			self.row1radial[n1] = (4.0*np.pi)*(self.ComputeKN(0,n1))
+		for n1,r1 in enumerate(self.rgridpoints):
+			self.row1radial[n1] = (4.0*np.pi)*(self.ComputeKN(0,r1))
 		self.column1radial = np.transpose([self.row1radial])
 
 		# assemble the second row/column without the first two entries
 		self.row2radial = np.empty([self.gridpoints])
-		for n1 in enumerate(self.rgridpoints):
-			self.row2radial[n1] = (-4.0*np.pi/3)*(self.ComputeKN(1,n1))
+		for n1,r1 in enumerate(self.rgridpoints):
+			self.row2radial[n1] = (-4.0*np.pi/3)*(self.ComputeKN(1,r1))
 		self.column2radial = np.transpose([self.row1radial])
 
 		# assemble the portion of the matrix representing the covariance of the field values at r and r'
 		self.submatrix2 = np.empty([self.gridpoints,self.gridpoints])
 		for n1, r1 in enumerate(self.rgrid):
 			for n2,r2 in enumerate(self.rgrid):
-				self.submatrix[n1,n2] = (4.0*np.pi)*(self.computeEN(0,n1,n2))
+				self.submatrix[n1,n2] = (4.0*np.pi)*(self.computeEN(0,r1,r2))
 
 		# now assemble piece-wise components into the full matrix
 		self.Covariance_l0 = np.zeros([2+len(self.gridpoints),2+len(self.gridpoints)])
@@ -280,9 +304,9 @@ class Covariance(object):
 		# split the matrix by variables to be biased/left unbiased
 		BiasedCovariance_l0 = self.Covariance_l0
 		sigma11 = self.Covariance_l0[0,0]
-		sigma12 = self.Covariance_l0[0,1:3+self.gridpoints]
-		sigma21 = self.Covariance_l0[1:3+self.gridpoints,0]
-		sigma22 = self.Covariance_l0[1:3+self.gridpoints,1:3+self.gridpoints]
+		sigma12 = self.Covariance_l0[0,1:2+self.gridpoints]
+		sigma21 = self.Covariance_l0[1:2+self.gridpoints,0]
+		sigma22 = self.Covariance_l0[1:2+self.gridpoints,1:2+self.gridpoints]
 
 		# perform the matrix multiplcation from Alan's StatPeaks1-ag.pdf
 		sigma11inverse = np.reciprocal(sigma)
@@ -296,14 +320,66 @@ class Covariance(object):
 		# our variables of the matrix are phi(0), phi(r_i) 
 		# we will first piece-wise construct the matrix
 
-		# assemble the first row/column
-		self.submatrix1 = np.empty([2,2])
-		self.submatrix1[0,0] = (4.0*np.pi)*(self.sigma0**2)
-		self.submatrix1[0,1] = (-4.0*np.pi/3)*(self.sigma1**2)
-		self.submatrix1[1,0] = (-4.0*np.pi/3)*(self.sigma1**2)
-		self.submatrix1[1,1] = (4.0*np.pi/9)*(self.sigma2**2)
+		# assemble the first entry of row 1
+		self.l1submatrix1 = np.empty([1,1])
+		self.l1submatrix1[0,0] = (4.0*np.pi/9)*(self.sigma1**2)
 
+		# assemble the first row/column without the first entry
+		self.l1row1radial = np.empty([self.gridpoints])
+		for n1,r1 in enumerate(self.rgridpoints):
+			self.l1row1radial[n1] = (4.0*np.pi/3)*(self.ComputeD(r1)/r1)
+		self.l1column1radial = np.transpose([self.l1row1radial])
 
+		# assemble the portion of the matrix representing the covariance of the field values at r and r'
+		self.submatrix2 = np.empty([self.gridpoints,self.gridpoints])
+		for n1,r1 in enumerate(self.rgrid):
+			for n2,r2 in enumerate(self.rgrid):
+				self.submatrix[n1,n2] = (4.0*np.pi)*(self.ComputeGl(1,r1,r2) / (r1*r2))
+
+	def ComputeBiasedCovariancesl1(self,mat):
+		""" Computes biased covariance matrix for l=1 over the radial grid. """
+
+		# grab unbiased l=1 covariance matrix
+		# split the matrix by variables to be biased/left unbiased
+		BiasedCovariance_l1 = self.Covariance_l1
+		sigma11 = self.Covariance_l1[0,0]
+		sigma12 = self.Covariance_l1[0,1:2+self.gridpoints]
+		sigma21 = self.Covariance_l1[1:2+self.gridpoints,0]
+		sigma22 = self.Covariance_l1[1:2+self.gridpoints,1:2+self.gridpoints]
+
+		# perform the matrix multiplcation from Alan's StatPeaks1-ag.pdf
+		sigma11inverse = np.reciprocal(sigma)
+		self.sigmaB22l0 = sigma22 - (sigma11inverse)*(np.matmul(sigma21,sigma12))
+		return sigmaB22l1
+
+	def ComputeUnbiasedCovariancesl2(self):
+
+		self.l2submatrix1 = np.empty([1,1])
+		self.l2submatrix1[0,0] = (4.0*np.pi/9)*(self.sigma0**2)
+
+		self.submatrix2 = np.empty([self.gridpoints,self.gridpoints])
+		for n1, r1 in enumerate(self.rgrid):
+			for n2,r2 in enumerate(self.rgrid):
+				self.submatrix[n1,n2] = (4.0*np.pi)*(self.computeGl(2,r1,r2) / ((r1**2)*(r2**2)))
+
+	def ComputeUnbiasedCovariancesl(self,l):
+		
+		# the factorial coefficient appearing in the limit of j_l(kr)/r^l (ref: Eq. 163 of Chi Squared Fields Overleaf document)
+		coefficient = 2**(l+1)*(special.factorial(l+1))/(special.factorial(2l+2))
+
+		self.lsubmatrix1 = np.empty([1,1])
+		self.lsubmatrix1[0,0] = (4*np.pi*(coefficient**2))*(self.SigmaN(l)**2)
+
+		# assemble the first row/column without the first entry
+		self.lrow1radial = np.empty([self.gridpoints])
+		for n1,r1 in enumerate(self.rgridpoints):
+			self.lrow1radial[n1] = (4*np.pi*coefficient)*(self.ComputeQl(l,r)/(r1**l))
+		self.lcolumn1radial = np.transpose([self.lrow1radial])
+
+		self.submatrix2 = np.empty([self.gridpoints,self.gridpoints])
+		for n1, r1 in enumerate(self.rgrid):
+			for n2,r2 in enumerate(self.rgrid):
+				self.submatrix[n1,n2] = (4.0*np.pi)*((self.computeGl(l,r1,r2) / (r1*r2)**l))
 
 	def ScrubNegativeEigenvalues(self,eigvals):
 		""" Scrubs small negative numbers out of the [eigvals] array. Returns scrubbed array. """
