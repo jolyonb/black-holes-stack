@@ -20,7 +20,7 @@ def test_phi(r):
 # Compute a test function for phi
 phi = test_phi(rvals)
 
-model = Model(n_ef=15, n_fields=5, mpsi=0.5, m0=2)
+model = Model(n_efolds=15, n_fields=5, mpsi=0.5, m0=2)
 lin = Linear(model=model, phi=phi, rvals=rvals)
 
 lin.construct_grid()

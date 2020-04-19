@@ -9,3 +9,6 @@ venv/
 
 # Mac files
 *DS_Store
+
+# Models
+models

@@ -7,3 +7,4 @@ our black hole number density and mass spectra from first principles.
 
 Individual calculations are all included as subpackages.
 """
+from stack.model import Model
