@@ -1,30 +1,66 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""Power spectrum of waterfall field perturbations in hybrid inflation
+"""
+Power spectrum of waterfall field perturbations in hybrid inflation
 v1.0 by Jolyon Bloomfield, April 2017
 See arXiv:xxxx.xxxxx for details
 """
-# Note that this file can be used as a library or stand-alone
-
-from __future__ import division, print_function
+from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 from math import exp, log, pi, sqrt, log10
-from scipy.integrate import ode, quad
+from scipy.integrate import ode
 from scipy.interpolate import InterpolatedUnivariateSpline
 import matplotlib.pyplot as plt
 
-class PowerSpectrum(object) :
+from typing import TYPE_CHECKING
+
+from stack.common import Persistence
+
+if TYPE_CHECKING:
+    from stack import Model
+
+class PowerSpectrum(Persistence):
     """
     Computes the power spectrum for hybrid inflation theories
     """
+    filename = 'powerspectrum'
 
-    def __init__(self) :
-        # Initialize spectrum
+    def __init__(self, model: 'Model') -> None:
+        """
+        Initialize the class.
+        
+        :param model: Model class we are computing the power spectrum for.
+        """
+        super().__init__(model)
+    
         self.spectrum = np.array([])
         self.kvals = np.array([])
         self.has_spectrum = False
         self.has_params = False
+
+    def load_data(self) -> None:
+        """Load the power spectrum from file"""
+        filename = self.filename + '.csv'
+        path = self.file_path(filename)
+        if not self.file_exists(filename):
+            raise FileNotFoundError(f'Unable to load from {path}')
+
+        df = pd.read_csv(path)
+        
+        self.kvals = df.k.values
+        self.spectrum = df.spectrum.values
+
+    def save_data(self) -> None:
+        """Saves the power spectrum to file"""
+        df = pd.DataFrame([self.kvals, self.spectrum]).transpose()
+        df.columns = ['k', 'spectrum']
+        df.to_csv(self.file_path(self.filename + '.csv'), index=False)
+
+    def compute_data(self) -> None:
+        """Compute the power spectrum for the model"""
+        # TODO: Dummy data to set up structure - Fix this!
+        self.spectrum = np.array([0, 1.0, 1.5, 2.0])
+        self.kvals = np.array([1e-3, 1e-2, 1e-1, 1e-0])
 
     def set_params(self, m_0, m_psi, Nstart=6.0, Nend=15.0) :
         """
