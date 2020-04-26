@@ -61,6 +61,24 @@ class PowerSpectrum(Persistence):
         # TODO: Dummy data to set up structure - Fix this!
         self.spectrum = np.array([0, 1.0, 1.5, 2.0])
         self.kvals = np.array([1e-3, 1e-2, 1e-1, 1e-0])
+        
+    def __call__(self, k):
+        """Return the value of the power spectrum at a given k value"""
+        # TODO: Implement this!
+        lamda = 2
+        return exp(-k * lamda)
+
+    @property
+    def min_k(self):
+        """Returns the minimum value of k"""
+        # TODO: Implement this!
+        return 0
+
+    @property
+    def max_k(self):
+        """Returns the maximum value of k"""
+        # TODO: Implement this!
+        return 5
 
     def set_params(self, m_0, m_psi, Nstart=6.0, Nend=15.0) :
         """

@@ -9,6 +9,7 @@ import os
 from math import sqrt
 
 from stack.powerspectrum import PowerSpectrum
+from stack.moments import Moments
 
 class Model(object):
     """Master class that controls all aspects of modelling"""
@@ -61,6 +62,7 @@ class Model(object):
 
         # Store object class instances
         self.powerspectrum = PowerSpectrum(self)
+        self.moments = Moments(self)
         
     def construct_powerspectrum(self) -> None:
         """Construct the data for the power spectrum (either by loading or constructing it)"""
@@ -72,5 +74,5 @@ class Model(object):
         """Construct the data for the moments of the power spectrum (either by loading or constructing them)"""
         print('Constructing moments of the power spectrum...')
         assert self.powerspectrum.ready
-        # Make sure that prev_timestamp is passed along
+        self.moments.construct_data(prev_timestamp=self.powerspectrum.timestamp)
         print('    Done!')
