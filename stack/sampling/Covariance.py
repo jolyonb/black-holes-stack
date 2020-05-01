@@ -365,7 +365,7 @@ class Covariance(object):
 	def ComputeUnbiasedCovariancesl(self,l):
 		
 		# the factorial coefficient appearing in the limit of j_l(kr)/r^l (ref: Eq. 163 of Chi Squared Fields Overleaf document)
-		coefficient = 2**(l+1)*(special.factorial(l+1))/(special.factorial(2l+2))
+		coefficient = 2**(l+1)*(special.factorial(l+1))/(special.factorial(2*l+2))
 
 		self.lsubmatrix1 = np.empty([1,1])
 		self.lsubmatrix1[0,0] = (4*np.pi*(coefficient**2))*(self.SigmaN(l)**2)
