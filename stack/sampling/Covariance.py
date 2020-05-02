@@ -309,7 +309,7 @@ class Covariance(object):
 		sigma22 = self.Covariance_l0[1:2+self.gridpoints,1:2+self.gridpoints]
 
 		# perform the matrix multiplcation from Alan's StatPeaks1-ag.pdf
-		sigma11inverse = np.reciprocal(sigma)
+		sigma11inverse = np.reciprocal(sigma11)
 		self.sigmaB22l0 = sigma22 - (sigma11inverse)*(np.matmul(sigma21,sigma12))
 		return sigmaB22l0
 
@@ -348,7 +348,7 @@ class Covariance(object):
 		sigma22 = self.Covariance_l1[1:2+self.gridpoints,1:2+self.gridpoints]
 
 		# perform the matrix multiplcation from Alan's StatPeaks1-ag.pdf
-		sigma11inverse = np.reciprocal(sigma)
+		sigma11inverse = np.reciprocal(sigma11)
 		self.sigmaB22l0 = sigma22 - (sigma11inverse)*(np.matmul(sigma21,sigma12))
 		return sigmaB22l1
 
