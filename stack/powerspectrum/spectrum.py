@@ -39,8 +39,10 @@ class PowerSpectrum(Persistence):
         self.interp = None
 
         # Error tolerances used in computing ODE solutions
-        self.err_abs = 1e-8
-        self.err_rel = 1e-8
+        self.err_abs = 1e-10
+        self.err_rel = 1e-13
+        self.df_rvals = None
+        self.df_times = None
 
     def load_data(self) -> None:
         """Load the power spectrum from file"""
@@ -61,9 +63,14 @@ class PowerSpectrum(Persistence):
 
     def save_data(self) -> None:
         """Saves the power spectrum to file"""
+        # Save the power spectrum
         df = pd.DataFrame([self.kvals, self.spectrum]).transpose()
         df.columns = ['k', 'spectrum']
         df.to_csv(self.file_path(self.filename + '.csv'), index=False)
+
+        # Also save the mode evolution (not loaded back in when loading data)
+        self.df_rvals.to_csv(self.file_path(self.filename + '-Rvals.csv'), index=False)
+        self.df_times.to_csv(self.file_path(self.filename + '-Nvals.csv'), index=False)
 
     def compute_data(self) -> None:
         """Compute the power spectrum for the model"""
@@ -151,14 +158,14 @@ class PowerSpectrum(Persistence):
         integrator.set_initial_value(ics, minN)
 
         # Save initial conditions
-        Rvals = [integrator.y[0:num_k]]
+        Rvals = [exp(integrator.y[0:num_k] - integrator.y[2*num_k:3*num_k])]
         times = [integrator.y[2*num_k:3*num_k]]
 
         # Perform integration
         while integrator.successful() and integrator.t < endN:
-            newN = integrator.t + 0.5
+            newN = integrator.t + 0.1
             if newN > endN:
-                newN = endN
+                newN = endN + 1e-8
             integrator.integrate(newN)
 
             # Save results
@@ -166,22 +173,21 @@ class PowerSpectrum(Persistence):
             times.append(timevals)
 
             rvals = integrator.y[0:num_k] - timevals
-            Rvals.append(np.exp(rvals))
+            Rvals.append(exp(rvals))
             
         # Convert results into one big array
         Rvals = np.array(Rvals)
         times = np.array(times)
 
-        df_rvals = pd.DataFrame(Rvals, columns=list(kvals))
-        df_times = pd.DataFrame(times, columns=list(kvals))
+        self.df_rvals = pd.DataFrame(Rvals, columns=list(kvals))
+        self.df_times = pd.DataFrame(times, columns=list(kvals))
         
-        df_rvals.to_csv('rvals.csv')
-        df_times.to_csv('times.csv')
-
-        # For each k value, construct an interpolator over the R values and times
-        # for idx, k in enumerate(kvals):
-        #     interp = InterpolatedUnivariateSpline(times[idx], Rvals[idx], k=3, ext='raise')
-
+        # For each k value, construct an interpolator over the R values and times to get the R value at N = endN
+        Rend = []
+        for idx, k in enumerate(kvals):
+            interp = InterpolatedUnivariateSpline(times[:, idx], Rvals[:, idx], k=3, ext='raise')
+            Rend.append(interp(endN))
+        Rend = np.array(Rend)
 
         # Compute the power spectrum!
-        Pk = Rvals[-1] * Rvals[-1] / (2*pi)**3 / 2 / kvals
+        self.spectrum = Rend**2 / (2*pi)**3 / 2 / kvals
