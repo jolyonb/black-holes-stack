@@ -82,7 +82,10 @@ class Moments(Persistence):
         spectrum = self.model.powerspectrum
 
         def func(k):
-            return k ** (2 + 2 * n) * spectrum(k)
+            spec = spectrum(k)
+            if spec < 0:
+                raise ValueError(f'Found negative value for spectrum at k={k}, P(k)={spec}')
+            return k ** (2 + 2 * n) * spec
         
         integral, err = quad(func, spectrum.min_k, spectrum.max_k, epsabs=self.err_abs, epsrel=self.err_rel)
 
