@@ -95,10 +95,14 @@ class Persistence(ABC):
             recalculate = True
         
         if recalculate:
+            if self.model.verbose:
+                print('    Computing...')
             self.compute_data()
             self.save_data()
             self.save_model_params()
         else:
+            if self.model.verbose:
+                print('    Loading...')
             self.load_data()
             self.timestamp = self.check_model_params()  # Save timestamp only after successfully loading data
 
@@ -115,6 +119,9 @@ class Persistence(ABC):
             f.write(f'n_fields: {self.model.n_fields}\n')
             f.write(f'mpsi: {self.model.mpsi}\n')
             f.write(f'm0: {self.model.m0}\n')
+            f.write(f'min_k: {self.model.min_k}\n')
+            f.write(f'num_modes: {self.model.num_modes}\n')
+            f.write(f'max_k: {self.model.max_k}\n')
 
     def check_model_params(self) -> Union[datetime.datetime, None]:
         """
@@ -130,11 +137,14 @@ class Persistence(ABC):
         trimmed = [x.split(":", 1)[1].strip() for x in data]
         
         # Unpack and convert data into appropriate types
-        timestamp, n_efolds, n_fields, mpsi, m0 = trimmed
+        timestamp, n_efolds, n_fields, mpsi, m0, min_k, num_modes, max_k = trimmed
         n_efolds = float(n_efolds)
         n_fields = int(n_fields)
         mpsi = float(mpsi)
         m0 = float(m0)
+        min_k = float(min_k)
+        num_modes = int(num_modes)
+        max_k = float(max_k)
         timestamp = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
 
         # Check data for agreement with model
@@ -145,6 +155,12 @@ class Persistence(ABC):
         if mpsi != self.model.mpsi:
             return None
         if m0 != self.model.m0:
+            return None
+        if min_k != self.model.min_k:
+            return None
+        if num_modes != self.model.num_modes:
+            return None
+        if max_k != self.model.max_k:
             return None
 
         return timestamp

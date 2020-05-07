@@ -18,6 +18,10 @@ from stack.common import Persistence
 if TYPE_CHECKING:
     from stack import Model
 
+# Raise errors on issues rather than printing warnings
+np.seterr(all='raise')
+
+
 class PowerSpectrum(Persistence):
     """
     Computes the power spectrum for hybrid inflation theories
@@ -145,7 +149,7 @@ class PowerSpectrum(Persistence):
             delta = x[0:num_k]
             deltadot = x[num_k:2*num_k]
             Nvals = x[2*num_k:3*num_k]
-            # Compute the second derivative of R
+            # Compute deltaddot
             deltaddot = - (deltadot**2 + deltadot - 2 + kvals2 * exp(-2 * Nvals) * (1 - exp(-4 * delta)) + muphi2 * (exp(-mupsi2 * Nvals) - 1))
             # N increases linearly in time
             Ndot = np.ones_like(Nvals)
