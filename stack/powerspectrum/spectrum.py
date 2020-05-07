@@ -8,6 +8,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 from numpy import exp, log, pi, log10
+import math
 from scipy.integrate import ode
 from scipy.interpolate import InterpolatedUnivariateSpline
 
@@ -44,7 +45,7 @@ class PowerSpectrum(Persistence):
 
         # Error tolerances used in computing ODE solutions
         self.err_abs = 1e-10
-        self.err_rel = 1e-13
+        self.err_rel = 1e-10
         self.df_rvals = None
         self.df_times = None
 
@@ -107,6 +108,7 @@ class PowerSpectrum(Persistence):
         mupsi2 = self.model.mupsi2
         endN = self.model.n_efolds
         kvals = self.kvals
+        kvals = self.kvals[0:1]
         kvals2 = kvals**2
         num_k = len(kvals)
 
@@ -137,7 +139,7 @@ class PowerSpectrum(Persistence):
         # TODO: Check the derivative initial condition corrections
         Rdot0 = - exp(-startN) + correction + muphi2**2 / 2 * correction01 * exp(-mupsi2 * startN)
         
-        # Convert to delta = log(R) - N
+        # Convert to delta = log(R) + N
         delta0 = log(R0) + startN
         deltadot0 = Rdot0 / R0 + 1
         
@@ -150,7 +152,10 @@ class PowerSpectrum(Persistence):
             deltadot = x[num_k:2*num_k]
             Nvals = x[2*num_k:3*num_k]
             # Compute deltaddot
-            deltaddot = - (deltadot**2 + deltadot - 2 + kvals2 * exp(-2 * Nvals) * (1 - exp(-4 * delta)) + muphi2 * (exp(-mupsi2 * Nvals) - 1))
+            try:
+                deltaddot = - (deltadot**2 + deltadot - 2 + kvals2 * exp(-2 * Nvals) * (1 - exp(-4 * delta)) + muphi2 * (exp(-mupsi2 * Nvals) - 1))
+            except FloatingPointError:
+                pass
             # N increases linearly in time
             Ndot = np.ones_like(Nvals)
             # Return results
@@ -158,7 +163,7 @@ class PowerSpectrum(Persistence):
             return derivatives
 
         # Set up the integrator
-        integrator = ode(derivs).set_integrator('dop853', rtol=self.err_rel, atol=self.err_abs, nsteps=100000)
+        integrator = ode(derivs).set_integrator('dop853', rtol=self.err_rel, atol=self.err_abs, nsteps=100000, first_step=1e-6, max_step=1e-2)
         integrator.set_initial_value(ics, minN)
 
         # Save initial conditions
@@ -166,8 +171,17 @@ class PowerSpectrum(Persistence):
         times = [integrator.y[2*num_k:3*num_k]]
 
         # Perform integration
+        integrator.integrate(math.ceil(minN))
+
+        # Save results
+        timevals = integrator.y[2 * num_k:3 * num_k]
+        times.append(timevals)
+
+        rvals = integrator.y[0:num_k] - timevals
+        Rvals.append(exp(rvals))
+
         while integrator.successful() and integrator.t < endN:
-            newN = integrator.t + 0.1
+            newN = integrator.t + 1
             if newN > endN:
                 newN = endN + 1e-8
             integrator.integrate(newN)
@@ -186,12 +200,14 @@ class PowerSpectrum(Persistence):
         self.df_rvals = pd.DataFrame(Rvals, columns=list(kvals))
         self.df_times = pd.DataFrame(times, columns=list(kvals))
         
-        # For each k value, construct an interpolator over the R values and times to get the R value at N = endN
-        Rend = []
-        for idx, k in enumerate(kvals):
-            interp = InterpolatedUnivariateSpline(times[:, idx], Rvals[:, idx], k=3, ext='raise')
-            Rend.append(interp(endN))
-        Rend = np.array(Rend)
+        # # For each k value, construct an interpolator over the R values and times to get the R value at N = endN
+        # Rend = []
+        # for idx, k in enumerate(kvals):
+        #     interp = InterpolatedUnivariateSpline(times[:, idx], Rvals[:, idx], k=3, ext='raise')
+        #     Rend.append(interp(endN))
+        # Rend = np.array(Rend)
 
         # Compute the power spectrum!
-        self.spectrum = Rend**2 / (2*pi)**3 / 2 / kvals
+        #self.spectrum = Rend**2 / (2*pi)**3 / 2 / kvals
+
+        self.spectrum = np.ones_like(self.kvals)
