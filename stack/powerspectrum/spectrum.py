@@ -159,10 +159,7 @@ class PowerSpectrum(Persistence):
             deltadot = x[num_k:2*num_k]
             Nvals = x[2*num_k:3*num_k]
             # Compute deltaddot
-            try:
-                deltaddot = - deltadot**2 - deltadot + 2 + kvals2 * exp(-2 * Nvals) * expm1(-4 * delta) - muphi2 * (exp(-mupsi2 * Nvals) - 1)
-            except FloatingPointError:
-                pass
+            deltaddot = - deltadot**2 - deltadot + 2 + kvals2 * exp(-2 * Nvals) * expm1(-4 * delta) - muphi2 * (exp(-mupsi2 * Nvals) - 1)
             # N increases linearly in time
             Ndot = np.ones_like(Nvals)
             # Return results

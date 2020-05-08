@@ -40,8 +40,8 @@ class Moments(Persistence):
         self.gamma = None
         
         # Error tolerances used in computing moment integrals
-        self.err_abs = 1e-10
-        self.err_rel = 1e-10
+        self.err_abs = 0
+        self.err_rel = 5e-6
 
     def load_data(self) -> None:
         """Load the power spectrum from file"""

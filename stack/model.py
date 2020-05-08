@@ -24,7 +24,7 @@ class Model(object):
                  m0: float,
                  # Power spectrum parameters
                  min_k: float = 1e-5,
-                 num_modes: int = 201,
+                 num_modes: int = 401,
                  max_k: float = 1e3,
                  # Control options
                  recompute_all: bool = False,

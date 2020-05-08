@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     25853,        712]
-NotebookOptionsPosition[     20697,        638]
-NotebookOutlinePosition[     21065,        654]
-CellTagsIndexPosition[     21022,        651]
+NotebookDataLength[     25900,        713]
+NotebookOptionsPosition[     20744,        639]
+NotebookOutlinePosition[     21112,        655]
+CellTagsIndexPosition[     21069,        652]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -27,7 +27,7 @@ Cell[BoxData[
   RowBox[{"SetDirectory", "[", 
    RowBox[{"NotebookDirectory", "[", "]"}], "]"}], ";"}]], "Input",
  CellLabel->
-  "In[332]:=",ExpressionUUID->"2b8f3351-0612-4b50-b71d-8a7aff1dc808"],
+  "In[411]:=",ExpressionUUID->"2b8f3351-0612-4b50-b71d-8a7aff1dc808"],
 
 Cell["\<\
 Set the name of the model to load the power spectrum mode function results \
@@ -38,7 +38,7 @@ Cell[BoxData[
  RowBox[{
   RowBox[{"modelname", "=", "\"\<testmodel\>\""}], ";"}]], "Input",
  CellLabel->
-  "In[333]:=",ExpressionUUID->"748e888a-c7d0-4f04-8980-139ef7df04e1"],
+  "In[412]:=",ExpressionUUID->"748e888a-c7d0-4f04-8980-139ef7df04e1"],
 
 Cell["\<\
 Load the mode function data. Should output \[OpenCurlyQuote]True\
@@ -87,7 +87,7 @@ Cell[BoxData[{
   ";"}], "\[IndentingNewLine]", 
  RowBox[{"Length", "[", "kvals", "]"}]}], "Input",
  CellLabel->
-  "In[334]:=",ExpressionUUID->"97fb9039-124a-415f-9024-28b313c50cf1"],
+  "In[413]:=",ExpressionUUID->"97fb9039-124a-415f-9024-28b313c50cf1"],
 
 Cell["\<\
 Select index to view (this will be used in sections below also).\
@@ -95,11 +95,11 @@ Select index to view (this will be used in sections below also).\
 
 Cell[BoxData[{
  RowBox[{
-  RowBox[{"idx", "=", "130"}], ";"}], "\[IndentingNewLine]", 
+  RowBox[{"idx", "=", "100"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{"kvals", "[", 
   RowBox[{"[", "idx", "]"}], "]"}]}], "Input",
  CellLabel->
-  "In[341]:=",ExpressionUUID->"428e9752-512f-43c2-b7a2-5eba348101ed"],
+  "In[420]:=",ExpressionUUID->"428e9752-512f-43c2-b7a2-5eba348101ed"],
 
 Cell["Plot the mode function.", "Text",ExpressionUUID->"03f67967-bf14-4abe-a21b-a440e1052f9b"],
 
@@ -115,7 +115,7 @@ Cell[BoxData[
        RowBox[{"[", "idx", "]"}], "]"}]}], "}"}], "]"}], ",", 
    RowBox[{"Joined", "\[Rule]", "True"}]}], "]"}]], "Input",
  CellLabel->
-  "In[343]:=",ExpressionUUID->"f6c03e2b-9d2e-4bb8-980c-9d8cd91d80fd"]
+  "In[422]:=",ExpressionUUID->"f6c03e2b-9d2e-4bb8-980c-9d8cd91d80fd"]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -137,7 +137,7 @@ Cell[BoxData[{
  RowBox[{
   RowBox[{"endN", "=", "15"}], ";"}]}], "Input",
  CellLabel->
-  "In[344]:=",ExpressionUUID->"3ddbd297-7abd-4290-b0b0-dbebd75464cb"],
+  "In[423]:=",ExpressionUUID->"3ddbd297-7abd-4290-b0b0-dbebd75464cb"],
 
 Cell["Set model parameters.", "Text",ExpressionUUID->"fe6aaa7e-89bf-425f-98fc-a78612cbc769"],
 
@@ -163,7 +163,7 @@ Cell[BoxData[{
            RowBox[{"\[Mu]\[Psi]", "^", "2"}]}]}], "]"}]}], "]"}]}], "/.", 
      "params"}]}], "]"}], ";"}]}], "Input",
  CellLabel->
-  "In[346]:=",ExpressionUUID->"fffd33a8-dcda-4fc0-9d23-90080f3a38ae"],
+  "In[425]:=",ExpressionUUID->"fffd33a8-dcda-4fc0-9d23-90080f3a38ae"],
 
 Cell["Equation of motion for R for a given ktilde value.", "Text",ExpressionUUID->"bd1b2296-673c-43af-bbac-108315e309ea"],
 
@@ -201,7 +201,7 @@ Cell[BoxData[
          RowBox[{"\[Mu]\[Psi]tilde", "^", "2"}]}], "Ne"}], "]"}]}], ")"}], 
     RowBox[{"R", "[", "Ne", "]"}]}]}]}]], "Input",
  CellLabel->
-  "In[348]:=",ExpressionUUID->"6a6e78d3-8593-4b87-bbe1-7314243798ff"],
+  "In[427]:=",ExpressionUUID->"6a6e78d3-8593-4b87-bbe1-7314243798ff"],
 
 Cell["\<\
 Setting R(N)=Exp[\[Delta](N)- N], this is the equation of motion for \[Delta] \
@@ -244,7 +244,7 @@ Cell[BoxData[
          RowBox[{"\[Mu]\[Psi]tilde", "^", "2"}]}], "Ne"}], "]"}]}], 
      ")"}]}]}]}]], "Input",
  CellLabel->
-  "In[349]:=",ExpressionUUID->"c979a66c-c16d-4d72-b424-142ba80c4f84"],
+  "In[428]:=",ExpressionUUID->"c979a66c-c16d-4d72-b424-142ba80c4f84"],
 
 Cell["\<\
 Set initial conditions (note - no corrections, should be fixed).\
@@ -280,7 +280,7 @@ Cell[BoxData[
          RowBox[{"\[Delta]", "'"}], "[", "startN", "]"}], "\[Equal]", "0"}]}],
        "\[IndentingNewLine]", "}"}]}], ";"}]}]}]], "Input",
  CellLabel->
-  "In[350]:=",ExpressionUUID->"e8c8a63f-a80b-4899-8183-ebc528e87a7b"],
+  "In[429]:=",ExpressionUUID->"e8c8a63f-a80b-4899-8183-ebc528e87a7b"],
 
 Cell["Solvers", "Text",ExpressionUUID->"f191642d-8bf1-4773-afe6-745d45f2d38e"],
 
@@ -310,7 +310,7 @@ Cell[BoxData[{
     RowBox[{"{", 
      RowBox[{"Ne", ",", "startN", ",", "endN"}], "}"}]}], "]"}]}]}], "Input",
  CellLabel->
-  "In[352]:=",ExpressionUUID->"803fc365-b699-4f6f-8172-e7d9e17d1fd9"],
+  "In[431]:=",ExpressionUUID->"803fc365-b699-4f6f-8172-e7d9e17d1fd9"],
 
 Cell["Compute solution", "Text",ExpressionUUID->"4c6517e7-7903-4c43-bd7e-689b758add35"],
 
@@ -326,7 +326,7 @@ Cell[BoxData[{
   RowBox[{"sol\[Delta]", "=", 
    RowBox[{"\[Delta]ksol", "[", "k", "]"}]}], ";"}]}], "Input",
  CellLabel->
-  "In[354]:=",ExpressionUUID->"b507ee7e-34c4-4fee-b906-511f8eb58576"],
+  "In[433]:=",ExpressionUUID->"b507ee7e-34c4-4fee-b906-511f8eb58576"],
 
 Cell["Plot both results", "Text",ExpressionUUID->"9506f8bd-c38a-4398-a2a1-d2dfbaa6a8e0"],
 
@@ -356,7 +356,7 @@ Cell[BoxData[{
     RowBox[{"Ne", ",", "startN", ",", "endN"}], "}"}], ",", 
    RowBox[{"PlotRange", "\[Rule]", "All"}]}], "]"}]}], "Input",
  CellLabel->
-  "In[357]:=",ExpressionUUID->"993bdc3d-7fb5-4ec1-b05a-d94608f43e30"],
+  "In[436]:=",ExpressionUUID->"993bdc3d-7fb5-4ec1-b05a-d94608f43e30"],
 
 Cell["Plot difference between results", "Text",ExpressionUUID->"963429cb-530f-43af-a686-c1f5171cb803"],
 
@@ -374,14 +374,15 @@ Cell[BoxData[
     RowBox[{"Ne", ",", "startN", ",", "endN"}], "}"}], ",", 
    RowBox[{"PlotRange", "\[Rule]", "All"}]}], "]"}]], "Input",
  CellLabel->
-  "In[359]:=",ExpressionUUID->"1cd078f5-262c-4a52-9077-c16315ef1e39"],
+  "In[438]:=",ExpressionUUID->"1cd078f5-262c-4a52-9077-c16315ef1e39"],
 
 Cell["\<\
 Note that results are equivalent at around the 10^-6 level. Mathematica\
 \[CloseCurlyQuote]s ODE integration routines by default use ~10^-7 for both \
 absolute and relative tolerances, so this is to be expected. The point to \
-take away form this is that either the R form or the \[Delta] form give the \
-same results. However, one is much easier to integrate than the other.\
+take away from this is that either the R form or the \[Delta] form give the \
+same results. However, the \[Delta] form is easier on the integrator than the \
+R form, which grows exponentially.\
 \>", "Text",ExpressionUUID->"54ad0a3d-e484-430f-9192-9656921cfdc5"]
 }, Open  ]],
 
@@ -419,7 +420,7 @@ Cell[BoxData[
        RowBox[{"Red", ",", " ", "Dashed"}], "}"}]}]}], "]"}]}], 
   "]"}]], "Input",
  CellLabel->
-  "In[360]:=",ExpressionUUID->"180c1a4b-8266-4e09-8267-fd5175079b8c"],
+  "In[439]:=",ExpressionUUID->"180c1a4b-8266-4e09-8267-fd5175079b8c"],
 
 Cell["Here are the relative residuals, using MMA as a baseline.", "Text",ExpressionUUID->"bef2f854-ebb8-4319-9706-223b9d8a5dd5"],
 
@@ -458,7 +459,7 @@ Cell[BoxData[{
              RowBox[{"Length", "[", "values", "]"}]}]}], "]"}], "]"}]}], 
         ")"}], "/", "values"}], "]"}]}], "}"}], "]"}], "]"}]}], "Input",
  CellLabel->
-  "In[361]:=",ExpressionUUID->"28d851b9-950d-4fd0-a897-75cd0b8f2e44"],
+  "In[440]:=",ExpressionUUID->"28d851b9-950d-4fd0-a897-75cd0b8f2e44"],
 
 Cell["\<\
 Note the agreement at the 10^-7 level. This is to be expected, given that \
@@ -489,14 +490,14 @@ Cell[BoxData[
     RowBox[{"AccuracyGoal", "\[Rule]", "12"}], ",", 
     RowBox[{"PrecisionGoal", "\[Rule]", "12"}]}], "]"}]}]], "Input",
  CellLabel->
-  "In[364]:=",ExpressionUUID->"8fa87aa0-fab4-49c1-ab4e-34876495e1ea"],
+  "In[443]:=",ExpressionUUID->"8fa87aa0-fab4-49c1-ab4e-34876495e1ea"],
 
 Cell[BoxData[
  RowBox[{
   RowBox[{"sol\[Delta]Hi", "=", 
    RowBox[{"\[Delta]ksolHi", "[", "k", "]"}]}], ";"}]], "Input",
  CellLabel->
-  "In[365]:=",ExpressionUUID->"5d397837-bed2-41e6-8b3f-b1c17249dd3e"],
+  "In[444]:=",ExpressionUUID->"5d397837-bed2-41e6-8b3f-b1c17249dd3e"],
 
 Cell["\<\
 Here are the relative residuals between Python and MMA, using MMA as a \
@@ -538,7 +539,7 @@ Cell[BoxData[{
              RowBox[{"Length", "[", "values", "]"}]}]}], "]"}], "]"}]}], 
         ")"}], "/", "values"}], "]"}]}], "}"}], "]"}], "]"}]}], "Input",
  CellLabel->
-  "In[366]:=",ExpressionUUID->"ae95bb67-ad97-4b8d-9e4f-2f602d3778e5"],
+  "In[445]:=",ExpressionUUID->"ae95bb67-ad97-4b8d-9e4f-2f602d3778e5"],
 
 Cell["\<\
 Results here depend on the choice of idx, but should come in around the \
@@ -573,7 +574,7 @@ Cell[BoxData[
     RowBox[{"PrecisionGoal", "\[Rule]", "15"}], ",", 
     RowBox[{"MaxSteps", "\[Rule]", "1000000"}]}], "]"}]}]], "Input",
  CellLabel->
-  "In[369]:=",ExpressionUUID->"2e0729c7-211f-481a-8ba4-64dfcb003b38"],
+  "In[448]:=",ExpressionUUID->"2e0729c7-211f-481a-8ba4-64dfcb003b38"],
 
 Cell["We time this to see how long it takes.", "Text",ExpressionUUID->"dd8712cc-d3ee-4cfb-8524-38547895d04c"],
 
@@ -585,7 +586,7 @@ Cell[BoxData[
      RowBox[{"\[Delta]ksolMax", "[", "k", "]"}]}], ";"}], "]"}], "[", 
   RowBox[{"[", "1", "]"}], "]"}]], "Input",
  CellLabel->
-  "In[370]:=",ExpressionUUID->"0aed8fe4-c704-4d40-8f27-660566b50539"],
+  "In[449]:=",ExpressionUUID->"0aed8fe4-c704-4d40-8f27-660566b50539"],
 
 Cell["\<\
 Somewhat slower! (Around a minute on my laptop.) Mathematica warns that the \
@@ -628,10 +629,10 @@ Cell[BoxData[{
              RowBox[{"Length", "[", "values", "]"}]}]}], "]"}], "]"}]}], 
         ")"}], "/", "values"}], "]"}]}], "}"}], "]"}], "]"}]}], "Input",
  CellLabel->
-  "In[371]:=",ExpressionUUID->"944ea258-390f-426e-a257-03c77cc6a6ed"],
+  "In[450]:=",ExpressionUUID->"944ea258-390f-426e-a257-03c77cc6a6ed"],
 
 Cell["\<\
-Again, results here depend on the choice of idx, but can come in at around \
+Again, results here depend on the choice of idx, but should come in at around \
 the 10^-13 level.\
 \>", "Text",ExpressionUUID->"69d21292-61ef-43ba-b3a8-ec5ad8299741"]
 }, Open  ]]
@@ -685,34 +686,34 @@ Cell[10304, 330, 88, 0, 35, "Text",ExpressionUUID->"9506f8bd-c38a-4398-a2a1-d2df
 Cell[10395, 332, 875, 26, 52, "Input",ExpressionUUID->"993bdc3d-7fb5-4ec1-b05a-d94608f43e30"],
 Cell[11273, 360, 102, 0, 35, "Text",ExpressionUUID->"963429cb-530f-43af-a686-c1f5171cb803"],
 Cell[11378, 362, 501, 14, 30, "Input",ExpressionUUID->"1cd078f5-262c-4a52-9077-c16315ef1e39"],
-Cell[11882, 378, 454, 6, 58, "Text",ExpressionUUID->"54ad0a3d-e484-430f-9192-9656921cfdc5"]
+Cell[11882, 378, 498, 7, 58, "Text",ExpressionUUID->"54ad0a3d-e484-430f-9192-9656921cfdc5"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[12373, 389, 152, 2, 67, "Section",ExpressionUUID->"ae3f1c99-7953-4bc5-8153-fb4a3a318660"],
-Cell[12528, 393, 148, 2, 35, "Text",ExpressionUUID->"3d444188-788f-4423-992b-7c642ed69453"],
-Cell[12679, 397, 830, 24, 30, "Input",ExpressionUUID->"180c1a4b-8266-4e09-8267-fd5175079b8c"],
-Cell[13512, 423, 128, 0, 35, "Text",ExpressionUUID->"bef2f854-ebb8-4319-9706-223b9d8a5dd5"],
-Cell[13643, 425, 1142, 35, 73, "Input",ExpressionUUID->"28d851b9-950d-4fd0-a897-75cd0b8f2e44"],
-Cell[14788, 462, 276, 4, 35, "Text",ExpressionUUID->"a9a04ae1-5b7f-4425-bcd8-23a720b4ccf6"]
+Cell[12417, 390, 152, 2, 67, "Section",ExpressionUUID->"ae3f1c99-7953-4bc5-8153-fb4a3a318660"],
+Cell[12572, 394, 148, 2, 35, "Text",ExpressionUUID->"3d444188-788f-4423-992b-7c642ed69453"],
+Cell[12723, 398, 830, 24, 30, "Input",ExpressionUUID->"180c1a4b-8266-4e09-8267-fd5175079b8c"],
+Cell[13556, 424, 128, 0, 35, "Text",ExpressionUUID->"bef2f854-ebb8-4319-9706-223b9d8a5dd5"],
+Cell[13687, 426, 1142, 35, 73, "Input",ExpressionUUID->"28d851b9-950d-4fd0-a897-75cd0b8f2e44"],
+Cell[14832, 463, 276, 4, 35, "Text",ExpressionUUID->"a9a04ae1-5b7f-4425-bcd8-23a720b4ccf6"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[15101, 471, 113, 0, 67, "Section",ExpressionUUID->"f4233fd7-ae6a-4b0e-b046-e3f626f3fff6"],
-Cell[15217, 473, 116, 0, 35, "Text",ExpressionUUID->"912d4690-8816-426b-86d6-a5eb972b3a02"],
-Cell[15336, 475, 610, 16, 30, "Input",ExpressionUUID->"8fa87aa0-fab4-49c1-ab4e-34876495e1ea"],
-Cell[15949, 493, 204, 5, 30, "Input",ExpressionUUID->"5d397837-bed2-41e6-8b3f-b1c17249dd3e"],
-Cell[16156, 500, 161, 3, 35, "Text",ExpressionUUID->"28a8e122-c6b5-4229-881a-46cbf4c123db"],
-Cell[16320, 505, 1144, 35, 73, "Input",ExpressionUUID->"ae95bb67-ad97-4b8d-9e4f-2f602d3778e5"],
-Cell[17467, 542, 166, 3, 35, "Text",ExpressionUUID->"80395d8b-efef-48b5-9e5c-e29c619ad9db"]
+Cell[15145, 472, 113, 0, 67, "Section",ExpressionUUID->"f4233fd7-ae6a-4b0e-b046-e3f626f3fff6"],
+Cell[15261, 474, 116, 0, 35, "Text",ExpressionUUID->"912d4690-8816-426b-86d6-a5eb972b3a02"],
+Cell[15380, 476, 610, 16, 30, "Input",ExpressionUUID->"8fa87aa0-fab4-49c1-ab4e-34876495e1ea"],
+Cell[15993, 494, 204, 5, 30, "Input",ExpressionUUID->"5d397837-bed2-41e6-8b3f-b1c17249dd3e"],
+Cell[16200, 501, 161, 3, 35, "Text",ExpressionUUID->"28a8e122-c6b5-4229-881a-46cbf4c123db"],
+Cell[16364, 506, 1144, 35, 73, "Input",ExpressionUUID->"ae95bb67-ad97-4b8d-9e4f-2f602d3778e5"],
+Cell[17511, 543, 166, 3, 35, "Text",ExpressionUUID->"80395d8b-efef-48b5-9e5c-e29c619ad9db"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[17670, 550, 118, 0, 67, "Section",ExpressionUUID->"656ba247-776c-47f0-9001-88bf74d17899"],
-Cell[17791, 552, 168, 3, 35, "Text",ExpressionUUID->"6c82f3fd-a39e-4c7f-b3b7-c80764e84eaa"],
-Cell[17962, 557, 722, 18, 30, "Input",ExpressionUUID->"2e0729c7-211f-481a-8ba4-64dfcb003b38"],
-Cell[18687, 577, 109, 0, 35, "Text",ExpressionUUID->"dd8712cc-d3ee-4cfb-8524-38547895d04c"],
-Cell[18799, 579, 295, 8, 30, "Input",ExpressionUUID->"0aed8fe4-c704-4d40-8f27-660566b50539"],
-Cell[19097, 589, 260, 4, 35, "Text",ExpressionUUID->"63806abc-52dd-4bb2-9756-838fc8e1ee76"],
-Cell[19360, 595, 1145, 35, 73, "Input",ExpressionUUID->"944ea258-390f-426e-a257-03c77cc6a6ed"],
-Cell[20508, 632, 173, 3, 35, "Text",ExpressionUUID->"69d21292-61ef-43ba-b3a8-ec5ad8299741"]
+Cell[17714, 551, 118, 0, 67, "Section",ExpressionUUID->"656ba247-776c-47f0-9001-88bf74d17899"],
+Cell[17835, 553, 168, 3, 35, "Text",ExpressionUUID->"6c82f3fd-a39e-4c7f-b3b7-c80764e84eaa"],
+Cell[18006, 558, 722, 18, 30, "Input",ExpressionUUID->"2e0729c7-211f-481a-8ba4-64dfcb003b38"],
+Cell[18731, 578, 109, 0, 35, "Text",ExpressionUUID->"dd8712cc-d3ee-4cfb-8524-38547895d04c"],
+Cell[18843, 580, 295, 8, 30, "Input",ExpressionUUID->"0aed8fe4-c704-4d40-8f27-660566b50539"],
+Cell[19141, 590, 260, 4, 35, "Text",ExpressionUUID->"63806abc-52dd-4bb2-9756-838fc8e1ee76"],
+Cell[19404, 596, 1145, 35, 73, "Input",ExpressionUUID->"944ea258-390f-426e-a257-03c77cc6a6ed"],
+Cell[20552, 633, 176, 3, 35, "Text",ExpressionUUID->"69d21292-61ef-43ba-b3a8-ec5ad8299741"]
 }, Open  ]]
 }
 ]
