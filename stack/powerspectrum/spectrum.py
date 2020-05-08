@@ -7,8 +7,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-from numpy import exp, log, pi, log10
-import math
+from numpy import exp, log, pi, log10, expm1
 from scipy.integrate import ode
 from scipy.interpolate import InterpolatedUnivariateSpline
 
@@ -44,8 +43,10 @@ class PowerSpectrum(Persistence):
         self.interp = None
 
         # Error tolerances used in computing ODE solutions
-        self.err_abs = 1e-10
-        self.err_rel = 1e-10
+        self.err_abs = 0
+        self.err_rel = 1e-13
+        
+        # Storage for mode function integration
         self.df_rvals = None
         self.df_times = None
 
@@ -108,7 +109,6 @@ class PowerSpectrum(Persistence):
         mupsi2 = self.model.mupsi2
         endN = self.model.n_efolds
         kvals = self.kvals
-        kvals = self.kvals[0:1]
         kvals2 = kvals**2
         num_k = len(kvals)
 
@@ -136,12 +136,19 @@ class PowerSpectrum(Persistence):
         # Set up the initial conditions
         correction = correction1 + correction2 + correction3
         R0 = exp(-startN) + correction
-        # TODO: Check the derivative initial condition corrections
-        Rdot0 = - exp(-startN) + correction + muphi2**2 / 2 * correction01 * exp(-mupsi2 * startN)
+        # TODO: Check the derivative initial condition corrections for Rdot0 and deltadot0. Pretty sure they're wrong.
+        # Rdot0 = - exp(-startN) + correction + muphi2**2 / 2 * correction01 * exp(-mupsi2 * startN)
         
         # Convert to delta = log(R) + N
-        delta0 = log(R0) + startN
-        deltadot0 = Rdot0 / R0 + 1
+        delta0 = log(R0 * exp(startN))  # To avoid catastropic loss of precision due to cancellation
+        # deltadot0 = Rdot0 / R0 + 1    # Affected by catastrophic loss of precision due to cancellation
+        # The below is a first-order approximation that will be more accurate
+        deltadot0 = (correction + muphi2**2 / 2 * correction01 * exp(-mupsi2 * startN)) * exp(startN)
+        
+        # For now, set up initial conditions to match Mathematica
+        # TODO: Remove these lines
+        delta0 *= 0
+        deltadot0 *= 0
         
         ics = np.concatenate([delta0, deltadot0, startN])
 
@@ -153,7 +160,7 @@ class PowerSpectrum(Persistence):
             Nvals = x[2*num_k:3*num_k]
             # Compute deltaddot
             try:
-                deltaddot = - (deltadot**2 + deltadot - 2 + kvals2 * exp(-2 * Nvals) * (1 - exp(-4 * delta)) + muphi2 * (exp(-mupsi2 * Nvals) - 1))
+                deltaddot = - deltadot**2 - deltadot + 2 + kvals2 * exp(-2 * Nvals) * expm1(-4 * delta) - muphi2 * (exp(-mupsi2 * Nvals) - 1)
             except FloatingPointError:
                 pass
             # N increases linearly in time
@@ -171,17 +178,8 @@ class PowerSpectrum(Persistence):
         times = [integrator.y[2*num_k:3*num_k]]
 
         # Perform integration
-        integrator.integrate(math.ceil(minN))
-
-        # Save results
-        timevals = integrator.y[2 * num_k:3 * num_k]
-        times.append(timevals)
-
-        rvals = integrator.y[0:num_k] - timevals
-        Rvals.append(exp(rvals))
-
         while integrator.successful() and integrator.t < endN:
-            newN = integrator.t + 1
+            newN = integrator.t + 0.1
             if newN > endN:
                 newN = endN + 1e-8
             integrator.integrate(newN)
@@ -200,14 +198,12 @@ class PowerSpectrum(Persistence):
         self.df_rvals = pd.DataFrame(Rvals, columns=list(kvals))
         self.df_times = pd.DataFrame(times, columns=list(kvals))
         
-        # # For each k value, construct an interpolator over the R values and times to get the R value at N = endN
-        # Rend = []
-        # for idx, k in enumerate(kvals):
-        #     interp = InterpolatedUnivariateSpline(times[:, idx], Rvals[:, idx], k=3, ext='raise')
-        #     Rend.append(interp(endN))
-        # Rend = np.array(Rend)
+        # For each k value, construct an interpolator over the R values and times to get the R value at N = endN
+        Rend = []
+        for idx, k in enumerate(kvals):
+            interp = InterpolatedUnivariateSpline(times[:, idx], Rvals[:, idx], k=3, ext='raise')
+            Rend.append(interp(endN))
+        Rend = np.array(Rend)
 
         # Compute the power spectrum!
-        #self.spectrum = Rend**2 / (2*pi)**3 / 2 / kvals
-
-        self.spectrum = np.ones_like(self.kvals)
+        self.spectrum = Rend**2 / (2*pi)**3 / 2 / kvals
