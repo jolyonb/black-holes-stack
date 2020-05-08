@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-from numpy import exp, log, pi, log10
+from numpy import exp, log, pi, log10, expm1
 from scipy.integrate import ode
 from scipy.interpolate import InterpolatedUnivariateSpline
 
@@ -43,8 +43,10 @@ class PowerSpectrum(Persistence):
         self.interp = None
 
         # Error tolerances used in computing ODE solutions
-        self.err_abs = 1e-10
+        self.err_abs = 0
         self.err_rel = 1e-13
+        
+        # Storage for mode function integration
         self.df_rvals = None
         self.df_times = None
 
@@ -134,12 +136,19 @@ class PowerSpectrum(Persistence):
         # Set up the initial conditions
         correction = correction1 + correction2 + correction3
         R0 = exp(-startN) + correction
-        # TODO: Check the derivative initial condition corrections
-        Rdot0 = - exp(-startN) + correction + muphi2**2 / 2 * correction01 * exp(-mupsi2 * startN)
+        # TODO: Check the derivative initial condition corrections for Rdot0 and deltadot0. Pretty sure they're wrong.
+        # Rdot0 = - exp(-startN) + correction + muphi2**2 / 2 * correction01 * exp(-mupsi2 * startN)
         
-        # Convert to delta = log(R) - N
-        delta0 = log(R0) + startN
-        deltadot0 = Rdot0 / R0 + 1
+        # Convert to delta = log(R) + N
+        delta0 = log(R0 * exp(startN))  # To avoid catastropic loss of precision due to cancellation
+        # deltadot0 = Rdot0 / R0 + 1    # Affected by catastrophic loss of precision due to cancellation
+        # The below is a first-order approximation that will be more accurate
+        deltadot0 = (correction + muphi2**2 / 2 * correction01 * exp(-mupsi2 * startN)) * exp(startN)
+        
+        # For now, set up initial conditions to match Mathematica
+        # TODO: Remove these lines
+        delta0 *= 0
+        deltadot0 *= 0
         
         ics = np.concatenate([delta0, deltadot0, startN])
 
@@ -150,7 +159,7 @@ class PowerSpectrum(Persistence):
             deltadot = x[num_k:2*num_k]
             Nvals = x[2*num_k:3*num_k]
             # Compute deltaddot
-            deltaddot = - (deltadot**2 + deltadot - 2 + kvals2 * exp(-2 * Nvals) * (1 - exp(-4 * delta)) + muphi2 * (exp(-mupsi2 * Nvals) - 1))
+            deltaddot = - deltadot**2 - deltadot + 2 + kvals2 * exp(-2 * Nvals) * expm1(-4 * delta) - muphi2 * (exp(-mupsi2 * Nvals) - 1)
             # N increases linearly in time
             Ndot = np.ones_like(Nvals)
             # Return results
@@ -158,7 +167,7 @@ class PowerSpectrum(Persistence):
             return derivatives
 
         # Set up the integrator
-        integrator = ode(derivs).set_integrator('dop853', rtol=self.err_rel, atol=self.err_abs, nsteps=100000)
+        integrator = ode(derivs).set_integrator('dop853', rtol=self.err_rel, atol=self.err_abs, nsteps=100000, first_step=1e-6, max_step=1e-2)
         integrator.set_initial_value(ics, minN)
 
         # Save initial conditions
