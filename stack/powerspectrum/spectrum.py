@@ -204,3 +204,6 @@ class PowerSpectrum(Persistence):
 
         # Compute the power spectrum!
         self.spectrum = Rend**2 / (2*pi)**3 / 2 / kvals
+        
+        # Normalize the spectrum so that the first value is 100
+        self.spectrum *= 100 / self.spectrum[0]
