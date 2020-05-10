@@ -10,6 +10,7 @@ from math import sqrt
 
 from stack.powerspectrum import PowerSpectrum
 from stack.moments import Moments
+from stack.integrals import SingleBessel
 
 class Model(object):
     """Master class that controls all aspects of modelling"""
@@ -26,6 +27,7 @@ class Model(object):
                  min_k: float = 1e-5,
                  num_modes: int = 401,
                  max_k: float = 1e3,
+                 test_ps: bool = False,
                  # Control options
                  recompute_all: bool = False,
                  verbose: bool = False,
@@ -47,6 +49,7 @@ class Model(object):
         :param min_k: Minimum k to compute power spectrum at
         :param num_modes: Number of logarithmic steps to take for modes
         :param max_k: Maximum k to compute power spectrum at
+        :param test_ps: Use a dummy power spectrum
         
         Control options
         :param recompute_all: Force recomputation of everything (do not load data)
@@ -68,6 +71,7 @@ class Model(object):
         self.min_k = min_k
         self.num_modes = num_modes
         self.max_k = max_k
+        self.test_ps = test_ps
 
         # Control options
         self.recompute_all = recompute_all
@@ -90,6 +94,7 @@ class Model(object):
         # Store object class instances
         self.powerspectrum = PowerSpectrum(self)
         self.moments = Moments(self)
+        self.singlebessel = SingleBessel(self)
         
     def construct_powerspectrum(self, recalculate: bool = False) -> None:
         """Construct the data for the power spectrum (either by loading or constructing it)"""
@@ -102,4 +107,11 @@ class Model(object):
         print('Constructing moments of the power spectrum...')
         assert self.powerspectrum.ready
         self.moments.construct_data(prev_timestamp=self.powerspectrum.timestamp, recalculate=recalculate)
+        print('    Done!')
+
+    def construct_singlebessel(self) -> None:
+        """Initialize single bessel integrals"""
+        print('Initializing single bessel integrals...')
+        assert self.moments.ready
+        self.singlebessel.construct_data(prev_timestamp=self.powerspectrum.timestamp)
         print('    Done!')

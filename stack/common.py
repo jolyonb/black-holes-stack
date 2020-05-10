@@ -90,6 +90,10 @@ class Persistence(ABC):
         :param prev_timestamp: The timestamp for the computation of the previous step of the data.
         :param recalculate: Specifies whether data should be computed from scratch, ignoring any saved data.
         """
+        if self.filename is None:
+            # Used when no data needs to be persisted
+            return
+
         # Determine whether to load or recompute data
         if recalculate or self.model.recompute_all or not self.check_files(prev_timestamp):
             recalculate = True
@@ -122,6 +126,7 @@ class Persistence(ABC):
             f.write(f'min_k: {self.model.min_k}\n')
             f.write(f'num_modes: {self.model.num_modes}\n')
             f.write(f'max_k: {self.model.max_k}\n')
+            f.write(f'test_ps: {self.model.test_ps}\n')
 
     def check_model_params(self) -> Union[datetime.datetime, None]:
         """
@@ -137,7 +142,7 @@ class Persistence(ABC):
         trimmed = [x.split(":", 1)[1].strip() for x in data]
         
         # Unpack and convert data into appropriate types
-        timestamp, n_efolds, n_fields, mpsi, m0, min_k, num_modes, max_k = trimmed
+        timestamp, n_efolds, n_fields, mpsi, m0, min_k, num_modes, max_k, test_ps = trimmed
         n_efolds = float(n_efolds)
         n_fields = int(n_fields)
         mpsi = float(mpsi)
@@ -145,6 +150,7 @@ class Persistence(ABC):
         min_k = float(min_k)
         num_modes = int(num_modes)
         max_k = float(max_k)
+        test_ps = bool(test_ps)
         timestamp = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
 
         # Check data for agreement with model
@@ -161,6 +167,8 @@ class Persistence(ABC):
         if num_modes != self.model.num_modes:
             return None
         if max_k != self.model.max_k:
+            return None
+        if test_ps != self.model.test_ps:
             return None
 
         return timestamp

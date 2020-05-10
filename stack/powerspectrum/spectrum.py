@@ -35,7 +35,7 @@ class PowerSpectrum(Persistence):
         :param model: Model class we are computing the power spectrum for.
         """
         super().__init__(model)
-        
+
         self.min_k = None
         self.max_k = None
         self.kvals = None
@@ -52,6 +52,13 @@ class PowerSpectrum(Persistence):
 
     def load_data(self) -> None:
         """Load the power spectrum from file"""
+        if self.model.test_ps:
+            if self.model.verbose:
+                print('    Using dummy power spectrum')
+            self.min_k = self.model.min_k
+            self.max_k = self.model.max_k
+            return
+        
         filename = self.filename + '.csv'
         path = self.file_path(filename)
         if not self.file_exists(filename):
@@ -69,6 +76,9 @@ class PowerSpectrum(Persistence):
 
     def save_data(self) -> None:
         """Saves the power spectrum to file"""
+        if self.model.test_ps:
+            return
+
         # Save the power spectrum
         df = pd.DataFrame([self.kvals, self.spectrum]).transpose()
         df.columns = ['k', 'spectrum']
@@ -80,12 +90,22 @@ class PowerSpectrum(Persistence):
 
     def compute_data(self) -> None:
         """Compute the power spectrum for the model"""
+        if self.model.test_ps:
+            self.min_k = self.model.min_k
+            self.max_k = self.model.max_k
+            return
         self.construct_grid()
         self.construct_spectrum()
         self.construct_interpolant()
 
     def __call__(self, k) -> float:
         """Return the value of the power spectrum at a given k value"""
+        if self.model.test_ps:
+            if k < -700:
+                return float('inf')
+            if k > 700:
+                return 0
+            return exp(-k)
         return self.interp(k)
 
     def construct_grid(self) -> None:
