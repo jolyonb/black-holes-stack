@@ -12,8 +12,9 @@ Contains the Grid class, which construts a radial grid in physical space.
 # This is the peak FWHM estimate (very rough, does the job)
 # Use num_gridpoints and max_r_factor from model parameters to construct a grid
 # r_max = FWRM * max_r_factor
-# linear gridpoints at r_max / num_gridpoints spacing (start at 0, go to r_max)
+# linear gridpoints at r_max / (num_gridpoints - 1) spacing (start at 0, go to r_max)
 # Save these parameters in the persistence data
 # Persist the grid (save/load)
+# Estimate ell_max (persist this too!) using Eq 174.
 
 # Bonus points: separate PR to construct persistence model parameters nicely
