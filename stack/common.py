@@ -147,7 +147,10 @@ class Persistence(ABC):
                 return None
             # Cast the value into the correct form
             if type(self.model.__dict__[param]) != bool:
-                fields[param] = type(self.model.__dict__[param])(fields[param])
+                try:
+                    fields[param] = type(self.model.__dict__[param])(fields[param])
+                except ValueError:
+                    return None
             else:
                 fields[param] = True if fields[param] == 'True' else False
             # Compare with the current model
