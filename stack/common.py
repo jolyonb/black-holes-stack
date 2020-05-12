@@ -15,6 +15,8 @@ from typing import Union, Optional, TYPE_CHECKING
 if TYPE_CHECKING:
     from stack import Model
 
+model_params = ['n_efolds', 'n_fields', 'mpsi', 'm0', 'min_k', 'num_modes', 'max_k', 'test_ps']
+
 class Persistence(ABC):
     """Abstract base class to handle all persistence in the project"""
 
@@ -119,14 +121,8 @@ class Persistence(ABC):
         path = self.file_path(self.filename + '-params.txt')
         with open(path, 'w') as f:
             f.write(f'Timestamp: {self.timestamp}\n')
-            f.write(f'n_efolds: {self.model.n_efolds}\n')
-            f.write(f'n_fields: {self.model.n_fields}\n')
-            f.write(f'mpsi: {self.model.mpsi}\n')
-            f.write(f'm0: {self.model.m0}\n')
-            f.write(f'min_k: {self.model.min_k}\n')
-            f.write(f'num_modes: {self.model.num_modes}\n')
-            f.write(f'max_k: {self.model.max_k}\n')
-            f.write(f'test_ps: {self.model.test_ps}\n')
+            for param in model_params:
+                f.write(f'{param}: {self.model.__dict__[param]}\n')
 
     def check_model_params(self) -> Union[datetime.datetime, None]:
         """
@@ -136,39 +132,28 @@ class Persistence(ABC):
         :return: Timestamp of previous computation, or None if not found or invalid
         """
         # Load data
-        path = self.file_path(self.filename + '-params.txt')
-        with open(path) as f:
-            data = f.readlines()
-        trimmed = [x.split(":", 1)[1].strip() for x in data]
+        try:
+            path = self.file_path(self.filename + '-params.txt')
+            with open(path) as f:
+                data = f.readlines()
+            fields = {x.split(":", 1)[0].strip(): x.split(":", 1)[1].strip() for x in data}
+        except (KeyError, IndexError, ValueError):
+            # Any problems reading data should be taken to mean a bad params file
+            return None
         
-        # Unpack and convert data into appropriate types
-        timestamp, n_efolds, n_fields, mpsi, m0, min_k, num_modes, max_k, test_ps = trimmed
-        n_efolds = float(n_efolds)
-        n_fields = int(n_fields)
-        mpsi = float(mpsi)
-        m0 = float(m0)
-        min_k = float(min_k)
-        num_modes = int(num_modes)
-        max_k = float(max_k)
-        test_ps = bool(test_ps)
-        timestamp = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
+        # Compare data to the current model
+        for param in model_params:
+            if param not in fields:
+                return None
+            # Cast the value into the correct form
+            fields[param] = type(self.model.__dict__[param])(fields[param])
+            # Compare with the current model
+            if fields[param] != self.model.__dict__[param]:
+                return None
 
-        # Check data for agreement with model
-        if n_efolds != self.model.n_efolds:
+        # Return the timestamp of the parameters
+        if 'Timestamp' not in fields:
             return None
-        if n_fields != self.model.n_fields:
-            return None
-        if mpsi != self.model.mpsi:
-            return None
-        if m0 != self.model.m0:
-            return None
-        if min_k != self.model.min_k:
-            return None
-        if num_modes != self.model.num_modes:
-            return None
-        if max_k != self.model.max_k:
-            return None
-        if test_ps != self.model.test_ps:
-            return None
+        timestamp = datetime.datetime.strptime(fields['Timestamp'], '%Y-%m-%d %H:%M:%S.%f')
 
         return timestamp
