@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[      9057,        249]
-NotebookOptionsPosition[      6860,        213]
-NotebookOutlinePosition[      7229,        229]
-CellTagsIndexPosition[      7186,        226]
+NotebookDataLength[     11741,        309]
+NotebookOptionsPosition[      9133,        267]
+NotebookOutlinePosition[      9504,        283]
+CellTagsIndexPosition[      9461,        280]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -26,7 +26,7 @@ Cell[BoxData[
  RowBox[{
   RowBox[{"SetDirectory", "[", 
    RowBox[{"NotebookDirectory", "[", "]"}], "]"}], ";"}]], "Input",
- CellLabel->"In[96]:=",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
+ CellLabel->"In[21]:=",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
 
 Cell["\<\
 Set the name of the model to load the power spectrum mode function results \
@@ -35,48 +35,88 @@ from.\
 
 Cell[BoxData[
  RowBox[{
-  RowBox[{"modelname", "=", "\"\<testmodel\>\""}], ";"}]], "Input",
- CellLabel->"In[97]:=",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
+  RowBox[{"modelname", "=", "\"\<testmodel\>\""}], ";"}]], "Input",ExpressionU\
+UID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
 
 Cell["Load the data.", "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
 
 Cell[BoxData[{
  RowBox[{
-  RowBox[{
-   RowBox[{"{", 
-    RowBox[{"kvals", ",", "Pkvals"}], "}"}], "=", 
-   RowBox[{
+  RowBox[{"params", " ", "=", " ", 
+   RowBox[{"Import", "[", 
     RowBox[{
-     RowBox[{"Import", "[", 
-      RowBox[{
-      "\"\<../../models/\>\"", "<>", "modelname", "<>", 
-       "\"\</powerspectrum.csv\>\""}], "]"}], "[", 
-     RowBox[{"[", 
-      RowBox[{"2", ";;"}], "]"}], "]"}], "//", "Transpose"}]}], 
+    "\"\<../../models/\>\"", "<>", "modelname", "<>", 
+     "\"\</powerspectrum-params.txt\>\""}], "]"}]}], 
   ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"kmin", "=", 
-   RowBox[{"kvals", "[", 
-    RowBox[{"[", "1", "]"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
- RowBox[{
-  RowBox[{"kmax", "=", 
-   RowBox[{"kvals", "[", 
-    RowBox[{"[", 
-     RowBox[{"-", "1"}], "]"}], "]"}]}], ";"}]}], "Input",
- CellLabel->"In[98]:=",ExpressionUUID->"2d5cc9f3-3e60-4028-867b-1892f090d9a6"],
+  RowBox[{"testps", "=", 
+   RowBox[{"StringContainsQ", "[", 
+    RowBox[{"params", ",", "\"\<test_ps: True\>\""}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"If", "[", 
+  RowBox[{"testps", ",", "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{"Test", " ", "power", " ", "spectrum"}], " ", "*)"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"Pk", "[", "k_", "]"}], ":=", 
+     RowBox[{"Exp", "[", 
+      RowBox[{"-", "k"}], "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"kmin", "=", "0"}], ";", "\[IndentingNewLine]", 
+    RowBox[{"kmax", "=", "20"}], ";"}], ",", "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{"Load", " ", "power", " ", "spectrum", " ", "from", " ", "file"}],
+     " ", "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"kvals", ",", "Pkvals"}], "}"}], "=", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"Import", "[", 
+        RowBox[{
+        "\"\<../../models/\>\"", "<>", "modelname", "<>", 
+         "\"\</powerspectrum.csv\>\""}], "]"}], "[", 
+       RowBox[{"[", 
+        RowBox[{"2", ";;"}], "]"}], "]"}], "//", "Transpose"}]}], ";", 
+    "\[IndentingNewLine]", 
+    RowBox[{"kmin", "=", 
+     RowBox[{"kvals", "[", 
+      RowBox[{"[", "1", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"kmax", "=", 
+     RowBox[{"kvals", "[", 
+      RowBox[{"[", 
+       RowBox[{"-", "1"}], "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"Pk", "=", 
+     RowBox[{"Interpolation", "[", 
+      RowBox[{"Transpose", "[", 
+       RowBox[{"{", 
+        RowBox[{"kvals", ",", "Pkvals"}], "}"}], "]"}], "]"}]}], ";"}]}], 
+  "\[IndentingNewLine]", "]"}]}], "Input",
+ CellLabel->"In[23]:=",ExpressionUUID->"ff90020e-c3cf-4204-b4b6-f773dbed47e2"],
 
-Cell["Construct an interpolation over the data.", "Text",ExpressionUUID->"7b1588c2-ce3c-40e9-a79a-03439b7ef4cb"],
+Cell["Load the comparison data.", "Text",ExpressionUUID->"f3d109dd-c705-4f33-be5d-5aed35be75e7"],
 
 Cell[BoxData[
  RowBox[{
-  RowBox[{"Pk", "=", 
-   RowBox[{"Interpolation", "[", 
-    RowBox[{"Transpose", "[", 
-     RowBox[{"{", 
-      RowBox[{"kvals", ",", "Pkvals"}], "}"}], "]"}], "]"}]}], ";"}]], "Input",\
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{
+    "pysigma0squared", ",", "pysigma1squared", ",", "pysigma2squared", ",", 
+     "pylengthscale"}], "}"}], "=", 
+   RowBox[{
+    RowBox[{"Import", "[", 
+     RowBox[{
+     "\"\<../../models/\>\"", "<>", "modelname", "<>", 
+      "\"\</moments.csv\>\""}], "]"}], "[", 
+    RowBox[{"[", "2", "]"}], "]"}]}], ";"}]], "Input",
+ CellLabel->"In[26]:=",ExpressionUUID->"7dc505fc-f4f4-49f9-9680-38ab5d7d3060"]
+}, Open  ]],
 
- CellLabel->
-  "In[101]:=",ExpressionUUID->"02e70102-be9e-4fcc-8421-7a39bc5afbe6"],
+Cell[CellGroupData[{
+
+Cell["Make Plots", "Section",ExpressionUUID->"c1b98bf3-7421-46e6-85cc-4f67abc58417"],
 
 Cell["Make some plots.", "Text",ExpressionUUID->"9e80df0b-c203-4ae2-9566-84e1f2182cb0"],
 
@@ -87,8 +127,7 @@ Cell[BoxData[
    RowBox[{"{", 
     RowBox[{"k", ",", "kmin", ",", "kmax"}], "}"}], ",", 
    RowBox[{"PlotRange", "\[Rule]", "All"}]}], "]"}]], "Input",
- CellLabel->
-  "In[102]:=",ExpressionUUID->"c81553e2-a35e-48c6-b038-f3b9e00e640f"],
+ CellLabel->"In[27]:=",ExpressionUUID->"c81553e2-a35e-48c6-b038-f3b9e00e640f"],
 
 Cell[BoxData[
  RowBox[{"LogLogPlot", "[", 
@@ -97,8 +136,7 @@ Cell[BoxData[
    RowBox[{"{", 
     RowBox[{"k", ",", "kmin", ",", "kmax"}], "}"}], ",", 
    RowBox[{"PlotRange", "\[Rule]", "All"}]}], "]"}]], "Input",
- CellLabel->
-  "In[103]:=",ExpressionUUID->"3d50c89d-5d93-4cb8-8c11-ee5027f02b99"],
+ CellLabel->"In[28]:=",ExpressionUUID->"3d50c89d-5d93-4cb8-8c11-ee5027f02b99"],
 
 Cell["Integrate moments of the power spectrum.", "Text",ExpressionUUID->"edf3c6f3-8b61-4fd3-a52f-6b6b612a4b36"],
 
@@ -132,10 +170,24 @@ Cell[BoxData[{
       RowBox[{"Pk", "[", "k", "]"}]}], ",", 
      RowBox[{"{", 
       RowBox[{"k", ",", "kmin", ",", "kmax"}], "}"}]}], "]"}]}]}]}], "Input",
- CellLabel->
-  "In[104]:=",ExpressionUUID->"465e025f-e991-4bdc-ad1a-864b23ab3931"],
+ CellLabel->"In[29]:=",ExpressionUUID->"465e025f-e991-4bdc-ad1a-864b23ab3931"],
 
 Cell["These agree well with python\[CloseCurlyQuote]s evaluation.", "Text",ExpressionUUID->"2ea175f3-7783-489a-a49a-18b323cb99cd"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"Abs", "[", 
+   RowBox[{"\[Sigma]0sq", "-", "pysigma0squared"}], "]"}], "/", 
+  "\[Sigma]0sq"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Abs", "[", 
+   RowBox[{"\[Sigma]1sq", "-", "pysigma1squared"}], "]"}], "/", 
+  "\[Sigma]1sq"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Abs", "[", 
+   RowBox[{"\[Sigma]2sq", "-", "pysigma2squared"}], "]"}], "/", 
+  "\[Sigma]2sq"}]}], "Input",
+ CellLabel->"In[32]:=",ExpressionUUID->"3c23fbcd-ab98-4b23-9ff3-ef3d2f1980f1"],
 
 Cell["Here are the integrands for these integrals...", "Text",ExpressionUUID->"ae59889f-dce6-4186-bd1f-abc0e3c4de48"],
 
@@ -148,8 +200,7 @@ Cell[BoxData[
    RowBox[{"{", 
     RowBox[{"k", ",", "kmin", ",", "kmax"}], "}"}], ",", 
    RowBox[{"PlotRange", "\[Rule]", "All"}]}], "]"}]], "Input",
- CellLabel->
-  "In[107]:=",ExpressionUUID->"2511bd7d-762c-401d-9668-ad7dc2c62a32"],
+ CellLabel->"In[35]:=",ExpressionUUID->"2511bd7d-762c-401d-9668-ad7dc2c62a32"],
 
 Cell[BoxData[
  RowBox[{"LogLinearPlot", "[", 
@@ -160,8 +211,7 @@ Cell[BoxData[
    RowBox[{"{", 
     RowBox[{"k", ",", "kmin", ",", "kmax"}], "}"}], ",", 
    RowBox[{"PlotRange", "\[Rule]", "All"}]}], "]"}]], "Input",
- CellLabel->
-  "In[108]:=",ExpressionUUID->"bfb9e1e0-c71b-4583-a37b-001231d932ed"],
+ CellLabel->"In[36]:=",ExpressionUUID->"bfb9e1e0-c71b-4583-a37b-001231d932ed"],
 
 Cell[BoxData[
  RowBox[{"LogLinearPlot", "[", 
@@ -172,12 +222,11 @@ Cell[BoxData[
    RowBox[{"{", 
     RowBox[{"k", ",", "kmin", ",", "kmax"}], "}"}], ",", 
    RowBox[{"PlotRange", "\[Rule]", "All"}]}], "]"}]], "Input",
- CellLabel->
-  "In[109]:=",ExpressionUUID->"a9a27f24-2d29-4d0f-8615-50ccd527438c"],
+ CellLabel->"In[37]:=",ExpressionUUID->"a9a27f24-2d29-4d0f-8615-50ccd527438c"],
 
 Cell["\<\
-Here, we see a problem: The second moment does not converge! We must demand a \
-window function on the power spectrum.\
+Here, we see a problem: The second moment does not converge (for non-test \
+spectra)! We must demand a window function on the power spectrum.\
 \>", "Text",ExpressionUUID->"664d1531-def8-4e12-8add-96314c34de09"],
 
 Cell["\<\
@@ -186,7 +235,7 @@ This is a rough estimate, a few digits are quite sufficient.\
 \>", "Text",ExpressionUUID->"6b8ea8b8-3f60-4a7a-a21b-920ce84f63ce"],
 
 Cell[BoxData[{
- RowBox[{"kmax", "=", 
+ RowBox[{"kchar", "=", 
   RowBox[{"k", "/.", 
    RowBox[{
     RowBox[{"Maximize", "[", 
@@ -196,23 +245,28 @@ Cell[BoxData[{
         RowBox[{
          RowBox[{"k", "^", "2"}], " ", 
          RowBox[{"Pk", "[", "k", "]"}]}], ",", 
-        RowBox[{"k", ">", 
-         RowBox[{"kvals", "[", 
-          RowBox[{"[", "1", "]"}], "]"}]}], ",", 
-        RowBox[{"k", "<", 
-         RowBox[{"kvals", "[", 
-          RowBox[{"[", 
-           RowBox[{"-", "1"}], "]"}], "]"}]}]}], "}"}], ",", "k"}], "]"}], 
-    "[", 
+        RowBox[{"k", ">", "kmin"}], ",", 
+        RowBox[{"k", "<", "kmax"}]}], "}"}], ",", "k"}], "]"}], "[", 
     RowBox[{"[", "2", "]"}], "]"}]}]}], "\n", 
  RowBox[{"lengthscale", " ", "=", " ", 
   RowBox[{"2", 
-   RowBox[{"\[Pi]", "/", "kmax"}]}]}]}], "Input",ExpressionUUID->"734eec64-\
-8a53-4a4f-a82d-021ab14c2454"]
+   RowBox[{"\[Pi]", "/", "kchar"}]}]}]}], "Input",
+ CellLabel->"In[38]:=",ExpressionUUID->"734eec64-8a53-4a4f-a82d-021ab14c2454"],
+
+Cell["\<\
+Comparison with the python lengthscale (which is only roughly found anyway):\
+\>", "Text",ExpressionUUID->"2452a599-0184-4441-8bc4-40f45e4cab57"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Abs", "[", 
+   RowBox[{"lengthscale", "-", "pylengthscale"}], "]"}], "/", 
+  "lengthscale"}]], "Input",
+ CellLabel->"In[40]:=",ExpressionUUID->"92d0383f-5cff-45c7-b376-e1efd0eebaae"]
 }, Open  ]]
 },
-WindowSize->{1920, 1075},
-WindowMargins->{{0, Automatic}, {Automatic, -300}},
+WindowSize->{1440, 795},
+WindowMargins->{{1538, Automatic}, {-542, Automatic}},
 TrackCellChangeTimes->False,
 FrontEndVersion->"12.0 for Mac OS X x86 (64-bit) (April 8, 2019)",
 StyleDefinitions->"Default.nb"
@@ -232,24 +286,30 @@ Cell[CellGroupData[{
 Cell[580, 22, 93, 0, 67, "Section",ExpressionUUID->"aa7ef6c0-b2ea-4b5a-83a2-8b8023ea8d74"],
 Cell[676, 24, 202, 4, 30, "Input",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
 Cell[881, 30, 161, 3, 35, "Text",ExpressionUUID->"a8d181f7-cb4c-4d3d-bb38-9d752b15fbd7"],
-Cell[1045, 35, 170, 3, 30, "Input",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
-Cell[1218, 40, 85, 0, 35, "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
-Cell[1306, 42, 743, 23, 73, "Input",ExpressionUUID->"2d5cc9f3-3e60-4028-867b-1892f090d9a6"],
-Cell[2052, 67, 112, 0, 35, "Text",ExpressionUUID->"7b1588c2-ce3c-40e9-a79a-03439b7ef4cb"],
-Cell[2167, 69, 294, 9, 30, "Input",ExpressionUUID->"02e70102-be9e-4fcc-8421-7a39bc5afbe6"],
-Cell[2464, 80, 87, 0, 35, "Text",ExpressionUUID->"9e80df0b-c203-4ae2-9566-84e1f2182cb0"],
-Cell[2554, 82, 317, 8, 30, "Input",ExpressionUUID->"c81553e2-a35e-48c6-b038-f3b9e00e640f"],
-Cell[2874, 92, 314, 8, 30, "Input",ExpressionUUID->"3d50c89d-5d93-4cb8-8c11-ee5027f02b99"],
-Cell[3191, 102, 111, 0, 35, "Text",ExpressionUUID->"edf3c6f3-8b61-4fd3-a52f-6b6b612a4b36"],
-Cell[3305, 104, 1009, 31, 73, "Input",ExpressionUUID->"465e025f-e991-4bdc-ad1a-864b23ab3931"],
-Cell[4317, 137, 130, 0, 35, "Text",ExpressionUUID->"2ea175f3-7783-489a-a49a-18b323cb99cd"],
-Cell[4450, 139, 117, 0, 35, "Text",ExpressionUUID->"ae59889f-dce6-4186-bd1f-abc0e3c4de48"],
-Cell[4570, 141, 367, 10, 30, "Input",ExpressionUUID->"2511bd7d-762c-401d-9668-ad7dc2c62a32"],
-Cell[4940, 153, 367, 10, 30, "Input",ExpressionUUID->"bfb9e1e0-c71b-4583-a37b-001231d932ed"],
-Cell[5310, 165, 367, 10, 30, "Input",ExpressionUUID->"a9a27f24-2d29-4d0f-8615-50ccd527438c"],
-Cell[5680, 177, 197, 3, 35, "Text",ExpressionUUID->"664d1531-def8-4e12-8add-96314c34de09"],
-Cell[5880, 182, 217, 3, 35, "Text",ExpressionUUID->"6b8ea8b8-3f60-4a7a-a21b-920ce84f63ce"],
-Cell[6100, 187, 744, 23, 52, "Input",ExpressionUUID->"734eec64-8a53-4a4f-a82d-021ab14c2454"]
+Cell[1045, 35, 148, 3, 30, "Input",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
+Cell[1196, 40, 85, 0, 35, "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
+Cell[1284, 42, 2019, 54, 283, "Input",ExpressionUUID->"ff90020e-c3cf-4204-b4b6-f773dbed47e2"],
+Cell[3306, 98, 96, 0, 35, "Text",ExpressionUUID->"f3d109dd-c705-4f33-be5d-5aed35be75e7"],
+Cell[3405, 100, 467, 13, 30, "Input",ExpressionUUID->"7dc505fc-f4f4-49f9-9680-38ab5d7d3060"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[3909, 118, 84, 0, 67, "Section",ExpressionUUID->"c1b98bf3-7421-46e6-85cc-4f67abc58417"],
+Cell[3996, 120, 87, 0, 35, "Text",ExpressionUUID->"9e80df0b-c203-4ae2-9566-84e1f2182cb0"],
+Cell[4086, 122, 313, 7, 30, "Input",ExpressionUUID->"c81553e2-a35e-48c6-b038-f3b9e00e640f"],
+Cell[4402, 131, 310, 7, 30, "Input",ExpressionUUID->"3d50c89d-5d93-4cb8-8c11-ee5027f02b99"],
+Cell[4715, 140, 111, 0, 35, "Text",ExpressionUUID->"edf3c6f3-8b61-4fd3-a52f-6b6b612a4b36"],
+Cell[4829, 142, 1005, 30, 73, "Input",ExpressionUUID->"465e025f-e991-4bdc-ad1a-864b23ab3931"],
+Cell[5837, 174, 130, 0, 35, "Text",ExpressionUUID->"2ea175f3-7783-489a-a49a-18b323cb99cd"],
+Cell[5970, 176, 503, 13, 73, "Input",ExpressionUUID->"3c23fbcd-ab98-4b23-9ff3-ef3d2f1980f1"],
+Cell[6476, 191, 117, 0, 35, "Text",ExpressionUUID->"ae59889f-dce6-4186-bd1f-abc0e3c4de48"],
+Cell[6596, 193, 363, 9, 30, "Input",ExpressionUUID->"2511bd7d-762c-401d-9668-ad7dc2c62a32"],
+Cell[6962, 204, 363, 9, 30, "Input",ExpressionUUID->"bfb9e1e0-c71b-4583-a37b-001231d932ed"],
+Cell[7328, 215, 363, 9, 30, "Input",ExpressionUUID->"a9a27f24-2d29-4d0f-8615-50ccd527438c"],
+Cell[7694, 226, 220, 3, 35, "Text",ExpressionUUID->"664d1531-def8-4e12-8add-96314c34de09"],
+Cell[7917, 231, 217, 3, 35, "Text",ExpressionUUID->"6b8ea8b8-3f60-4a7a-a21b-920ce84f63ce"],
+Cell[8137, 236, 602, 17, 52, "Input",ExpressionUUID->"734eec64-8a53-4a4f-a82d-021ab14c2454"],
+Cell[8742, 255, 155, 2, 35, "Text",ExpressionUUID->"2452a599-0184-4441-8bc4-40f45e4cab57"],
+Cell[8900, 259, 217, 5, 30, "Input",ExpressionUUID->"92d0383f-5cff-45c7-b376-e1efd0eebaae"]
 }, Open  ]]
 }
 ]

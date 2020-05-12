@@ -8,8 +8,10 @@ where l = 0 or 1.
 from __future__ import annotations
 
 import numpy as np
+import pandas as pd
 from math import pi
 from scipy.integrate import quad
+from scipy.special import spherical_jn
 
 from stack.common import Persistence
 
@@ -26,7 +28,7 @@ class SingleBessel(Persistence):
     """
     Computes single bessel integrals over the power spectrum.
     """
-    filename = None
+    filename = 'singlebessel'
 
     def __init__(self, model: 'Model') -> None:
         """
@@ -38,7 +40,7 @@ class SingleBessel(Persistence):
         
         # Error tolerances used in computing integrals
         self.err_abs = 0
-        self.err_rel = 1e-10
+        self.err_rel = 1e-8
 
     def load_data(self) -> None:
         """This class does not save any data, so has nothing to load"""
@@ -49,8 +51,19 @@ class SingleBessel(Persistence):
         pass
 
     def save_data(self) -> None:
-        """This class does not save any data"""
-        pass
+        """This class does not save any data, but does output some results for comparison with Mathematica"""
+        # Construct a grid in physical space
+        rvals = np.logspace(start=-5,
+                            stop=5,
+                            num=21,
+                            endpoint=True)
+        # Compute C and D on that grid
+        Cvals = np.array([self.compute_C(r) for r in rvals])
+        Dvals = np.array([self.compute_D(r) for r in rvals])
+        # Save them to file
+        df = pd.DataFrame([rvals, Cvals, Dvals]).transpose()
+        df.columns = ['r', 'C(r)', 'D(r)']
+        df.to_csv(self.file_path(self.filename + '.csv'), index=False)
 
     def compute_C(self, r: float) -> float:
         """
@@ -73,13 +86,17 @@ class SingleBessel(Persistence):
             return k*pk(k)
 
         # Perform the integration
-        result, err = quad(f, self.model.min_k, self.model.max_k, weight='sin', wvar=r,
-                           epsrel=self.err_rel, epsabs=self.err_abs)
+        result = quad(f, self.model.min_k, self.model.max_k, weight='sin', wvar=r,
+                      epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=80)
+        # Check for any warnings
+        if len(result) == 4:
+            print('Warning when integrating C(r) at r =', r)
+            print(result[-1])
         
         # Rescale the result
-        result *= 4 * pi / r
+        integral = result[0] * 4 * pi / r
 
-        return result
+        return integral
 
     def compute_D(self, r: float) -> float:
         """
@@ -110,13 +127,37 @@ class SingleBessel(Persistence):
 
         def f_cos(k):
             return k * k * pk(k)
-
-        # Perform the integrations
-        sin_result, sin_err = quad(f_sin, self.model.min_k, self.model.max_k, weight='sin', wvar=r)
-        cos_result, cos_err = quad(f_cos, self.model.min_k, self.model.max_k, weight='cos', wvar=r)
-        # Warning: this may lead to catastrophic cancellation of precision at VERY small values of r.
         
-        # Construct the result
-        result = 4 * pi / r**2 * sin_result - 4 * pi / r * cos_result
+        def f(k):
+            return k * k * k * pk(k) * spherical_jn(1, k * r)
+
+        # Choose methodology
+        if self.model.max_k * r > 5 * pi:
+            # Perform the integrations using sin and cos quadrature
+            sin_result = quad(f_sin, self.model.min_k, self.model.max_k, weight='sin', wvar=r,
+                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=80)
+            cos_result = quad(f_cos, self.model.min_k, self.model.max_k, weight='cos', wvar=r,
+                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=80)
+            # Check for any warnings
+            if len(sin_result) == 4:
+                print('Warning when integrating D_sin(r) at r =', r)
+                print(sin_result[-1])
+            if len(cos_result) == 4:
+                print('Warning when integrating D_cos(r) at r =', r)
+                print(cos_result[-1])
+            
+            # Construct the result
+            result = 4 * pi / r**2 * sin_result[0] - 4 * pi / r * cos_result[0]
+        else:
+            # Perform the integration using direct quadrature
+            int_result = quad(f, self.model.min_k, self.model.max_k,
+                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=80)
+            # Check for any warnings
+            if len(int_result) == 4:
+                print('Warning when integrating D(r) at r =', r)
+                print(int_result[-1])
+
+            # Construct the result
+            result = 4 * pi * int_result[0]
 
         return result

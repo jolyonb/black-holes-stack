@@ -106,6 +106,10 @@ class PowerSpectrum(Persistence):
             if k > 700:
                 return 0
             return exp(-k)
+        if 0.999 * self.min_k < k < self.min_k:
+            k = self.min_k
+        if self.max_k < k < 1.001 * self.max_k:
+            k = self.max_k
         return self.interp(k)
 
     def construct_grid(self) -> None:

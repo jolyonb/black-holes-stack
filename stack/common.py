@@ -137,7 +137,7 @@ class Persistence(ABC):
             with open(path) as f:
                 data = f.readlines()
             fields = {x.split(":", 1)[0].strip(): x.split(":", 1)[1].strip() for x in data}
-        except (KeyError, IndexError, ValueError):
+        except (KeyError, IndexError, ValueError) as err:
             # Any problems reading data should be taken to mean a bad params file
             return None
         
@@ -146,9 +146,13 @@ class Persistence(ABC):
             if param not in fields:
                 return None
             # Cast the value into the correct form
-            fields[param] = type(self.model.__dict__[param])(fields[param])
+            if type(self.model.__dict__[param]) != bool:
+                fields[param] = type(self.model.__dict__[param])(fields[param])
+            else:
+                fields[param] = True if fields[param] == 'True' else False
             # Compare with the current model
             if fields[param] != self.model.__dict__[param]:
+                print('Issue 3:', param, self.model.__dict__[param], fields[param])
                 return None
 
         # Return the timestamp of the parameters
