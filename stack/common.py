@@ -152,7 +152,6 @@ class Persistence(ABC):
                 fields[param] = True if fields[param] == 'True' else False
             # Compare with the current model
             if fields[param] != self.model.__dict__[param]:
-                print('Issue 3:', param, self.model.__dict__[param], fields[param])
                 return None
 
         # Return the timestamp of the parameters
