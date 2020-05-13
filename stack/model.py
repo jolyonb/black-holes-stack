@@ -11,6 +11,7 @@ from math import sqrt
 from stack.powerspectrum import PowerSpectrum
 from stack.moments import Moments
 from stack.integrals import SingleBessel
+from stack.grid import Grid
 
 class Model(object):
     """Master class that controls all aspects of modelling"""
@@ -95,6 +96,7 @@ class Model(object):
         self.powerspectrum = PowerSpectrum(self)
         self.moments = Moments(self)
         self.singlebessel = SingleBessel(self)
+        self.grid = Grid(self)
         
     def construct_powerspectrum(self, recalculate: bool = False) -> None:
         """Construct the data for the power spectrum (either by loading or constructing it)"""
@@ -114,4 +116,11 @@ class Model(object):
         print('Initializing single bessel integrals...')
         assert self.moments.ready
         self.singlebessel.construct_data(prev_timestamp=self.powerspectrum.timestamp)
+        print('    Done!')
+
+    def construct_grid(self) -> None:
+        """Initialize grid"""
+        print('Initializing grid...')
+        assert self.moments.ready
+        self.grid.construct_data(prev_timestamp=self.powerspectrum.timestamp)
         print('    Done!')
