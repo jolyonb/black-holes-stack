@@ -184,7 +184,7 @@ class PowerSpectrum(Persistence):
 
         # these too!
         prime_correction05 = 3 * correction03
-        prime_correction25 = 0.5 * muphi2 * correction05 * (0.5 * exp(-mupsi2 * startN)(mupsi2 - 5) * (mupsi2**4 - 14 * mupsi2**3 + 53 * mupsi2**2 - 24 * mupsi2 -86) - 215)
+        prime_correction25 = 0.5 * muphi2 * correction05 * (0.5 * exp(-mupsi2 * startN) * (mupsi2 - 5) * (mupsi2**4 - 14 * mupsi2**3 + 53 * mupsi2**2 - 24 * mupsi2 -86) - 215)
         prime_correction45 = 0.25 * muphi2**2 * correction05 * (exp(-mupsi2) * (5 - mupsi2) * (9 * mupsi2**2 - 65 * mupsi2 + 58) + exp(-2 * mupsi2) * (2 * mupsi2 - 5) * (14 * mupsi2**2 - 65 * mupsi2 + 29) + 145)
         prime_correction65 = muphi2**3 * correction05 / 8 * (45 * (mupsi2 - 5) * exp(-mupsi2 * startN) + 45 * (5 - 2 * mupsi2) * exp(-2 * mupsi2 * startN) + 15 * (3 * mupsi2 - 5) * exp(-3 * mupsi2 * startN) + 75)
         prime_correction3 = prime_correction05 + prime_correction25 + prime_correction45 + prime_correction65
@@ -199,7 +199,8 @@ class PowerSpectrum(Persistence):
 
         # Convert to delta = log(R) + N
         delta0 = log(R0 * exp(startN))  # To avoid catastropic loss of precision due to cancellation
-        # deltadot0 = Rdot0 / R0 + 1    # Affected by catastrophic loss of precision due to cancellation
+
+        #deltadot0 = Rdot0 / R0 + 1    # Affected by catastrophic loss of precision due to cancellation
         # The below is a first-order approximation that will be more accurate
         deltadot0 = (correction + muphi2**2 / 2 * correction01 * exp(-mupsi2 * startN)) * exp(startN)
         
