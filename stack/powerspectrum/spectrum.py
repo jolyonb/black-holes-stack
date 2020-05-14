@@ -172,12 +172,30 @@ class PowerSpectrum(Persistence):
         correction65 = 15 / 8 * muphi2**3 * correction05 * (1 - exp(-mupsi2 * startN))**3
         correction3 = correction05 + correction25 + correction45 + correction65
 
+        prime_correction01 = exp(startN) / (2 * kvals2)
+        prime_correction21 = correction01 * (muphi2 / 2) * exp (1 - mupsi2) * (mupsi2 - 1)
+        prime_correction1 = prime_correction01 + prime_correction21
+
+        # these need to be checked again!
+        prime_correction03 = 3 * correction03
+        prime_correction23 = - 0.5 * correction03 * muphi2 * (3 - mupsi2) * (mupsi2**2 - 5 * mupsi2 - 4) - 6 * mupsi2 * correction03
+        prime_correction43 = - 15 / 4 * correction03 * muphi2**2 - 1.25 * (3 - 2 * mupsi2) * correction03 * mupsi2**2 * exp(-2 * mupsi2 * startN)  - 0.5 * mupsi2**2 * correction03 * (mupsi2 - 3) * exp(-mupsi2 * startN)
+        prime_correction2 = prime_correction03 + prime_correction23 + prime_correction43
+
+        # these too!
+        prime_correction05 = 3 * correction03
+        prime_correction25 = 0.5 * muphi2 * correction05 * (0.5 * exp(-mupsi2 * startN)(mupsi2 - 5) * (mupsi2**4 - 14 * mupsi2**3 + 53 * mupsi2**2 - 24 * mupsi2 -86) - 215)
+        prime_correction45 = 0.25 * muphi2**2 * correction05 * (exp(-mupsi2) * (5 - mupsi2) * (9 * mupsi2**2 - 65 * mupsi2 + 58) + exp(-2 * mupsi2) * (2 * mupsi2 - 5) * (14 * mupsi2**2 - 65 * mupsi2 + 29) + 145)
+        prime_correction65 = muphi2**3 * correction05 / 8 * (45 * (mupsi2 - 5) * exp(-mupsi2 * startN) + 45 * (5 - 2 * mupsi2) * exp(-2 * mupsi2 * startN) + 15 * (3 * mupsi2 - 5) * exp(-3 * mupsi2 * startN) + 75)
+        prime_correction3 = prime_correction05 + prime_correction25 + prime_correction45 + prime_correction65
+
         # Set up the initial conditions
         correction = correction1 + correction2 + correction3
+        prime_correction = prime_correction1 + prime_correction2 + prime_correction3
         R0 = exp(-startN) + correction
         # TODO: Check the derivative initial condition corrections for Rdot0 and deltadot0. Pretty sure they're wrong.
         # Rdot0 = - exp(-startN) + correction + muphi2**2 / 2 * correction01 * exp(-mupsi2 * startN)
-        
+
         # Convert to delta = log(R) + N
         delta0 = log(R0 * exp(startN))  # To avoid catastropic loss of precision due to cancellation
         # deltadot0 = Rdot0 / R0 + 1    # Affected by catastrophic loss of precision due to cancellation
