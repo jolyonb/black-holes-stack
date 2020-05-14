@@ -195,6 +195,7 @@ class PowerSpectrum(Persistence):
         R0 = exp(-startN) + correction
         # TODO: Check the derivative initial condition corrections for Rdot0 and deltadot0. Pretty sure they're wrong.
         # Rdot0 = - exp(-startN) + correction + muphi2**2 / 2 * correction01 * exp(-mupsi2 * startN)
+        Rdot0 = - exp(-startN) + prime_correction
 
         # Convert to delta = log(R) + N
         delta0 = log(R0 * exp(startN))  # To avoid catastropic loss of precision due to cancellation
