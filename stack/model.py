@@ -11,6 +11,7 @@ from math import sqrt
 from stack.powerspectrum import PowerSpectrum
 from stack.moments import Moments
 from stack.integrals import SingleBessel
+from stack.grid import Grid
 
 class Model(object):
     """Master class that controls all aspects of modelling"""
@@ -28,6 +29,9 @@ class Model(object):
                  num_modes: int = 401,
                  max_k: float = 1e3,
                  test_ps: bool = False,
+                 # Grid options
+                 rmaxfactor: float = 20,
+                 gridpoints: int = 200,
                  # Control options
                  recompute_all: bool = False,
                  verbose: bool = False,
@@ -51,6 +55,10 @@ class Model(object):
         :param max_k: Maximum k to compute power spectrum at
         :param test_ps: Use a dummy power spectrum
         
+        Grid parameters
+        :param rmaxfactor: Number of FWHMs to go out to get to rmax
+        :param gridpoints: Number of radial gridpoints to use in physical space (excluding origin)
+        
         Control options
         :param recompute_all: Force recomputation of everything (do not load data)
         :param verbose: Enable verbose output
@@ -72,6 +80,10 @@ class Model(object):
         self.num_modes = num_modes
         self.max_k = max_k
         self.test_ps = test_ps
+        
+        # Grid parameters
+        self.rmaxfactor = rmaxfactor
+        self.gridpoints = gridpoints
 
         # Control options
         self.recompute_all = recompute_all
@@ -95,6 +107,7 @@ class Model(object):
         self.powerspectrum = PowerSpectrum(self)
         self.moments = Moments(self)
         self.singlebessel = SingleBessel(self)
+        self.grid = Grid(self)
         
     def construct_powerspectrum(self, recalculate: bool = False) -> None:
         """Construct the data for the power spectrum (either by loading or constructing it)"""
@@ -109,9 +122,16 @@ class Model(object):
         self.moments.construct_data(prev_timestamp=self.powerspectrum.timestamp, recalculate=recalculate)
         print('    Done!')
 
-    def construct_singlebessel(self) -> None:
+    def construct_singlebessel(self, recalculate: bool = False) -> None:
         """Initialize single bessel integrals"""
         print('Initializing single bessel integrals...')
         assert self.moments.ready
-        self.singlebessel.construct_data(prev_timestamp=self.powerspectrum.timestamp)
+        self.singlebessel.construct_data(prev_timestamp=self.moments.timestamp, recalculate=recalculate)
+        print('    Done!')
+
+    def construct_grid(self, recalculate: bool = False) -> None:
+        """Initialize grid"""
+        print('Initializing grid...')
+        assert self.singlebessel.ready
+        self.grid.construct_data(prev_timestamp=self.singlebessel.timestamp, recalculate=recalculate)
         print('    Done!')
