@@ -43,8 +43,8 @@ class PowerSpectrum(Persistence):
         self.interp = None
 
         # Error tolerances used in computing ODE solutions
-        self.err_abs = 0
-        self.err_rel = 1e-13
+        self.err_abs = 1e-25
+        self.err_rel = 1e-10
         
         # Storage for mode function integration
         self.df_rvals = None
@@ -220,7 +220,7 @@ class PowerSpectrum(Persistence):
             return derivatives
 
         # Set up the integrator
-        integrator = ode(derivs).set_integrator('dop853', rtol=self.err_rel, atol=self.err_abs, nsteps=100000, first_step=1e-5, max_step=1e-3)
+        integrator = ode(derivs).set_integrator('dop853', rtol=self.err_rel, atol=self.err_abs, nsteps=100000, first_step=1e-10, max_step=1e-2)
         integrator.set_initial_value(ics, minN)
 
         # Save initial conditions
@@ -240,13 +240,12 @@ class PowerSpectrum(Persistence):
 
             rvals = integrator.y[0:num_k] - timevals
             Rvals.append(exp(rvals))
-            
+        
+        assert integrator.successful()
+        
         # Convert results into one big array
         Rvals = np.array(Rvals)
         times = np.array(times)
-
-        # Make sure that we had timesteps coming out
-        assert len(times[:, 0]) > 2
 
         self.df_rvals = pd.DataFrame(Rvals, columns=list(kvals))
         self.df_times = pd.DataFrame(times, columns=list(kvals))
