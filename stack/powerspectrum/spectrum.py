@@ -156,58 +156,52 @@ class PowerSpectrum(Persistence):
         startN = log(8 * 10**(-15) * kvals**4) / 4.0
         minN = np.min(startN)
 
-        # Compute initial condition corrections
+        # Compute initial condition corrections (field values and derivatives)
         correction01 = exp(startN) / (2 * kvals2)
         correction21 = correction01 * (muphi2 / 2) * (1 - exp(-mupsi2 * startN))
         correction1 = correction01 + correction21
+        prime_correction01 = correction01
+        prime_correction21 = correction21 + mupsi2 * correction01 * (muphi2 / 2) * exp(-mupsi2 * startN)
+        prime_correction1 = prime_correction01 + prime_correction21
 
         correction03 = - exp(3 * startN) / (8 * kvals**4)
         correction23 = - 0.5 * correction03 * muphi2 * (4 + exp(-mupsi2 * startN) * (mupsi2**2 - 5 * mupsi2 - 4))
         correction43 = - 1.25 * correction03 * muphi2**2 * (1 - exp(-mupsi2 * startN))**2
         correction2 = correction03 + correction23 + correction43
-
+        prime_correction03 = 3 * correction03
+        prime_correction23 = 3 * correction23 + 0.5 * mupsi2 * correction03 * muphi2 * exp(-mupsi2 * startN) * (mupsi2**2 - 5 * mupsi2 - 4)
+        prime_correction43 = 3 * correction43 - 2.5 * correction03 * muphi2**2 * (1 - exp(-mupsi2 * startN)) * exp(-mupsi2 * startN) * mupsi2
+        prime_correction2 = prime_correction03 + prime_correction23 + prime_correction43
+        
         correction05 = exp(5 * startN) / (16 * kvals**6)
         correction25 = - 0.25 * muphi2 * correction05 * (86 + exp(-mupsi2 * startN) * (mupsi2**4 - 14 * mupsi2**3 + 53 * mupsi2**2 - 24 * mupsi2 - 86))
         correction45 = - 0.25 * muphi2**2 * correction05 * (29 - exp(-mupsi2 * startN) * (9 * mupsi2**2 - 65 * mupsi2 + 58) + exp(-2 * mupsi2 * startN) * (14 * mupsi2**2 - 65 * mupsi2 + 29))
         correction65 = 15 / 8 * muphi2**3 * correction05 * (1 - exp(-mupsi2 * startN))**3
         correction3 = correction05 + correction25 + correction45 + correction65
-
-        prime_correction01 = exp(startN) / (2 * kvals2)
-        prime_correction21 = correction01 * (muphi2 / 2) * exp (1 - mupsi2) * (mupsi2 - 1)
-        prime_correction1 = prime_correction01 + prime_correction21
-
-        # these need to be checked again!
-        prime_correction03 = 3 * correction03
-        prime_correction23 = - 0.5 * correction03 * muphi2 * (3 - mupsi2) * (mupsi2**2 - 5 * mupsi2 - 4) - 6 * mupsi2 * correction03
-        prime_correction43 = - 15 / 4 * correction03 * muphi2**2 - 1.25 * (3 - 2 * mupsi2) * correction03 * mupsi2**2 * exp(-2 * mupsi2 * startN)  - 0.5 * mupsi2**2 * correction03 * (mupsi2 - 3) * exp(-mupsi2 * startN)
-        prime_correction2 = prime_correction03 + prime_correction23 + prime_correction43
-
-        # these too!
-        prime_correction05 = 3 * correction03
-        prime_correction25 = 0.5 * muphi2 * correction05 * (0.5 * exp(-mupsi2 * startN) * (mupsi2 - 5) * (mupsi2**4 - 14 * mupsi2**3 + 53 * mupsi2**2 - 24 * mupsi2 -86) - 215)
-        prime_correction45 = 0.25 * muphi2**2 * correction05 * (exp(-mupsi2) * (5 - mupsi2) * (9 * mupsi2**2 - 65 * mupsi2 + 58) + exp(-2 * mupsi2) * (2 * mupsi2 - 5) * (14 * mupsi2**2 - 65 * mupsi2 + 29) + 145)
-        prime_correction65 = muphi2**3 * correction05 / 8 * (45 * (mupsi2 - 5) * exp(-mupsi2 * startN) + 45 * (5 - 2 * mupsi2) * exp(-2 * mupsi2 * startN) + 15 * (3 * mupsi2 - 5) * exp(-3 * mupsi2 * startN) + 75)
+        prime_correction05 = 5 * correction05
+        prime_correction25 = 5 * correction25 + 0.25 * muphi2 * correction05 * exp(-mupsi2 * startN) * (mupsi2**4 - 14 * mupsi2**3 + 53 * mupsi2**2 - 24 * mupsi2 - 86) * mupsi2
+        prime_correction45 = 5 * correction45 - 0.25 * muphi2**2 * correction05 * (mupsi2 * exp(-mupsi2 * startN) * (9 * mupsi2**2 - 65 * mupsi2 + 58) - 2 * mupsi2 * exp(-2 * mupsi2 * startN) * (14 * mupsi2**2 - 65 * mupsi2 + 29))
+        prime_correction65 = 5 * correction65 - 45 / 8 * muphi2**3 * correction05 * (1 - exp(-mupsi2 * startN))**2 * exp(-mupsi2 * startN) * mupsi2
         prime_correction3 = prime_correction05 + prime_correction25 + prime_correction45 + prime_correction65
+
+        # TODO: I'm worried that correction23 is bigger than correction03...
+        # TODO: I'm worried that prime_correction43 is bigger than prime_correction23...
 
         # Set up the initial conditions
         correction = correction1 + correction2 + correction3
         prime_correction = prime_correction1 + prime_correction2 + prime_correction3
         R0 = exp(-startN) + correction
-        # TODO: Check the derivative initial condition corrections for Rdot0 and deltadot0. Pretty sure they're wrong.
-        # Rdot0 = - exp(-startN) + correction + muphi2**2 / 2 * correction01 * exp(-mupsi2 * startN)
         Rdot0 = - exp(-startN) + prime_correction
 
-        # Convert to delta = log(R) + N
+        # Convert to delta = log(R) + N = log(R * exp(N))
         delta0 = log(R0 * exp(startN))  # To avoid catastropic loss of precision due to cancellation
-
-        #deltadot0 = Rdot0 / R0 + 1    # Affected by catastrophic loss of precision due to cancellation
-        # The below is a first-order approximation that will be more accurate
-        deltadot0 = (correction + muphi2**2 / 2 * correction01 * exp(-mupsi2 * startN)) * exp(startN)
-        
-        # For now, set up initial conditions to match Mathematica
-        # TODO: Remove these lines
-        delta0 *= 0
-        deltadot0 *= 0
+        # deltadot0 = Rdot0 / R0 + 1    # Affected by catastrophic loss of precision due to cancellation
+        # Better is to do this expansion:
+        # deltadot0 = (- exp(-startN) + prime_correction) / (exp(-startN) + correction) + 1
+        # deltadot0 = (- 1 + exp(startN) * prime_correction) / (1 + exp(startN) * correction) + 1
+        # deltadot0 = (- 1 + exp(startN) * prime_correction) * (1 - exp(startN) * correction + (exp(startN) * correction)**2 - (exp(startN) * correction)**3) + 1 + O(correction^4)
+        deltadot0 = (exp(startN) * prime_correction * (1 - exp(startN) * correction + (exp(startN) * correction)**2 - (exp(startN) * correction)**3)
+                     + exp(startN) * correction - (exp(startN) * correction) ** 2 + (exp(startN) * correction) ** 3)
         
         ics = np.concatenate([delta0, deltadot0, startN])
 
@@ -226,7 +220,7 @@ class PowerSpectrum(Persistence):
             return derivatives
 
         # Set up the integrator
-        integrator = ode(derivs).set_integrator('dop853', rtol=self.err_rel, atol=self.err_abs, nsteps=100000, first_step=1e-6, max_step=1e-2)
+        integrator = ode(derivs).set_integrator('dop853', rtol=self.err_rel, atol=self.err_abs, nsteps=100000, first_step=1e-5, max_step=1e-3)
         integrator.set_initial_value(ics, minN)
 
         # Save initial conditions
@@ -250,6 +244,9 @@ class PowerSpectrum(Persistence):
         # Convert results into one big array
         Rvals = np.array(Rvals)
         times = np.array(times)
+
+        # Make sure that we had timesteps coming out
+        assert len(times[:, 0]) > 2
 
         self.df_rvals = pd.DataFrame(Rvals, columns=list(kvals))
         self.df_times = pd.DataFrame(times, columns=list(kvals))
