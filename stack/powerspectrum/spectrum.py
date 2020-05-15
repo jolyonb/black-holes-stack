@@ -45,6 +45,8 @@ class PowerSpectrum(Persistence):
         # Error tolerances used in computing ODE solutions
         self.err_abs = 1e-25
         self.err_rel = 1e-10
+        # Allowing for an absolute error lets the integration work, but it otherwise loses precision
+        # The initial value of delta0 seems to be the thing that kills it :(
         
         # Storage for mode function integration
         self.df_rvals = None
