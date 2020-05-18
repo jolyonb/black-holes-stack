@@ -13,7 +13,7 @@ from scipy.interpolate import InterpolatedUnivariateSpline
 
 from typing import TYPE_CHECKING
 
-from stack.common import Persistence
+from stack.common import Persistence, Suppression
 
 if TYPE_CHECKING:
     from stack import Model
@@ -98,19 +98,32 @@ class PowerSpectrum(Persistence):
         self.construct_spectrum()
         self.construct_interpolant()
 
-    def __call__(self, k) -> float:
-        """Return the value of the power spectrum at a given k value"""
+    def __call__(self, k: float, suppression: Suppression) -> float:
+        """
+        Return the value of the power spectrum at a given k value, given the desired form of high-frequency suppression.
+        """
         if self.model.test_ps:
             if k < -700:
                 return float('inf')
             if k > 700:
                 return 0
-            return exp(-k)
-        if 0.999 * self.min_k < k < self.min_k:
-            k = self.min_k
-        if self.max_k < k < 1.001 * self.max_k:
-            k = self.max_k
-        return self.interp(k)
+            value = exp(-k)
+        else:
+            if 0.999 * self.min_k < k < self.min_k:
+                k = self.min_k
+            elif self.max_k < k < 1.001 * self.max_k:
+                k = self.max_k
+            value = self.interp(k)
+        if suppression == Suppression.RAW:
+            suppression_val = 1
+        elif suppression == Suppression.SAMPLING:
+            assert self.model.grid.ready
+            suppression_val = exp(-(k / self.model.grid.sampling_cutoff)**2)
+        elif suppression == Suppression.PEAKS:
+            raise NotImplementedError('Method not ready yet')
+        else:
+            raise ValueError(f'Bad suppression value passed in: {suppression}')
+        return value * suppression_val
 
     def construct_grid(self) -> None:
         """Construct the grid in k space to evaluate the power spectrum at"""

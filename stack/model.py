@@ -12,6 +12,8 @@ from stack.powerspectrum import PowerSpectrum
 from stack.moments import Moments
 from stack.integrals import SingleBessel
 from stack.grid import Grid
+from stack.common import Suppression
+from stack.correlations import Correlations
 
 class Model(object):
     """Master class that controls all aspects of modelling"""
@@ -29,9 +31,11 @@ class Model(object):
                  num_modes: int = 401,
                  max_k: float = 1e3,
                  test_ps: bool = False,
-                 # Grid options
+                 # Grid parameters
                  rmaxfactor: float = 20,
                  gridpoints: int = 200,
+                 # Sampling parameters
+                 sampling_cutoff_factor: float = 1.0,
                  # Control options
                  recompute_all: bool = False,
                  verbose: bool = False,
@@ -59,6 +63,10 @@ class Model(object):
         :param rmaxfactor: Number of FWHMs to go out to get to rmax
         :param gridpoints: Number of radial gridpoints to use in physical space (excluding origin)
         
+        Sampling parameters
+        :param sampling_cutoff_factor: Factor by which to multiply the Nyquist cutoff wavenumber to obtain the power
+                                       spectrum cutoff wavenumber
+        
         Control options
         :param recompute_all: Force recomputation of everything (do not load data)
         :param verbose: Enable verbose output
@@ -84,6 +92,9 @@ class Model(object):
         # Grid parameters
         self.rmaxfactor = rmaxfactor
         self.gridpoints = gridpoints
+        
+        # Sampling parameters
+        self.sampling_cutoff_factor = sampling_cutoff_factor
 
         # Control options
         self.recompute_all = recompute_all
@@ -105,10 +116,12 @@ class Model(object):
 
         # Store object class instances
         self.powerspectrum = PowerSpectrum(self)
-        self.moments = Moments(self)
+        self.moments_raw = Moments(self, Suppression.RAW)
         self.singlebessel = SingleBessel(self)
         self.grid = Grid(self)
-        
+        self.moments_sampling = Moments(self, Suppression.SAMPLING)
+        self.correlations = Correlations(self)
+
     def construct_powerspectrum(self, recalculate: bool = False) -> None:
         """Construct the data for the power spectrum (either by loading or constructing it)"""
         print('Constructing the power spectrum...')
@@ -117,16 +130,16 @@ class Model(object):
 
     def construct_moments(self, recalculate: bool = False) -> None:
         """Construct the data for the moments of the power spectrum (either by loading or constructing them)"""
-        print('Constructing moments of the power spectrum...')
+        print('Constructing raw moments of the power spectrum...')
         assert self.powerspectrum.ready
-        self.moments.construct_data(prev_timestamp=self.powerspectrum.timestamp, recalculate=recalculate)
+        self.moments_raw.construct_data(prev_timestamp=self.powerspectrum.timestamp, recalculate=recalculate)
         print('    Done!')
 
     def construct_singlebessel(self, recalculate: bool = False) -> None:
         """Initialize single bessel integrals"""
         print('Initializing single bessel integrals...')
-        assert self.moments.ready
-        self.singlebessel.construct_data(prev_timestamp=self.moments.timestamp, recalculate=recalculate)
+        assert self.moments_raw.ready
+        self.singlebessel.construct_data(prev_timestamp=self.moments_raw.timestamp, recalculate=recalculate)
         print('    Done!')
 
     def construct_grid(self, recalculate: bool = False) -> None:
@@ -134,4 +147,18 @@ class Model(object):
         print('Initializing grid...')
         assert self.singlebessel.ready
         self.grid.construct_data(prev_timestamp=self.singlebessel.timestamp, recalculate=recalculate)
+        print('    Done!')
+
+    def construct_moments2(self, recalculate: bool = False) -> None:
+        """Construct moments for the power spectrum with sampling suppression"""
+        print('Constructing sampling moments of the power spectrum...')
+        assert self.grid.ready
+        self.moments_sampling.construct_data(prev_timestamp=self.grid.timestamp, recalculate=recalculate)
+        print('    Done!')
+
+    def construct_correlations(self, recalculate: bool = False) -> None:
+        """Construct correlation functions C(r) and D(r) on the grid"""
+        print('Constructing correlations...')
+        assert self.moments_sampling.ready
+        self.correlations.construct_data(prev_timestamp=self.moments_sampling.timestamp, recalculate=recalculate)
         print('    Done!')

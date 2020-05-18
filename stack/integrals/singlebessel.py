@@ -13,7 +13,7 @@ from math import pi
 from scipy.integrate import quad
 from scipy.special import spherical_jn
 
-from stack.common import Persistence
+from stack.common import Persistence, Suppression
 
 from typing import TYPE_CHECKING
 
@@ -53,19 +53,19 @@ class SingleBessel(Persistence):
     def save_data(self) -> None:
         """This class does not save any data, but does output some results for comparison with Mathematica"""
         # Construct a grid in physical space
-        rvals = np.logspace(start=-5,
-                            stop=5,
+        rvals = np.logspace(start=-3,
+                            stop=3,
                             num=21,
                             endpoint=True)
         # Compute C and D on that grid
-        Cvals = np.array([self.compute_C(r) for r in rvals])
-        Dvals = np.array([self.compute_D(r) for r in rvals])
+        Cvals = np.array([self.compute_C(r, Suppression.RAW) for r in rvals])
+        Dvals = np.array([self.compute_D(r, Suppression.RAW) for r in rvals])
         # Save them to file
         df = pd.DataFrame([rvals, Cvals, Dvals]).transpose()
         df.columns = ['r', 'C(r)', 'D(r)']
         df.to_csv(self.file_path(self.filename + '.csv'), index=False)
 
-    def compute_C(self, r: float) -> float:
+    def compute_C(self, r: float, suppression: Suppression) -> float:
         """
         Computes the integral
         C(r) = 4 pi int_{k_min}^{k_max} dk k^2 P(k) j_0(k r)
@@ -74,20 +74,26 @@ class SingleBessel(Persistence):
         to 10^-14 (relative).
         
         :param r: Value of r to use in the integral
+        :param suppression: High frequency suppression method to use
         :return: Result of the integral
         """
+        # Treat the special case
         if r == 0:
-            # Treat the special case
-            return self.model.moments.sigma0squared
+            if suppression == Suppression.RAW:
+                return self.model.moments_raw.sigma0squared
+            elif suppression == Suppression.SAMPLING:
+                return self.model.moments_sampling.sigma0squared
+            else:
+                raise ValueError(f'Bad suppression method: {suppression}')
         
         pk = self.model.powerspectrum
 
         def f(k):
-            return k*pk(k)
+            return k*pk(k, suppression)
 
         # Perform the integration
         result = quad(f, self.model.min_k, self.model.max_k, weight='sin', wvar=r,
-                      epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=80)
+                      epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
         # Check for any warnings
         if len(result) == 4:
             print('Warning when integrating C(r) at r =', r)
@@ -98,7 +104,7 @@ class SingleBessel(Persistence):
 
         return integral
 
-    def compute_D(self, r: float) -> float:
+    def compute_D(self, r: float, suppression: Suppression) -> float:
         """
         Computes the integral
         D(r) = 4 pi int_{k_min}^{k_max} dk k^3 P(k) j_1(k r)
@@ -114,6 +120,7 @@ class SingleBessel(Persistence):
         to 10^-11 for low values of r, where we expect the worst loss of precision to occur.
 
         :param r: Value of r to use in the integral
+        :param suppression: High frequency suppression method to use
         :return: Result of the integral
         """
         if r == 0:
@@ -123,21 +130,21 @@ class SingleBessel(Persistence):
         pk = self.model.powerspectrum
 
         def f_sin(k):
-            return k * pk(k)
+            return k * pk(k, suppression)
 
         def f_cos(k):
-            return k * k * pk(k)
+            return k * k * pk(k, suppression)
         
         def f(k):
-            return k * k * k * pk(k) * spherical_jn(1, k * r)
+            return k * k * k * pk(k, suppression) * spherical_jn(1, k * r)
 
         # Choose methodology
         if self.model.max_k * r > 5 * pi:
             # Perform the integrations using sin and cos quadrature
             sin_result = quad(f_sin, self.model.min_k, self.model.max_k, weight='sin', wvar=r,
-                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=80)
+                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
             cos_result = quad(f_cos, self.model.min_k, self.model.max_k, weight='cos', wvar=r,
-                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=80)
+                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
             # Check for any warnings
             if len(sin_result) == 4:
                 print('Warning when integrating D_sin(r) at r =', r)
@@ -151,7 +158,7 @@ class SingleBessel(Persistence):
         else:
             # Perform the integration using direct quadrature
             int_result = quad(f, self.model.min_k, self.model.max_k,
-                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=80)
+                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
             # Check for any warnings
             if len(int_result) == 4:
                 print('Warning when integrating D(r) at r =', r)
