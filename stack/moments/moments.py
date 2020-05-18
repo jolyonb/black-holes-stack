@@ -13,7 +13,7 @@ from scipy import optimize
 
 from typing import TYPE_CHECKING
 
-from stack.common import Persistence
+from stack.common import Persistence, Suppression
 
 if TYPE_CHECKING:
     from stack import Model
@@ -22,15 +22,22 @@ class Moments(Persistence):
     """
     Computes moments of a power spectrum, as well as the characteristic lengthscale
     """
-    filename = 'moments'
+    @property
+    def filename(self) -> str:
+        """Returns the filename for this class"""
+        return f'moments-{self.suppression.value}'
 
-    def __init__(self, model: 'Model') -> None:
+    def __init__(self, model: 'Model', suppression: Suppression) -> None:
         """
         Initialize the class.
         
         :param model: Model class
+        :param suppression: Type of suppression to use on the power spectrum when computing moments
         """
         super().__init__(model)
+        
+        # Store parameters
+        self.suppression = suppression
 
         # Initialize storage for results
         self.sigma0 = None
@@ -85,9 +92,10 @@ class Moments(Persistence):
     def compute_sigma_n_squared(self, n: int) -> float:
         """Computes and returns the n^th moment of the power spectrum"""
         spectrum = self.model.powerspectrum
+        suppression = self.suppression
 
         def func(k):
-            spec = spectrum(k)
+            spec = spectrum(k, suppression)
             if spec < 0:
                 raise ValueError(f'Found negative value for spectrum at k={k}, P(k)={spec}')
             return k ** (2 + 2 * n) * spec
@@ -102,17 +110,17 @@ class Moments(Persistence):
         Stores the result as L = 2*pi/k_max.
         """
         def f(k):
-            return - k*k*self.model.powerspectrum(k)
+            return - k*k*self.model.powerspectrum(k, self.suppression)
         
         min_k = self.model.min_k
         max_k = self.model.max_k
         
-        result = optimize.minimize(f, np.array([(min_k + max_k) / 2]), method='TNC', bounds=[(min_k, max_k)],
-                                   tol=1e-6, options={'xtol': 1e-8})
+        result = optimize.minimize_scalar(f, method='bounded', bounds=(min_k, max_k),
+                                          tol=1e-5, options={'xatol': 1e-5})
 
         if not result.success:
             raise ValueError("Unable to find characteristic lengthscale of power spectrum")
         
-        k_max = result.x[0]
+        k_max = result.x
 
         return 2 * pi / k_max

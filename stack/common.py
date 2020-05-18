@@ -10,6 +10,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 import os
 import datetime
+import enum
 from typing import Union, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -165,3 +166,13 @@ class Persistence(ABC):
         timestamp = datetime.datetime.strptime(fields['Timestamp'], '%Y-%m-%d %H:%M:%S.%f')
 
         return timestamp
+
+
+class Suppression(enum.Enum):
+    """Enumeration to describe what kind of suppresion should be used with a power spectrum"""
+    # No suppression
+    RAW = 'raw'
+    # Suppression for sampling peaks
+    SAMPLING = 'sampling'
+    # Suppression for computing number density of peaks
+    PEAKS = 'peaks'
