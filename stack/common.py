@@ -169,7 +169,7 @@ class Persistence(ABC):
 
 
 class Suppression(enum.Enum):
-    """Enumeration to describe what kind of suppresion should be used with a power spectrum"""
+    """Enumeration to describe what kind of suppression should be used with a power spectrum"""
     # No suppression
     RAW = 'raw'
     # Suppression for sampling peaks
