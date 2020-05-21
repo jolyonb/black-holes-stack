@@ -136,7 +136,9 @@ class PowerSpectrum(Persistence):
         
     def construct_interpolant(self) -> None:
         """Construct an interpolant over the power spectrum"""
-        self.interp = InterpolatedUnivariateSpline(self.kvals, self.spectrum, k=3, ext='raise')
+        # Note: k = 5 performs better on the interpolation than k = 3 (empirical testing), at around 10^-6 relative error
+        # across the board for 401 points
+        self.interp = InterpolatedUnivariateSpline(self.kvals, self.spectrum, k=5, ext='raise')
 
     def construct_spectrum(self) -> None:
         """Compute the power spectrum"""
