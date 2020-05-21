@@ -16,9 +16,9 @@ from typing import Union, Optional, TYPE_CHECKING
 if TYPE_CHECKING:
     from stack import Model
 
-model_params = ['n_efolds', 'n_fields', 'mpsi', 'm0',      # Inflation model
-                'min_k', 'num_modes', 'max_k', 'test_ps',  # Power spectrum
-                'gridpoints', 'rmaxfactor']                # Grid
+model_params = ['n_efolds', 'n_fields', 'mpsi', 'm0', 'potential_r',      # Inflation model
+                'min_k', 'num_modes', 'max_k', 'test_ps',                 # Power spectrum
+                'gridpoints', 'rmaxfactor']                               # Grid
 
 class Persistence(ABC):
     """Abstract base class to handle all persistence in the project"""

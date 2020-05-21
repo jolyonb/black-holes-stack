@@ -116,7 +116,7 @@ class Moments(Persistence):
         max_k = self.model.max_k
         
         result = optimize.minimize_scalar(f, method='bounded', bounds=(min_k, max_k),
-                                          tol=1e-5, options={'xatol': 1e-5})
+                                          options={'xatol': 1e-5})
 
         if not result.success:
             raise ValueError("Unable to find characteristic lengthscale of power spectrum")
