@@ -6,7 +6,7 @@ Contains the Model class, which stores the definitions of the given model.
 from __future__ import annotations
 
 import os
-from math import sqrt
+from math import sqrt, exp
 
 from stack.powerspectrum import PowerSpectrum
 from stack.moments import Moments
@@ -26,6 +26,7 @@ class Model(object):
                  n_fields: int,
                  mpsi: float,
                  m0: float,
+                 potential_r: int = 2,
                  # Power spectrum parameters
                  min_k: float = 1e-5,
                  num_modes: int = 401,
@@ -51,7 +52,8 @@ class Model(object):
         :param n_efolds: Number of efolds from waterfall transition to end of inflation
         :param n_fields: Number of waterfall fields
         :param mpsi: Mass of psi field (units of H)
-        :param m0: Mass of m0 field (units of H)
+        :param m0: Mass of m0 field (units of H, also known as mu_phi)
+        :param potential_r: Power of the potential
         
         Power spectrum parameters
         :param min_k: Minimum k to compute power spectrum at
@@ -82,6 +84,7 @@ class Model(object):
         self.n_fields = n_fields
         self.m0 = m0
         self.mpsi = mpsi
+        self.potential_r = potential_r
 
         # Power spectrum parameters
         self.min_k = min_k
@@ -106,9 +109,9 @@ class Model(object):
             print(f'Initializing {self.model_name} model...')
 
         # Compute derivative quantities
-        self.mupsi2 = 3 - sqrt(9 - 4*mpsi**2)
+        self.mupsi2 = self.potential_r / 2 * (3 - sqrt(9 - 4*mpsi**2))
         self.muphi2 = m0**2
-        self.lamda = -3/2 + sqrt(9/4 + m0**2)
+        self.lamda = (-3 + sqrt(9 + 4 * self.muphi2 * (1 - exp(-self.mupsi2 * self.n_efolds)))) / 2    # Eq. 39, https://arxiv.org/pdf/1210.8128.pdf
         self.beta = 1/(2*self.lamda)
 
         # Ensure that the relevant folder exists
