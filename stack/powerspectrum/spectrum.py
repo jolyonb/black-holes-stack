@@ -192,14 +192,15 @@ class PowerSpectrum(Persistence):
         # Rdot0 = - exp(-startN) + prime_correction
 
         # Convert to delta = log(R) + N = log(R * exp(N))
-        delta0 = log(R0 * exp(startN))  # To avoid catastropic loss of precision due to cancellation
+        delta0 = log(R0 * exp(startN))  # To avoid catastropic loss of precision due to cancellation (could probably improve)
         # deltadot0 = Rdot0 / R0 + 1    # Affected by catastrophic loss of precision due to cancellation
         # Better is to do this expansion:
         # deltadot0 = (- exp(-startN) + prime_correction) / (exp(-startN) + correction) + 1
         # deltadot0 = (- 1 + exp(startN) * prime_correction) / (1 + exp(startN) * correction) + 1
         # deltadot0 = (- 1 + exp(startN) * prime_correction) * (1 - exp(startN) * correction + (exp(startN) * correction)**2 - (exp(startN) * correction)**3) + 1 + O(correction^4)
-        deltadot0 = (exp(startN) * prime_correction * (1 - exp(startN) * correction + (exp(startN) * correction)**2 - (exp(startN) * correction)**3)
-                     + exp(startN) * correction - (exp(startN) * correction) ** 2 + (exp(startN) * correction) ** 3)
+        # Turns out we need to go to 4th order to get enough digits!
+        deltadot0 = (exp(startN) * prime_correction * (1 - exp(startN) * correction + (exp(startN) * correction)**2 - (exp(startN) * correction)**3 + (exp(startN) * correction)**4)
+                     + exp(startN) * correction - (exp(startN) * correction) ** 2 + (exp(startN) * correction) ** 3 - (exp(startN) * correction) ** 4)
         
         ics = np.concatenate([delta0, deltadot0, startN])
 
