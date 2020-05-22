@@ -182,14 +182,14 @@ class PowerSpectrum(Persistence):
         prime_correction05 = 5 * correction05
         prime_correction25 = 5 * correction25 + 0.25 * muphi2 * correction05 * exp(-mupsi2 * startN) * (mupsi2**4 - 14 * mupsi2**3 + 53 * mupsi2**2 - 24 * mupsi2 - 86) * mupsi2
         prime_correction45 = 5 * correction45 - 0.25 * muphi2**2 * correction05 * (mupsi2 * exp(-mupsi2 * startN) * (9 * mupsi2**2 - 65 * mupsi2 + 58) - 2 * mupsi2 * exp(-2 * mupsi2 * startN) * (14 * mupsi2**2 - 65 * mupsi2 + 29))
-        prime_correction65 = 5 * correction65 - 45 / 8 * muphi2**3 * correction05 * (1 - exp(-mupsi2 * startN))**2 * exp(-mupsi2 * startN) * mupsi2
+        prime_correction65 = 5 * correction65 + 45 / 8 * muphi2**3 * correction05 * (1 - exp(-mupsi2 * startN))**2 * exp(-mupsi2 * startN) * mupsi2
         prime_correction3 = prime_correction05 + prime_correction25 + prime_correction45 + prime_correction65
 
         # Set up the initial conditions
         correction = correction1 + correction2 + correction3
         prime_correction = prime_correction1 + prime_correction2 + prime_correction3
         R0 = exp(-startN) + correction
-        Rdot0 = - exp(-startN) + prime_correction
+        # Rdot0 = - exp(-startN) + prime_correction
 
         # Convert to delta = log(R) + N = log(R * exp(N))
         delta0 = log(R0 * exp(startN))  # To avoid catastropic loss of precision due to cancellation
