@@ -29,7 +29,7 @@ class Model(object):
                  potential_r: int = 2,
                  # Power spectrum parameters
                  min_k: float = 1e-5,
-                 num_modes: int = 401,
+                 num_modes: int = 1001,
                  max_k: float = 1e3,
                  test_ps: bool = False,
                  # Grid parameters

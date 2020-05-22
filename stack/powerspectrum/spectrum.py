@@ -43,10 +43,8 @@ class PowerSpectrum(Persistence):
         self.interp = None
 
         # Error tolerances used in computing ODE solutions
-        self.err_abs = 1e-25
-        self.err_rel = 1e-10
-        # Allowing for an absolute error lets the integration work, but it otherwise loses precision
-        # The initial value of delta0 seems to be the thing that kills it :(
+        self.err_abs = 0
+        self.err_rel = 1e-12
         
         # Storage for mode function integration
         self.df_rvals = None
@@ -88,6 +86,7 @@ class PowerSpectrum(Persistence):
 
         # Also save the mode evolution (not loaded back in when loading data)
         self.df_rvals.to_csv(self.file_path(self.filename + '-Rvals.csv'), index=False)
+        self.df_rpvals.to_csv(self.file_path(self.filename + '-Rpvals.csv'), index=False)
         self.df_times.to_csv(self.file_path(self.filename + '-Nvals.csv'), index=False)
 
     def compute_data(self) -> None:
@@ -138,8 +137,8 @@ class PowerSpectrum(Persistence):
         
     def construct_interpolant(self) -> None:
         """Construct an interpolant over the power spectrum"""
-        # Note: k = 5 performs better on the interpolation than k = 3 (empirical testing), at around 10^-6 relative error
-        # across the board for 401 points
+        # Note: k = 5 performs better on the interpolation than k = 3 (empirical testing), at around 10^-7
+        # relative error across the board for 1001 points
         self.interp = InterpolatedUnivariateSpline(self.kvals, self.spectrum, k=5, ext='raise')
 
     def construct_spectrum(self) -> None:
@@ -155,7 +154,7 @@ class PowerSpectrum(Persistence):
 
         # Figure out the time to start integrating from. Each mode has its own value of N.
         # N = 0 is the waterfall transition
-        startN = log(8 * 10**(-15) * kvals**4) / 4.0
+        startN = log(8 * 10**(-8) * kvals**4) / 4.0
         minN = np.min(startN)
 
         # Compute initial condition corrections (field values and derivatives)
@@ -185,9 +184,6 @@ class PowerSpectrum(Persistence):
         prime_correction45 = 5 * correction45 - 0.25 * muphi2**2 * correction05 * (mupsi2 * exp(-mupsi2 * startN) * (9 * mupsi2**2 - 65 * mupsi2 + 58) - 2 * mupsi2 * exp(-2 * mupsi2 * startN) * (14 * mupsi2**2 - 65 * mupsi2 + 29))
         prime_correction65 = 5 * correction65 - 45 / 8 * muphi2**3 * correction05 * (1 - exp(-mupsi2 * startN))**2 * exp(-mupsi2 * startN) * mupsi2
         prime_correction3 = prime_correction05 + prime_correction25 + prime_correction45 + prime_correction65
-
-        # TODO: I'm worried that correction23 is bigger than correction03...
-        # TODO: I'm worried that prime_correction43 is bigger than prime_correction23...
 
         # Set up the initial conditions
         correction = correction1 + correction2 + correction3
@@ -221,12 +217,51 @@ class PowerSpectrum(Persistence):
             derivatives = np.concatenate([deltadot, deltaddot, Ndot])
             return derivatives
 
+        def jacobian(t: float, x: np.array) -> np.array:
+            """
+            Compute the Jacobian of the ODE
+
+            Warning: this is a (3*num_k)^2 sparse matrix, and is unfortunately slow to construct...
+            """
+            # Extract values
+            delta = x[0:num_k]
+            deltadot = x[num_k:2*num_k]
+            Nvals = x[2*num_k:3*num_k]
+
+            zeroblock = np.zeros((num_k, num_k))
+
+            # Compute Jacobian in 9 blocks
+            # deltadot
+            ddeltadot_ddelta = zeroblock
+            ddeltadot_ddeltadot = np.eye(num_k)
+            ddeltadot_dN = zeroblock
+
+            # deltaddot
+            ddeltaddot_ddelta = np.diag(- 4 * kvals2 * exp(-2 * Nvals) * exp(-4 * delta))
+            ddeltaddot_ddeltadot = np.diag(- 2 * deltadot - 1)
+            ddeltaddot_dN = np.diag(- 2 * kvals2 * exp(-2 * Nvals) * expm1(-4 * delta) + mupsi2 * muphi2 * exp(-mupsi2 * Nvals))
+
+            # Ndot
+            dNdot_ddelta = zeroblock
+            dNdot_ddeltadot = zeroblock
+            dNdot_dN = zeroblock
+            
+            # Construct the Jacobian from the blocks
+            jac = np.block([[ddeltadot_ddelta, ddeltadot_ddeltadot, ddeltadot_dN],
+                            [ddeltaddot_ddelta, ddeltaddot_ddeltadot, ddeltaddot_dN],
+                            [dNdot_ddelta, dNdot_ddeltadot, dNdot_dN]])
+
+            return jac
+
         # Set up the integrator
-        integrator = ode(derivs).set_integrator('dop853', rtol=self.err_rel, atol=self.err_abs, nsteps=100000, first_step=1e-10, max_step=1e-2)
+        # Can use jacobian by using ode(derivs, jacobian) if desired, but may be very slow
+        integrator = ode(derivs).set_integrator('vode', method='bdf', rtol=self.err_rel, atol=self.err_abs,
+                                                nsteps=100000, first_step=1e-10, max_step=1e-2)
         integrator.set_initial_value(ics, minN)
 
         # Save initial conditions
         Rvals = [exp(integrator.y[0:num_k] - integrator.y[2*num_k:3*num_k])]
+        Rpvals = [(integrator.y[num_k:2*num_k] - 1) * Rvals[0]]
         times = [integrator.y[2*num_k:3*num_k]]
 
         # Perform integration
@@ -241,15 +276,22 @@ class PowerSpectrum(Persistence):
             times.append(timevals)
 
             rvals = integrator.y[0:num_k] - timevals
-            Rvals.append(exp(rvals))
-        
+            Rval = exp(rvals)
+            Rvals.append(Rval)
+            Rpvals.append((integrator.y[num_k:2*num_k] - 1) * Rval)
+
+            if self.model.verbose:
+                print(f"    {integrator.t} / {endN}")
+
         assert integrator.successful()
         
         # Convert results into one big array
         Rvals = np.array(Rvals)
+        Rpvals = np.array(Rpvals)
         times = np.array(times)
 
         self.df_rvals = pd.DataFrame(Rvals, columns=list(kvals))
+        self.df_rpvals = pd.DataFrame(Rpvals, columns=list(kvals))
         self.df_times = pd.DataFrame(times, columns=list(kvals))
         
         # For each k value, construct an interpolator over the R values and times to get the R value at N = endN
