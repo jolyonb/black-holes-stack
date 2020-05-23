@@ -32,7 +32,7 @@ class Grid(Persistence):
         super().__init__(model)
         self.grid = None
         self.FWHM = None
-        self.sampling_cutoff = None
+        self.sampling_cutoff = None   # In k space
 
     @property
     def rmax(self):

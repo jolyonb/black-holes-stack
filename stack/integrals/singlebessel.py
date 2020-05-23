@@ -87,12 +87,19 @@ class SingleBessel(Persistence):
                 raise ValueError(f'Bad suppression method: {suppression}')
         
         pk = self.model.powerspectrum
+        min_k = self.model.min_k
+        max_k = self.model.max_k
+        if suppression == suppression.SAMPLING:
+            # No need to go far out into the tail of the suppressing Gaussian
+            # At k = n k_0, the suppression is exp(-n^2/2)
+            # At n = 6, this is ~10^-8, which seems like a good place to stop
+            max_k = min(max_k, self.model.grid.sampling_cutoff * 6)
 
         def f(k):
             return k*pk(k, suppression)
 
         # Perform the integration
-        result = quad(f, self.model.min_k, self.model.max_k, weight='sin', wvar=r,
+        result = quad(f, min_k, max_k, weight='sin', wvar=r,
                       epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
         # Check for any warnings
         if len(result) == 4:
@@ -128,6 +135,13 @@ class SingleBessel(Persistence):
             return 0.0
 
         pk = self.model.powerspectrum
+        min_k = self.model.min_k
+        max_k = self.model.max_k
+        if suppression == suppression.SAMPLING:
+            # No need to go far out into the tail of the suppressing Gaussian
+            # At k = n k_0, the suppression is exp(-n^2/2)
+            # At n = 6, this is ~10^-8, which seems like a good place to stop
+            max_k = min(max_k, self.model.grid.sampling_cutoff * 6)
 
         def f_sin(k):
             return k * pk(k, suppression)
@@ -139,11 +153,11 @@ class SingleBessel(Persistence):
             return k * k * k * pk(k, suppression) * spherical_jn(1, k * r)
 
         # Choose methodology
-        if self.model.max_k * r > 5 * pi:
+        if max_k * r > 5 * pi:
             # Perform the integrations using sin and cos quadrature
-            sin_result = quad(f_sin, self.model.min_k, self.model.max_k, weight='sin', wvar=r,
+            sin_result = quad(f_sin, min_k, max_k, weight='sin', wvar=r,
                               epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
-            cos_result = quad(f_cos, self.model.min_k, self.model.max_k, weight='cos', wvar=r,
+            cos_result = quad(f_cos, min_k, max_k, weight='cos', wvar=r,
                               epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
             # Check for any warnings
             if len(sin_result) == 4:
@@ -157,7 +171,7 @@ class SingleBessel(Persistence):
             result = 4 * pi / r**2 * sin_result[0] - 4 * pi / r * cos_result[0]
         else:
             # Perform the integration using direct quadrature
-            int_result = quad(f, self.model.min_k, self.model.max_k,
+            int_result = quad(f, min_k, max_k,
                               epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
             # Check for any warnings
             if len(int_result) == 4:
