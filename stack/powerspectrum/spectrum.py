@@ -108,7 +108,10 @@ class PowerSpectrum(Persistence):
                 return float('inf')
             if k > 700:
                 return 0
-            value = exp(-k)
+            # simple exponential decay to power spectrum
+            # value = exp(-k)
+            # Approximate analytic fit to power spectrum
+            value = 100 / (1 + (20 * k)**2)
         else:
             if 0.999 * self.min_k < k < self.min_k:
                 k = self.min_k
