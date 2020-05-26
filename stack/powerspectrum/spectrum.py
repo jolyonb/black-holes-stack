@@ -104,12 +104,6 @@ class PowerSpectrum(Persistence):
         Return the value of the power spectrum at a given k value, given the desired form of high-frequency suppression.
         """
         if self.model.test_ps:
-            if k < -700:
-                return float('inf')
-            if k > 700:
-                return 0
-            # simple exponential decay to power spectrum
-            # value = exp(-k)
             # Approximate analytic fit to power spectrum
             value = 100 / (1 + (20 * k)**2)
         else:
