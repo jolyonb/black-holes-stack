@@ -6,6 +6,8 @@ Contains the Levin class, a general Levin integrator, as well as subclasses that
 For details on the Levin method, see this writuep:
 https://reference.wolfram.com/language/tutorial/NIntegrateIntegrationRules.html#32844337
 """
+from typing import Tuple, Callable
+
 import numpy as np
 from scipy.special import spherical_jn
 
@@ -34,7 +36,8 @@ class Levin(object):
     the domain of the integral. This should be handled separately.
     """
     
-    def __init__(self, starting_points: int = 20, refinements: int = 6, abs_tol: float = 0, rel_tol: float = 1e-7):
+    def __init__(self, starting_points: int = 20, refinements: int = 6,
+                 abs_tol: float = 0, rel_tol: float = 1e-7) -> None:
         """Initialize the Levin integrator by precomputing grids"""
         # Store parameters
         self.starting_points = starting_points
@@ -69,7 +72,7 @@ class Levin(object):
         self.dm = None
 
     @staticmethod
-    def _chebyT(theta: np.array, n: int):
+    def _chebyT(theta: np.array, n: int) -> np.array:
         """
         Returns Chebyshev polynomials of the first kind of order n at value -theta.
         Vectorized over theta.
@@ -77,7 +80,7 @@ class Levin(object):
         return (-1) ** (n % 2) * np.cos(n * theta)
 
     @staticmethod
-    def _chebyU(theta: np.array, n: int):
+    def _chebyU(theta: np.array, n: int) -> np.array:
         """
         Returns Chebyshev polynomials of the second kind of order n at value -theta.
         Vectorized over theta.
@@ -89,7 +92,7 @@ class Levin(object):
         factor = (-1) ** (n % 2)
         return np.concatenate(([factor * n1], factor * np.sin(n1 * subtheta) / np.sin(subtheta), [n1]))
 
-    def set_limits(self, a: float, b: float):
+    def set_limits(self, a: float, b: float) -> None:
         """
         Sets limits of integration and construct collocation grid in k-space.
         x space ranges from -1 to 1, while k-space ranges from a to b.
@@ -98,7 +101,7 @@ class Levin(object):
         self.b = b
         self.kvals = (b - a) / 2 * self.colloc + (b + a) / 2
 
-    def set_amplitude(self, amplitude):
+    def set_amplitude(self, amplitude: Callable) -> None:
         """
         Set the amplitude function.
         Evaluates the amplitude on all collocation gridpoints.
@@ -106,7 +109,7 @@ class Levin(object):
         assert self.a is not None
         self.amplitude = np.array([amplitude(k) for k in self.kvals])
 
-    def set_kernel(self, kernel):
+    def set_kernel(self, kernel: Callable) -> None:
         """
         Set the integration kernel.
         Evaluates the kernel at the limits of integration.
@@ -115,7 +118,7 @@ class Levin(object):
         self.kernel_a = kernel(self.kvals[0])
         self.kernel_b = kernel(self.kvals[-1])
 
-    def set_differential_matrix(self, differential_matrix):
+    def set_differential_matrix(self, differential_matrix: Callable) -> None:
         """
         Set the differential matrix.
         Evaluates the differential matrix on all collocation gridpoints.
@@ -129,7 +132,7 @@ class Levin(object):
         shape = self.dm[0].shape
         assert len(self.kernel_a) == shape[0] == shape[1]
 
-    def _slice(self, numpoints):
+    def _slice(self, numpoints: int) -> slice:
         """
         Constructs the slice that will extract the appropriate gridpoints from everything.
 
@@ -149,7 +152,7 @@ class Levin(object):
 
         return sl
         
-    def _integrate(self, numpoints):
+    def _integrate(self, numpoints: int) -> float:
         """
         Integrates functions of the form
         int_a^b f(k) w(k) dk
@@ -216,11 +219,11 @@ class Levin(object):
         # which we evaluate at the limits
         resulta = np.dot(np.dot(cij, chebyTs[:, 0]), kernel_a)
         resultb = np.dot(np.dot(cij, chebyTs[:, -1]), kernel_b)
+        result = float(resultb - resulta)
         
-        # Return the result
-        return resultb - resulta
+        return result
     
-    def integrate(self) -> tuple:
+    def integrate(self) -> Tuple[float, float]:
         """
         Performs the Levin integration. Starts out by using the minimum number of points specified, then refines
         repeatedly until the desired tolerances are met.
@@ -261,7 +264,7 @@ class LevinIntegrals(Levin):
     LevinIntegrals.set_amplitude(amplitude)
     """
     
-    def integrate_I(self, ell, alpha):
+    def integrate_I(self, ell: int, alpha: float) -> Tuple[float, float]:
         """
         Performs integrals of the form
         I = int_a^b f(k) j_l(alpha k) dk
@@ -274,7 +277,7 @@ class LevinIntegrals(Levin):
         
         :param ell: Order of spherical bessel function to integrate
         :param alpha: Coefficient in the spherical bessel function
-        :return: Value of the integral
+        :return: Value of the integral, error estimate
         """
         # Set the integration kernel
         def kernel(k):
