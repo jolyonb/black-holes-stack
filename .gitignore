@@ -12,3 +12,6 @@ venv/
 
 # Models
 models
+
+# Test files
+.pytest_cache
