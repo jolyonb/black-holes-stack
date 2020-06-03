@@ -8,9 +8,9 @@ def main():
     model.construct_powerspectrum()
     model.construct_moments()
     model.construct_singlebessel()
-    model.construct_grid()
-    model.construct_moments2()
-    model.construct_correlations()
+    # model.construct_grid()
+    # model.construct_moments2()
+    # model.construct_correlations()
 
 if __name__ == '__main__':
     main()

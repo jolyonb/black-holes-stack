@@ -105,12 +105,8 @@ class PowerSpectrum(Persistence):
         """
         if self.model.test_ps:
             # Approximate analytic fit to power spectrum
-            value = 100 / (1 + (20 * k)**2)
+            value = 100 / (1 + (20 * k)**2 + (5 * k)**4 + k**6)
         else:
-            if 0.999 * self.min_k < k < self.min_k:
-                k = self.min_k
-            elif self.max_k < k < 1.001 * self.max_k:
-                k = self.max_k
             value = self.interp(k)
         if suppression == Suppression.RAW:
             suppression_val = 1
@@ -136,7 +132,7 @@ class PowerSpectrum(Persistence):
         """Construct an interpolant over the power spectrum"""
         # Note: k = 5 performs better on the interpolation than k = 3 (empirical testing), at around 10^-7
         # relative error across the board for 1001 points
-        self.interp = InterpolatedUnivariateSpline(self.kvals, self.spectrum, k=5, ext='raise')
+        self.interp = InterpolatedUnivariateSpline(self.kvals, self.spectrum, k=5)
 
     def construct_spectrum(self) -> None:
         """Compute the power spectrum"""

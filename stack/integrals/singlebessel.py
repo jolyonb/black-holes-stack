@@ -14,8 +14,9 @@ from scipy.integrate import quad
 from scipy.special import spherical_jn
 
 from stack.common import Persistence, Suppression
+from stack.integrals.levin import LevinIntegrals
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
     from stack import Model
@@ -41,6 +42,27 @@ class SingleBessel(Persistence):
         # Error tolerances used in computing integrals
         self.err_abs = 0
         self.err_rel = 1e-8
+        
+        # Set up a Levin integrator
+        self.integrator = LevinIntegrals(rel_tol=self.err_rel, starting_points=200, refinements=5)
+        self.limit_a = None
+        self.limit_b = None
+        self.amplitudename = None
+    
+    def set_limits(self, a: float, b: float) -> None:
+        """Set the limits on the Levin integrator (idempotently)"""
+        if a == self.limit_a and b == self.limit_b:
+            return
+        self.limit_a = a
+        self.limit_b = b
+        self.integrator.set_limits(a=a, b=b)
+
+    def set_amplitude(self, name: str, func: Callable) -> None:
+        """Set the amplitude function for the Levin integrator (idempotently)"""
+        if name == self.amplitudename:
+            return
+        self.amplitudename = name
+        self.integrator.set_amplitude(func)
 
     def load_data(self) -> None:
         """This class does not save any data, so has nothing to load"""
@@ -54,7 +76,7 @@ class SingleBessel(Persistence):
         """This class does not save any data, but does output some results for comparison with Mathematica"""
         # Construct a grid in physical space
         rvals = np.logspace(start=-3,
-                            stop=3,
+                            stop=2.5,
                             num=21,
                             endpoint=True)
         # Compute C and D on that grid
@@ -98,16 +120,26 @@ class SingleBessel(Persistence):
         def f(k):
             return k*pk(k, suppression)
 
-        # Perform the integration
-        result = quad(f, min_k, max_k, weight='sin', wvar=r,
-                      epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
-        # Check for any warnings
-        if len(result) == 4:
-            print('Warning when integrating C(r) at r =', r)
-            print(result[-1])
+        # Choose methodology
+        if r / self.model.moments_raw.lengthscale > 10:
+            # Use Levin integration
+            self.set_limits(min_k, max_k)
+            self.set_amplitude('C', lambda k: k*k*pk(k, suppression))
+            result, _ = self.integrator.integrate_I(ell=0, alpha=r)
+
+            # Rescale result
+            integral = result * 4 * pi
+        else:
+            # Use normal quadrature (sine-weighted)
+            result = quad(f, min_k, max_k, weight='sin', wvar=r,
+                          epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
+            # Check for any warnings
+            if len(result) == 4:
+                print('Warning when integrating C(r) at r =', r)
+                print(result[-1])
         
-        # Rescale the result
-        integral = result[0] * 4 * pi / r
+            # Rescale the result
+            integral = result[0] * 4 * pi / r
 
         return integral
 
@@ -153,22 +185,30 @@ class SingleBessel(Persistence):
             return k * k * k * pk(k, suppression) * spherical_jn(1, k * r)
 
         # Choose methodology
-        if max_k * r > 5 * pi:
-            # Perform the integrations using sin and cos quadrature
-            sin_result = quad(f_sin, min_k, max_k, weight='sin', wvar=r,
-                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
-            cos_result = quad(f_cos, min_k, max_k, weight='cos', wvar=r,
-                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
-            # Check for any warnings
-            if len(sin_result) == 4:
-                print('Warning when integrating D_sin(r) at r =', r)
-                print(sin_result[-1])
-            if len(cos_result) == 4:
-                print('Warning when integrating D_cos(r) at r =', r)
-                print(cos_result[-1])
+        if r > 10:
+            # Use Levin integration
+            self.set_limits(min_k, max_k)
+            self.set_amplitude('D', lambda k: k*k*k*pk(k, suppression))
+            result, _ = self.integrator.integrate_I(ell=1, alpha=r)
+
+            # Rescale result
+            integral = result * 4 * pi
             
-            # Construct the result
-            result = 4 * pi / r**2 * sin_result[0] - 4 * pi / r * cos_result[0]
+            # # Perform the integrations using sin and cos quadrature
+            # sin_result = quad(f_sin, min_k, max_k, weight='sin', wvar=r,
+            #                   epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
+            # cos_result = quad(f_cos, min_k, max_k, weight='cos', wvar=r,
+            #                   epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
+            # # Check for any warnings
+            # if len(sin_result) == 4:
+            #     print('Warning when integrating D_sin(r) at r =', r)
+            #     print(sin_result[-1])
+            # if len(cos_result) == 4:
+            #     print('Warning when integrating D_cos(r) at r =', r)
+            #     print(cos_result[-1])
+            #
+            # # Construct the result
+            # result = 4 * pi / r**2 * sin_result[0] - 4 * pi / r * cos_result[0]
         else:
             # Perform the integration using direct quadrature
             int_result = quad(f, min_k, max_k,

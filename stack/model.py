@@ -30,7 +30,7 @@ class Model(object):
                  # Power spectrum parameters
                  min_k: float = 1e-5,
                  num_modes: int = 1001,
-                 max_k: float = 1e3,
+                 max_k: float = 250,
                  test_ps: bool = False,
                  # Grid parameters
                  rmaxfactor: float = 20,
@@ -111,7 +111,7 @@ class Model(object):
         # Compute derivative quantities
         self.mupsi2 = self.potential_r / 2 * (3 - sqrt(9 - 4*mpsi**2))
         self.muphi2 = m0**2
-        self.lamda = (-3 + sqrt(9 + 4 * self.muphi2 * (1 - exp(-self.mupsi2 * self.n_efolds)))) / 2    # Eq. 39, https://arxiv.org/pdf/1210.8128.pdf
+        self.lamda = (-3 + sqrt(9 + 4 * self.muphi2 * (1 - exp(-self.mupsi2 * self.n_efolds)))) / 2    # Eq. 39, https://arxiv.org/pdf/1210.8128.pdf  # TODO: should this include r?
         self.beta = 1/(2*self.lamda)
 
         # Ensure that the relevant folder exists

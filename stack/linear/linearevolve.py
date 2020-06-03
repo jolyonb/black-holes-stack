@@ -46,7 +46,7 @@ class Linear(object):
         dudr = self.model.beta * self.phiprime * self.phiprimeprime
         dudr -= self.phi * self.phiprimeprime / self.rvals
         dudr -= self.phiprime**2 / self.rvals
-        dudr += self.phi * self.phiprimeprime / self.rvals**2
+        dudr += self.phi * self.phiprime / self.rvals**2
         dudr *= np.exp(-2*self.model.n_ef) * self.model.beta * self.phi**(2*self.model.beta - 2)
         dudr += (2*self.model.beta - 2) * self.phiprime / self.phi * self.delta_U
         self.delta_rho_dot = part1 + part2 * dudr
