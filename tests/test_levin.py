@@ -21,6 +21,12 @@ def test_integrate_I():
     assert isclose(result, actual, rel_tol=1e-13)
 
     # Set the amplitude function
+    integrator.set_amplitude(lambda k: exp(-k))
+    result, _ = integrator.integrate_I(ell=1, alpha=150)
+    actual = -8.7574614247868343e-6
+    assert isclose(result, actual, rel_tol=1e-13)
+
+    # Set the amplitude function
     integrator.set_amplitude(lambda k: k)
     result, _ = integrator.integrate_I(ell=2, alpha=200)
     actual = -2.54800394477614e-5
@@ -32,4 +38,30 @@ def test_integrate_I():
     integrator.set_amplitude(lambda k: exp(-k))
     result, _ = integrator.integrate_I(ell=5, alpha=300)
     actual = -4.10570536122891e-6
+    assert isclose(result, actual, rel_tol=1e-13)
+
+def test_integrate_H():
+    rel_tol = 1e-14
+    integrator = LevinIntegrals(rel_tol=1e-14)
+
+    # Set the limits of integration
+    integrator.set_limits(a=1, b=5)
+
+    # Set the amplitude function
+    integrator.set_amplitude(lambda k: k)
+    result, _ = integrator.integrate_H(ell=1, alpha=100)
+    actual = 8.07322324128794e-5
+    assert isclose(result, actual, rel_tol=1e-13)
+
+def test_integrate_K():
+    rel_tol = 1e-14
+    integrator = LevinIntegrals(rel_tol=1e-14)
+
+    # Set the limits of integration
+    integrator.set_limits(a=1, b=5)
+
+    # Set the amplitude function
+    integrator.set_amplitude(lambda k: k)
+    result, _ = integrator.integrate_K(ell=1, alpha=100, beta=200)
+    actual = 1.73303544499857e-7
     assert isclose(result, actual, rel_tol=1e-13)

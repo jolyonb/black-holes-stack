@@ -1,0 +1,434 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 12.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     14227,        426]
+NotebookOptionsPosition[     11866,        383]
+NotebookOutlinePosition[     12267,        400]
+CellTagsIndexPosition[     12224,        397]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Levin integration", "Section",ExpressionUUID->"f704fe18-52af-4721-b94a-0b0bd1c2f1aa"],
+
+Cell["\<\
+This notebook establishes the Levin kernels and differential matrices that we \
+use.\
+\>", "Text",ExpressionUUID->"89d517f2-eb89-45d1-938c-034d58660952"],
+
+Cell[CellGroupData[{
+
+Cell["I-type integrals", "Subsection",ExpressionUUID->"d088a0ed-e502-4c24-bd02-cee5c20b4345"],
+
+Cell["\<\
+This performs the Levin decomposition for integrals of the form:\
+\>", "Text",ExpressionUUID->"43bf6ff2-e3f4-4e97-aa71-207b6af10a11"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Integrate", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"f", "[", "k", "]"}], 
+     RowBox[{"SphericalBesselJ", "[", 
+      RowBox[{"l", ",", 
+       RowBox[{"\[Alpha]", " ", "k"}]}], "]"}]}], ",", "k"}], "]"}], "//", 
+  "TraditionalForm"}]], "Input",
+ CellLabel->
+  "In[165]:=",ExpressionUUID->"374bca18-b525-457d-a097-f32c7cc71894"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"li", "=", 
+   RowBox[{"NIntegrate`LevinIntegrandReduce", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"f", "[", "k", "]"}], 
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{"l", ",", 
+        RowBox[{"\[Alpha]", " ", "k"}]}], "]"}]}], ",", "k"}], "]"}]}], 
+  ";"}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"li", "[", "\"\<Kernel\>\"", "]"}], "//", "FullSimplify"}], "//", 
+  "TraditionalForm"}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"First", "[", 
+    RowBox[{"li", "[", "\"\<DifferentialMatrices\>\"", "]"}], "]"}], "//", 
+   "Expand"}], "//", "MatrixForm"}]}], "Input",
+ CellLabel->
+  "In[166]:=",ExpressionUUID->"fd2ecb43-c794-44d0-b8a9-4b03a786561c"],
+
+Cell["Testing out some special cases...", "Text",ExpressionUUID->"512224cd-d0b1-4286-8ff8-9968babf95d5"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"w", " ", "=", " ", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"SphericalBesselJ", "[", 
+      RowBox[{"1", ",", 
+       RowBox[{"\[Alpha]", " ", "k"}]}], "]"}], ",", 
+     RowBox[{"SphericalBesselJ", "[", 
+      RowBox[{"0", ",", 
+       RowBox[{"\[Alpha]", " ", "k"}]}], "]"}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dm", " ", "=", " ", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"-", "2"}], "/", "k"}], ",", "\[Alpha]"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"-", "\[Alpha]"}], ",", "0"}], "}"}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"D", "[", 
+    RowBox[{"w", ",", "k"}], "]"}], "\[Equal]", 
+   RowBox[{"dm", ".", "w"}]}], "//", 
+  "FullSimplify"}], "\[IndentingNewLine]", "w", "\[IndentingNewLine]", 
+ RowBox[{"dm", "//", "MatrixForm"}]}], "Input",
+ CellLabel->
+  "In[142]:=",ExpressionUUID->"f2d685fe-d3f1-4b4e-b2a3-ab7e11738503"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"w", " ", "=", " ", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"SphericalBesselJ", "[", 
+      RowBox[{"0", ",", 
+       RowBox[{"\[Alpha]", " ", "k"}]}], "]"}], ",", 
+     RowBox[{"SphericalBesselJ", "[", 
+      RowBox[{"1", ",", 
+       RowBox[{"\[Alpha]", " ", "k"}]}], "]"}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dm", " ", "=", " ", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"0", ",", 
+       RowBox[{"-", "\[Alpha]"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"\[Alpha]", ",", 
+       RowBox[{
+        RowBox[{"-", "2"}], "/", "k"}]}], "}"}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"D", "[", 
+    RowBox[{"w", ",", "k"}], "]"}], "\[Equal]", 
+   RowBox[{"dm", ".", "w"}]}], "//", 
+  "FullSimplify"}], "\[IndentingNewLine]", "w", "\[IndentingNewLine]", 
+ RowBox[{"dm", "//", "MatrixForm"}]}], "Input",
+ CellLabel->
+  "In[156]:=",ExpressionUUID->"5e11784f-494d-4d37-aa1e-8afd85d2ecae"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["H-type integrals", "Subsection",ExpressionUUID->"9684781a-a307-41df-95c4-be5ddbfded5a"],
+
+Cell["\<\
+This performs the Levin decomposition for integrals of the form:\
+\>", "Text",ExpressionUUID->"863df9d7-3594-4f9e-a201-1bc382c17380"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Integrate", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"f", "[", "k", "]"}], 
+     RowBox[{
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{"l", ",", 
+        RowBox[{"\[Alpha]", " ", "k"}]}], "]"}], "^", "2"}]}], ",", "k"}], 
+   "]"}], "//", "TraditionalForm"}]], "Input",
+ CellLabel->
+  "In[164]:=",ExpressionUUID->"6757e2de-6a0b-4a8b-a6e1-088fb95904f3"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"li", "=", 
+   RowBox[{"NIntegrate`LevinIntegrandReduce", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"f", "[", "k", "]"}], 
+      RowBox[{
+       RowBox[{"SphericalBesselJ", "[", 
+        RowBox[{"l", ",", 
+         RowBox[{"\[Alpha]", " ", "k"}]}], "]"}], "^", "2"}]}], ",", "k"}], 
+    "]"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"li", "[", "\"\<Kernel\>\"", "]"}], "//", "FullSimplify"}], "//", 
+  "TraditionalForm"}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"First", "[", 
+    RowBox[{"li", "[", "\"\<DifferentialMatrices\>\"", "]"}], "]"}], "//", 
+   "Expand"}], "//", "MatrixForm"}]}], "Input",
+ CellLabel->
+  "In[169]:=",ExpressionUUID->"24c06798-676b-4531-a1c8-6d81dabc8af0"],
+
+Cell["Trying out a different kernel...", "Text",ExpressionUUID->"c40fc8b2-168a-47a2-87af-5c8fee1129a9"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"w", " ", "=", " ", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{"l", ",", 
+        RowBox[{"\[Alpha]", " ", "k"}]}], "]"}], "^", "2"}], ",", 
+     RowBox[{
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{"l", ",", 
+        RowBox[{"\[Alpha]", " ", "k"}]}], "]"}], 
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{
+        RowBox[{"l", "+", "1"}], ",", 
+        RowBox[{"\[Alpha]", " ", "k"}]}], "]"}]}], ",", 
+     RowBox[{
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{
+        RowBox[{"l", "+", "1"}], ",", 
+        RowBox[{"\[Alpha]", " ", "k"}]}], "]"}], "^", "2"}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dm", " ", "=", " ", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"2", 
+        RowBox[{"l", "/", "k"}]}], ",", 
+       RowBox[{
+        RowBox[{"-", "2"}], "\[Alpha]"}], ",", "0"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"\[Alpha]", ",", 
+       RowBox[{
+        RowBox[{"-", "2"}], "/", "k"}], ",", 
+       RowBox[{"-", "\[Alpha]"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"0", ",", 
+       RowBox[{"2", "\[Alpha]"}], ",", 
+       RowBox[{
+        RowBox[{"-", "2"}], 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{"l", "+", "2"}], ")"}], "/", "k"}]}]}], "}"}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"D", "[", 
+    RowBox[{"w", ",", "k"}], "]"}], "\[Equal]", 
+   RowBox[{"dm", ".", "w"}]}], "//", 
+  "FullSimplify"}], "\[IndentingNewLine]", "w", "\[IndentingNewLine]", 
+ RowBox[{"dm", "//", "MatrixForm"}]}], "Input",
+ CellLabel->
+  "In[172]:=",ExpressionUUID->"8e78b4b0-99b3-4934-b2b6-8d20a6eff0bd"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["K-type integrals", "Subsection",ExpressionUUID->"c42ccdc1-6feb-4cd1-a351-a0dabd3d90d0"],
+
+Cell["\<\
+This performs the Levin decomposition for integrals of the form:\
+\>", "Text",ExpressionUUID->"f0e88bc3-d191-4f3d-a8ce-f5c16ce67d09"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Integrate", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"f", "[", "k", "]"}], 
+     RowBox[{"SphericalBesselJ", "[", 
+      RowBox[{"l", ",", 
+       RowBox[{"\[Alpha]", " ", "k"}]}], "]"}], 
+     RowBox[{"SphericalBesselJ", "[", 
+      RowBox[{"l", ",", 
+       RowBox[{"\[Beta]", " ", "k"}]}], "]"}]}], ",", "k"}], "]"}], "//", 
+  "TraditionalForm"}]], "Input",
+ CellLabel->
+  "In[179]:=",ExpressionUUID->"f8d35228-9ef0-479d-88e1-f64a461bb111"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"li", "=", 
+   RowBox[{"NIntegrate`LevinIntegrandReduce", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"f", "[", "k", "]"}], 
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{"l", ",", 
+        RowBox[{"\[Alpha]", " ", "k"}]}], "]"}], 
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{"l", ",", 
+        RowBox[{"\[Beta]", " ", "k"}]}], "]"}]}], ",", "k"}], "]"}]}], 
+  ";"}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"li", "[", "\"\<Kernel\>\"", "]"}], "//", "FullSimplify"}], "//", 
+  "TraditionalForm"}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"First", "[", 
+    RowBox[{"li", "[", "\"\<DifferentialMatrices\>\"", "]"}], "]"}], "//", 
+   "Expand"}], "//", "MatrixForm"}]}], "Input",
+ CellLabel->
+  "In[180]:=",ExpressionUUID->"f622e30d-ad54-4e29-a5da-e9e82648912c"],
+
+Cell["Trying out a different kernel...", "Text",ExpressionUUID->"5e3189fc-378d-405c-ba60-88cb94c0eee1"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"w", " ", "=", " ", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{"l", ",", 
+        RowBox[{"\[Alpha]", " ", "k"}]}], "]"}], 
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{"l", ",", 
+        RowBox[{"\[Beta]", " ", "k"}]}], "]"}]}], ",", "\[IndentingNewLine]", 
+     
+     RowBox[{
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{
+        RowBox[{"l", "+", "1"}], ",", 
+        RowBox[{"\[Alpha]", " ", "k"}]}], "]"}], 
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{"l", ",", 
+        RowBox[{"\[Beta]", " ", "k"}]}], "]"}]}], ",", "\[IndentingNewLine]", 
+     
+     RowBox[{
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{"l", ",", 
+        RowBox[{"\[Alpha]", " ", "k"}]}], "]"}], 
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{
+        RowBox[{"l", "+", "1"}], ",", 
+        RowBox[{"\[Beta]", " ", "k"}]}], "]"}]}], ",", "\[IndentingNewLine]", 
+     
+     RowBox[{
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{
+        RowBox[{"l", "+", "1"}], ",", 
+        RowBox[{"\[Alpha]", " ", "k"}]}], "]"}], 
+      RowBox[{"SphericalBesselJ", "[", 
+       RowBox[{
+        RowBox[{"l", "+", "1"}], ",", 
+        RowBox[{"\[Beta]", " ", "k"}]}], "]"}]}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dm", " ", "=", " ", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"2", 
+        RowBox[{"l", "/", "k"}]}], ",", 
+       RowBox[{"-", "\[Alpha]"}], ",", 
+       RowBox[{"-", "\[Beta]"}], ",", "0"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"\[Alpha]", ",", 
+       RowBox[{
+        RowBox[{"-", "2"}], "/", "k"}], ",", "0", ",", 
+       RowBox[{"-", "\[Beta]"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"\[Beta]", ",", "0", ",", 
+       RowBox[{
+        RowBox[{"-", "2"}], "/", "k"}], ",", 
+       RowBox[{"-", "\[Alpha]"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"0", ",", "\[Beta]", ",", "\[Alpha]", ",", 
+       RowBox[{
+        RowBox[{"-", "2"}], 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{"l", "+", "2"}], ")"}], "/", "k"}]}]}], "}"}]}], "}"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"D", "[", 
+    RowBox[{"w", ",", "k"}], "]"}], "\[Equal]", 
+   RowBox[{"dm", ".", "w"}]}], "//", 
+  "FullSimplify"}], "\[IndentingNewLine]", "w", "\[IndentingNewLine]", 
+ RowBox[{"dm", "//", "MatrixForm"}]}], "Input",
+ CellLabel->
+  "In[188]:=",ExpressionUUID->"c3a7b508-3c8d-48f1-97e3-27225448e5a3"]
+}, Open  ]]
+}, Open  ]]
+},
+WindowSize->{1262, 867},
+WindowMargins->{{Automatic, -1681}, {Automatic, 127}},
+TrackCellChangeTimes->False,
+Magnification:>1.5 Inherited,
+FrontEndVersion->"12.0 for Mac OS X x86 (64-bit) (April 8, 2019)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 91, 0, 101, "Section",ExpressionUUID->"f704fe18-52af-4721-b94a-0b0bd1c2f1aa"],
+Cell[674, 24, 163, 3, 53, "Text",ExpressionUUID->"89d517f2-eb89-45d1-938c-034d58660952"],
+Cell[CellGroupData[{
+Cell[862, 31, 93, 0, 81, "Subsection",ExpressionUUID->"d088a0ed-e502-4c24-bd02-cee5c20b4345"],
+Cell[958, 33, 143, 2, 53, "Text",ExpressionUUID->"43bf6ff2-e3f4-4e97-aa71-207b6af10a11"],
+Cell[1104, 37, 369, 11, 46, "Input",ExpressionUUID->"374bca18-b525-457d-a097-f32c7cc71894"],
+Cell[1476, 50, 700, 21, 109, "Input",ExpressionUUID->"fd2ecb43-c794-44d0-b8a9-4b03a786561c"],
+Cell[2179, 73, 104, 0, 53, "Text",ExpressionUUID->"512224cd-d0b1-4286-8ff8-9968babf95d5"],
+Cell[2286, 75, 1019, 32, 171, "Input",ExpressionUUID->"f2d685fe-d3f1-4b4e-b2a3-ab7e11738503"],
+Cell[3308, 109, 1019, 32, 171, "Input",ExpressionUUID->"5e11784f-494d-4d37-aa1e-8afd85d2ecae"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4364, 146, 93, 0, 81, "Subsection",ExpressionUUID->"9684781a-a307-41df-95c4-be5ddbfded5a"],
+Cell[4460, 148, 143, 2, 53, "Text",ExpressionUUID->"863df9d7-3594-4f9e-a201-1bc382c17380"],
+Cell[4606, 152, 399, 12, 46, "Input",ExpressionUUID->"6757e2de-6a0b-4a8b-a6e1-088fb95904f3"],
+Cell[5008, 166, 732, 22, 109, "Input",ExpressionUUID->"24c06798-676b-4531-a1c8-6d81dabc8af0"],
+Cell[5743, 190, 103, 0, 53, "Text",ExpressionUUID->"c40fc8b2-168a-47a2-87af-5c8fee1129a9"],
+Cell[5849, 192, 1754, 55, 202, "Input",ExpressionUUID->"8e78b4b0-99b3-4934-b2b6-8d20a6eff0bd"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[7640, 252, 93, 0, 81, "Subsection",ExpressionUUID->"c42ccdc1-6feb-4cd1-a351-a0dabd3d90d0"],
+Cell[7736, 254, 143, 2, 53, "Text",ExpressionUUID->"f0e88bc3-d191-4f3d-a8ce-f5c16ce67d09"],
+Cell[7882, 258, 481, 14, 46, "Input",ExpressionUUID->"f8d35228-9ef0-479d-88e1-f64a461bb111"],
+Cell[8366, 274, 815, 24, 109, "Input",ExpressionUUID->"f622e30d-ad54-4e29-a5da-e9e82648912c"],
+Cell[9184, 300, 103, 0, 53, "Text",ExpressionUUID->"5e3189fc-378d-405c-ba60-88cb94c0eee1"],
+Cell[9290, 302, 2548, 77, 264, "Input",ExpressionUUID->"c3a7b508-3c8d-48f1-97e3-27225448e5a3"]
+}, Open  ]]
+}, Open  ]]
+}
+]
+*)
+

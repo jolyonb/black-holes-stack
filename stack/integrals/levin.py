@@ -296,3 +296,174 @@ class LevinIntegrals(Levin):
 
         # Perform the integration
         return self.integrate()
+
+    def integrate_I2(self, ell: int, alpha: float) -> Tuple[float, float]:
+        """
+        Performs integrals of the form
+        I = int_a^b f(k) j_l(alpha k) dk
+        using the Levin-collocation method.
+        
+        This uses a different kernel to the integrate_I method (they are, however, equivalent for ell = 0).
+
+        The kernel vector is {j_ell(alpha*k), ell/(alpha*k)*j_ell(alpha*k) - j_(ell+1)(alpha*k)}.
+        The differential matrix is {{0, alpha}, {ell*(ell+1)/(alpha*k^2) - alpha, -2/k}}.
+
+        Note that the differential matrix becomes singular as k -> 0, so we can only treat positive limits.
+
+        :param ell: Order of spherical bessel function to integrate
+        :param alpha: Coefficient in the spherical bessel function
+        :return: Value of the integral, error estimate
+        """
+
+        # Set the integration kernel
+        def kernel(k):
+            return np.array([spherical_jn(ell, alpha * k), ell / (alpha * k) * spherical_jn(ell, alpha * k) - spherical_jn(ell + 1, alpha * k)])
+
+        self.set_kernel(kernel)
+
+        # Set the differential matrix
+        dm = np.zeros((2, 2))
+        dm[0, 1] = alpha
+
+        def dm(k):
+            result = dm.copy()
+            result[1, 0] = ell * (ell + 1) / (alpha * k * k) - alpha
+            result[1, 1] = - 2 / k
+            return result
+
+        self.set_differential_matrix(dm)
+
+        # Perform the integration
+        return self.integrate()
+
+    def integrate_I3(self, alpha: float) -> Tuple[float, float]:
+        """
+        Performs integrals of the form
+        I = int_a^b f(k) j_1(alpha k) dk
+        using the Levin-collocation method. (Note: ell = 1)
+
+        This uses the same approach as integrate_I, but using j_0 and j_1 instead of j_1 and j_2.
+
+        The kernel vector is {j_1(alpha*k), j_0(alpha*k)}.
+        The differential matrix is {{-2/k, alpha}, {-alpha, 0}}.
+
+        Note that the differential matrix becomes singular as k -> 0, so we can only treat positive limits.
+
+        :param alpha: Coefficient in the spherical bessel function
+        :return: Value of the integral, error estimate
+        """
+    
+        # Set the integration kernel
+        def kernel(k):
+            return np.array([spherical_jn(1, alpha * k),
+                             spherical_jn(0, alpha * k)])
+    
+        self.set_kernel(kernel)
+    
+        # Set the differential matrix
+        dm = np.zeros((2, 2))
+        dm[0, 1] = alpha
+        dm[1, 0] = -alpha
+    
+        def dm(k):
+            result = dm.copy()
+            result[0, 0] = - 2 / k
+            return result
+    
+        self.set_differential_matrix(dm)
+    
+        # Perform the integration
+        return self.integrate()
+
+    def integrate_H(self, ell: int, alpha: float) -> Tuple[float, float]:
+        """
+        Performs integrals of the form
+        I = int_a^b f(k) j_l(alpha k)^2 dk
+        using the Levin-collocation method.
+
+        The kernel vector is {j_ell(alpha*k)^2, j_ell(alpha*k) * j_(ell+1)(alpha*k), j_(ell+1)(alpha*k)^2}.
+        The differential matrix is {{2*ell/k, -2*alpha, 0}, {alpha, -2/k, -alpha}, {0, 2*alpha, -2*(ell+2)/k}}.
+
+        Note that the differential matrix becomes singular as k -> 0, so we can only treat positive limits.
+
+        :param ell: Order of spherical bessel function to integrate
+        :param alpha: Coefficient in the spherical bessel function
+        :return: Value of the integral, error estimate
+        """
+    
+        # Set the integration kernel
+        def kernel(k):
+            return np.array([spherical_jn(ell, alpha * k)**2,
+                             spherical_jn(ell, alpha * k) * spherical_jn(ell + 1, alpha * k),
+                             spherical_jn(ell + 1, alpha * k)**2])
+    
+        self.set_kernel(kernel)
+    
+        # Set the differential matrix
+        dm_diag = np.diag([2*ell, -2, -2*(ell+2)])
+        dm_off = np.zeros((3, 3))
+        dm_off[0, 1] = -2*alpha
+        dm_off[1, 0] = alpha
+        dm_off[1, 2] = -alpha
+        dm_off[2, 1] = 2*alpha
+
+        def dm(k):
+            return dm_diag / k + dm_off
+    
+        self.set_differential_matrix(dm)
+    
+        # Perform the integration
+        return self.integrate()
+
+    def integrate_K(self, ell: int, alpha: float, beta: float) -> Tuple[float, float]:
+        """
+        Performs integrals of the form
+        I = int_a^b f(k) j_l(alpha k) j_l(beta k) dk
+        using the Levin-collocation method.
+
+        The kernel vector is {j_ell(alpha*k) * j_ell(beta*k),
+                              j_{ell+1}(alpha*k) * j_ell(beta*k),
+                              j_ell(alpha*k) * j_{ell+1}(beta*k),
+                              j_{ell+1}(alpha*k) * j_{ell+1}(beta*k)}.
+        The differential matrix is:
+        (0 -alpha -beta 0)
+        (alpha 0 0 -beta)   +   diag(2*ell/k, -2/k, -2/k, -2*(ell+2)/k)
+        (beta 0 0 -alpha)
+        (0 beta alpha 0)
+
+        Note that the differential matrix becomes singular as k -> 0, so we can only treat positive limits.
+
+        :param ell: Order of spherical bessel function to integrate
+        :param alpha: Coefficient in the spherical bessel function
+        :param beta: Coefficient in the spherical bessel function
+        :return: Value of the integral, error estimate
+        """
+    
+        # Set the integration kernel
+        def kernel(k):
+            return np.array([spherical_jn(ell, alpha * k) * spherical_jn(ell, beta * k),
+                             spherical_jn(ell + 1, alpha * k) * spherical_jn(ell, beta * k),
+                             spherical_jn(ell, alpha * k) * spherical_jn(ell + 1, beta * k),
+                             spherical_jn(ell + 1, alpha * k) * spherical_jn(ell + 1, beta * k)])
+    
+        self.set_kernel(kernel)
+    
+        # Set the differential matrix
+        dm_diag = np.diag([2*ell, -2, -2, -2*(2 + ell)])
+        dm_off = np.zeros((4, 4))
+        dm_off[0, 1] = -alpha
+        dm_off[1, 0] = alpha
+        dm_off[0, 2] = -beta
+        dm_off[2, 0] = beta
+        dm_off[1, 3] = -beta
+        dm_off[2, 3] = -alpha
+        dm_off[3, 1] = beta
+        dm_off[3, 2] = alpha
+
+        def dm(k):
+            return dm_diag / k + dm_off
+    
+        self.set_differential_matrix(dm)
+    
+        # Perform the integration
+        return self.integrate()

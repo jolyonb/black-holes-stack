@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     11762,        309]
-NotebookOptionsPosition[      9157,        267]
-NotebookOutlinePosition[      9525,        283]
-CellTagsIndexPosition[      9482,        280]
+NotebookDataLength[     12252,        335]
+NotebookOptionsPosition[      9641,        293]
+NotebookOutlinePosition[     10011,        309]
+CellTagsIndexPosition[      9968,        306]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -26,7 +26,8 @@ Cell[BoxData[
  RowBox[{
   RowBox[{"SetDirectory", "[", 
    RowBox[{"NotebookDirectory", "[", "]"}], "]"}], ";"}]], "Input",
- CellLabel->"In[71]:=",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
+ CellLabel->
+  "In[198]:=",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
 
 Cell["\<\
 Set the name of the model to load the power spectrum mode function results \
@@ -36,7 +37,8 @@ from.\
 Cell[BoxData[
  RowBox[{
   RowBox[{"modelname", "=", "\"\<real_ps\>\""}], ";"}]], "Input",
- CellLabel->"In[72]:=",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
+ CellLabel->
+  "In[199]:=",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
 
 Cell["Load the data.", "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
 
@@ -61,10 +63,20 @@ Cell[BoxData[{
    RowBox[{
     RowBox[{
      RowBox[{"Pk", "[", "k_", "]"}], ":=", 
-     RowBox[{"Exp", "[", 
-      RowBox[{"-", "k"}], "]"}]}], ";", "\[IndentingNewLine]", 
-    RowBox[{"kmin", "=", "0"}], ";", "\[IndentingNewLine]", 
-    RowBox[{"kmax", "=", "20"}], ";"}], ",", "\[IndentingNewLine]", 
+     RowBox[{"100", "/", 
+      RowBox[{"(", 
+       RowBox[{"1", "+", 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{"20", "k"}], ")"}], "^", "2"}], "+", 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{"5", "k"}], ")"}], "^", "4"}], "+", 
+        RowBox[{
+         RowBox[{"(", "k", ")"}], "^", "6"}]}], ")"}]}]}], ";", 
+    "\[IndentingNewLine]", 
+    RowBox[{"kmin", "=", "10*^-5"}], ";", "\[IndentingNewLine]", 
+    RowBox[{"kmax", "=", "250"}], ";"}], ",", "\[IndentingNewLine]", 
    RowBox[{"(*", " ", 
     RowBox[{"Load", " ", "power", " ", "spectrum", " ", "from", " ", "file"}],
      " ", "*)"}], "\[IndentingNewLine]", 
@@ -90,11 +102,15 @@ Cell[BoxData[{
        RowBox[{"-", "1"}], "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
     RowBox[{"Pk", "=", 
      RowBox[{"Interpolation", "[", 
-      RowBox[{"Transpose", "[", 
-       RowBox[{"{", 
-        RowBox[{"kvals", ",", "Pkvals"}], "}"}], "]"}], "]"}]}], ";"}]}], 
+      RowBox[{
+       RowBox[{"Transpose", "[", 
+        RowBox[{"{", 
+         RowBox[{"kvals", ",", "Pkvals"}], "}"}], "]"}], ",", 
+       RowBox[{"Method", "->", "\"\<Spline\>\""}], ",", " ", 
+       RowBox[{"InterpolationOrder", "\[Rule]", "5"}]}], "]"}]}], ";"}]}], 
   "\[IndentingNewLine]", "]"}]}], "Input",
- CellLabel->"In[73]:=",ExpressionUUID->"ff90020e-c3cf-4204-b4b6-f773dbed47e2"],
+ CellLabel->
+  "In[200]:=",ExpressionUUID->"ff90020e-c3cf-4204-b4b6-f773dbed47e2"],
 
 Cell["Load the comparison data.", "Text",ExpressionUUID->"f3d109dd-c705-4f33-be5d-5aed35be75e7"],
 
@@ -111,7 +127,8 @@ Cell[BoxData[
      "\"\<../../models/\>\"", "<>", "modelname", "<>", 
       "\"\</moments-raw.csv\>\""}], "]"}], "[", 
     RowBox[{"[", "2", "]"}], "]"}]}], ";"}]], "Input",
- CellLabel->"In[91]:=",ExpressionUUID->"7dc505fc-f4f4-49f9-9680-38ab5d7d3060"]
+ CellLabel->
+  "In[203]:=",ExpressionUUID->"7dc505fc-f4f4-49f9-9680-38ab5d7d3060"]
 }, Open  ]],
 
 Cell[CellGroupData[{
@@ -127,7 +144,8 @@ Cell[BoxData[
    RowBox[{"{", 
     RowBox[{"k", ",", "kmin", ",", "kmax"}], "}"}], ",", 
    RowBox[{"PlotRange", "\[Rule]", "All"}]}], "]"}]], "Input",
- CellLabel->"In[77]:=",ExpressionUUID->"c81553e2-a35e-48c6-b038-f3b9e00e640f"],
+ CellLabel->
+  "In[204]:=",ExpressionUUID->"c81553e2-a35e-48c6-b038-f3b9e00e640f"],
 
 Cell[BoxData[
  RowBox[{"LogLogPlot", "[", 
@@ -136,7 +154,8 @@ Cell[BoxData[
    RowBox[{"{", 
     RowBox[{"k", ",", "kmin", ",", "kmax"}], "}"}], ",", 
    RowBox[{"PlotRange", "\[Rule]", "All"}]}], "]"}]], "Input",
- CellLabel->"In[78]:=",ExpressionUUID->"3d50c89d-5d93-4cb8-8c11-ee5027f02b99"],
+ CellLabel->
+  "In[205]:=",ExpressionUUID->"3d50c89d-5d93-4cb8-8c11-ee5027f02b99"],
 
 Cell["Integrate moments of the power spectrum.", "Text",ExpressionUUID->"edf3c6f3-8b61-4fd3-a52f-6b6b612a4b36"],
 
@@ -170,7 +189,8 @@ Cell[BoxData[{
       RowBox[{"Pk", "[", "k", "]"}]}], ",", 
      RowBox[{"{", 
       RowBox[{"k", ",", "kmin", ",", "kmax"}], "}"}]}], "]"}]}]}]}], "Input",
- CellLabel->"In[79]:=",ExpressionUUID->"465e025f-e991-4bdc-ad1a-864b23ab3931"],
+ CellLabel->
+  "In[206]:=",ExpressionUUID->"465e025f-e991-4bdc-ad1a-864b23ab3931"],
 
 Cell["These agree well with python\[CloseCurlyQuote]s evaluation.", "Text",ExpressionUUID->"2ea175f3-7783-489a-a49a-18b323cb99cd"],
 
@@ -187,7 +207,8 @@ Cell[BoxData[{
   RowBox[{"Abs", "[", 
    RowBox[{"\[Sigma]2sq", "-", "pysigma2squared"}], "]"}], "/", 
   "\[Sigma]2sq"}]}], "Input",
- CellLabel->"In[82]:=",ExpressionUUID->"3c23fbcd-ab98-4b23-9ff3-ef3d2f1980f1"],
+ CellLabel->
+  "In[209]:=",ExpressionUUID->"3c23fbcd-ab98-4b23-9ff3-ef3d2f1980f1"],
 
 Cell["Here are the integrands for these integrals...", "Text",ExpressionUUID->"ae59889f-dce6-4186-bd1f-abc0e3c4de48"],
 
@@ -200,7 +221,8 @@ Cell[BoxData[
    RowBox[{"{", 
     RowBox[{"k", ",", "kmin", ",", "kmax"}], "}"}], ",", 
    RowBox[{"PlotRange", "\[Rule]", "All"}]}], "]"}]], "Input",
- CellLabel->"In[85]:=",ExpressionUUID->"2511bd7d-762c-401d-9668-ad7dc2c62a32"],
+ CellLabel->
+  "In[212]:=",ExpressionUUID->"2511bd7d-762c-401d-9668-ad7dc2c62a32"],
 
 Cell[BoxData[
  RowBox[{"LogLinearPlot", "[", 
@@ -211,7 +233,8 @@ Cell[BoxData[
    RowBox[{"{", 
     RowBox[{"k", ",", "kmin", ",", "kmax"}], "}"}], ",", 
    RowBox[{"PlotRange", "\[Rule]", "All"}]}], "]"}]], "Input",
- CellLabel->"In[86]:=",ExpressionUUID->"bfb9e1e0-c71b-4583-a37b-001231d932ed"],
+ CellLabel->
+  "In[213]:=",ExpressionUUID->"bfb9e1e0-c71b-4583-a37b-001231d932ed"],
 
 Cell[BoxData[
  RowBox[{"LogLinearPlot", "[", 
@@ -222,7 +245,8 @@ Cell[BoxData[
    RowBox[{"{", 
     RowBox[{"k", ",", "kmin", ",", "kmax"}], "}"}], ",", 
    RowBox[{"PlotRange", "\[Rule]", "All"}]}], "]"}]], "Input",
- CellLabel->"In[87]:=",ExpressionUUID->"a9a27f24-2d29-4d0f-8615-50ccd527438c"],
+ CellLabel->
+  "In[214]:=",ExpressionUUID->"a9a27f24-2d29-4d0f-8615-50ccd527438c"],
 
 Cell["\<\
 Here, we see a problem: The second moment does not converge (for non-test \
@@ -251,7 +275,8 @@ Cell[BoxData[{
  RowBox[{"lengthscale", " ", "=", " ", 
   RowBox[{"2", 
    RowBox[{"\[Pi]", "/", "kchar"}]}]}]}], "Input",
- CellLabel->"In[88]:=",ExpressionUUID->"734eec64-8a53-4a4f-a82d-021ab14c2454"],
+ CellLabel->
+  "In[215]:=",ExpressionUUID->"734eec64-8a53-4a4f-a82d-021ab14c2454"],
 
 Cell["\<\
 Comparison with the python lengthscale (which is only roughly found anyway):\
@@ -262,11 +287,12 @@ Cell[BoxData[
   RowBox[{"Abs", "[", 
    RowBox[{"lengthscale", "-", "pylengthscale"}], "]"}], "/", 
   "lengthscale"}]], "Input",
- CellLabel->"In[90]:=",ExpressionUUID->"92d0383f-5cff-45c7-b376-e1efd0eebaae"]
+ CellLabel->
+  "In[217]:=",ExpressionUUID->"92d0383f-5cff-45c7-b376-e1efd0eebaae"]
 }, Open  ]]
 },
 WindowSize->{1440, 795},
-WindowMargins->{{212, Automatic}, {Automatic, 90}},
+WindowMargins->{{1752, Automatic}, {Automatic, 175}},
 TrackCellChangeTimes->False,
 FrontEndVersion->"12.0 for Mac OS X x86 (64-bit) (April 8, 2019)",
 StyleDefinitions->"Default.nb"
@@ -284,32 +310,32 @@ CellTagsIndex->{}
 Notebook[{
 Cell[CellGroupData[{
 Cell[580, 22, 93, 0, 67, "Section",ExpressionUUID->"aa7ef6c0-b2ea-4b5a-83a2-8b8023ea8d74"],
-Cell[676, 24, 202, 4, 30, "Input",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
-Cell[881, 30, 161, 3, 35, "Text",ExpressionUUID->"a8d181f7-cb4c-4d3d-bb38-9d752b15fbd7"],
-Cell[1045, 35, 168, 3, 30, "Input",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
-Cell[1216, 40, 85, 0, 35, "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
-Cell[1304, 42, 2019, 54, 283, "Input",ExpressionUUID->"ff90020e-c3cf-4204-b4b6-f773dbed47e2"],
-Cell[3326, 98, 96, 0, 35, "Text",ExpressionUUID->"f3d109dd-c705-4f33-be5d-5aed35be75e7"],
-Cell[3425, 100, 471, 13, 30, "Input",ExpressionUUID->"7dc505fc-f4f4-49f9-9680-38ab5d7d3060"]
+Cell[676, 24, 206, 5, 30, "Input",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
+Cell[885, 31, 161, 3, 35, "Text",ExpressionUUID->"a8d181f7-cb4c-4d3d-bb38-9d752b15fbd7"],
+Cell[1049, 36, 172, 4, 30, "Input",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
+Cell[1224, 42, 85, 0, 35, "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
+Cell[1312, 44, 2455, 68, 283, "Input",ExpressionUUID->"ff90020e-c3cf-4204-b4b6-f773dbed47e2"],
+Cell[3770, 114, 96, 0, 35, "Text",ExpressionUUID->"f3d109dd-c705-4f33-be5d-5aed35be75e7"],
+Cell[3869, 116, 475, 14, 30, "Input",ExpressionUUID->"7dc505fc-f4f4-49f9-9680-38ab5d7d3060"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[3933, 118, 84, 0, 67, "Section",ExpressionUUID->"c1b98bf3-7421-46e6-85cc-4f67abc58417"],
-Cell[4020, 120, 87, 0, 35, "Text",ExpressionUUID->"9e80df0b-c203-4ae2-9566-84e1f2182cb0"],
-Cell[4110, 122, 313, 7, 30, "Input",ExpressionUUID->"c81553e2-a35e-48c6-b038-f3b9e00e640f"],
-Cell[4426, 131, 310, 7, 30, "Input",ExpressionUUID->"3d50c89d-5d93-4cb8-8c11-ee5027f02b99"],
-Cell[4739, 140, 111, 0, 35, "Text",ExpressionUUID->"edf3c6f3-8b61-4fd3-a52f-6b6b612a4b36"],
-Cell[4853, 142, 1005, 30, 73, "Input",ExpressionUUID->"465e025f-e991-4bdc-ad1a-864b23ab3931"],
-Cell[5861, 174, 130, 0, 35, "Text",ExpressionUUID->"2ea175f3-7783-489a-a49a-18b323cb99cd"],
-Cell[5994, 176, 503, 13, 73, "Input",ExpressionUUID->"3c23fbcd-ab98-4b23-9ff3-ef3d2f1980f1"],
-Cell[6500, 191, 117, 0, 35, "Text",ExpressionUUID->"ae59889f-dce6-4186-bd1f-abc0e3c4de48"],
-Cell[6620, 193, 363, 9, 30, "Input",ExpressionUUID->"2511bd7d-762c-401d-9668-ad7dc2c62a32"],
-Cell[6986, 204, 363, 9, 30, "Input",ExpressionUUID->"bfb9e1e0-c71b-4583-a37b-001231d932ed"],
-Cell[7352, 215, 363, 9, 30, "Input",ExpressionUUID->"a9a27f24-2d29-4d0f-8615-50ccd527438c"],
-Cell[7718, 226, 220, 3, 35, "Text",ExpressionUUID->"664d1531-def8-4e12-8add-96314c34de09"],
-Cell[7941, 231, 217, 3, 35, "Text",ExpressionUUID->"6b8ea8b8-3f60-4a7a-a21b-920ce84f63ce"],
-Cell[8161, 236, 602, 17, 52, "Input",ExpressionUUID->"734eec64-8a53-4a4f-a82d-021ab14c2454"],
-Cell[8766, 255, 155, 2, 35, "Text",ExpressionUUID->"2452a599-0184-4441-8bc4-40f45e4cab57"],
-Cell[8924, 259, 217, 5, 30, "Input",ExpressionUUID->"92d0383f-5cff-45c7-b376-e1efd0eebaae"]
+Cell[4381, 135, 84, 0, 67, "Section",ExpressionUUID->"c1b98bf3-7421-46e6-85cc-4f67abc58417"],
+Cell[4468, 137, 87, 0, 35, "Text",ExpressionUUID->"9e80df0b-c203-4ae2-9566-84e1f2182cb0"],
+Cell[4558, 139, 317, 8, 30, "Input",ExpressionUUID->"c81553e2-a35e-48c6-b038-f3b9e00e640f"],
+Cell[4878, 149, 314, 8, 30, "Input",ExpressionUUID->"3d50c89d-5d93-4cb8-8c11-ee5027f02b99"],
+Cell[5195, 159, 111, 0, 35, "Text",ExpressionUUID->"edf3c6f3-8b61-4fd3-a52f-6b6b612a4b36"],
+Cell[5309, 161, 1009, 31, 73, "Input",ExpressionUUID->"465e025f-e991-4bdc-ad1a-864b23ab3931"],
+Cell[6321, 194, 130, 0, 35, "Text",ExpressionUUID->"2ea175f3-7783-489a-a49a-18b323cb99cd"],
+Cell[6454, 196, 507, 14, 73, "Input",ExpressionUUID->"3c23fbcd-ab98-4b23-9ff3-ef3d2f1980f1"],
+Cell[6964, 212, 117, 0, 35, "Text",ExpressionUUID->"ae59889f-dce6-4186-bd1f-abc0e3c4de48"],
+Cell[7084, 214, 367, 10, 30, "Input",ExpressionUUID->"2511bd7d-762c-401d-9668-ad7dc2c62a32"],
+Cell[7454, 226, 367, 10, 30, "Input",ExpressionUUID->"bfb9e1e0-c71b-4583-a37b-001231d932ed"],
+Cell[7824, 238, 367, 10, 30, "Input",ExpressionUUID->"a9a27f24-2d29-4d0f-8615-50ccd527438c"],
+Cell[8194, 250, 220, 3, 35, "Text",ExpressionUUID->"664d1531-def8-4e12-8add-96314c34de09"],
+Cell[8417, 255, 217, 3, 35, "Text",ExpressionUUID->"6b8ea8b8-3f60-4a7a-a21b-920ce84f63ce"],
+Cell[8637, 260, 606, 18, 52, "Input",ExpressionUUID->"734eec64-8a53-4a4f-a82d-021ab14c2454"],
+Cell[9246, 280, 155, 2, 35, "Text",ExpressionUUID->"2452a599-0184-4441-8bc4-40f45e4cab57"],
+Cell[9404, 284, 221, 6, 30, "Input",ExpressionUUID->"92d0383f-5cff-45c7-b376-e1efd0eebaae"]
 }, Open  ]]
 }
 ]
