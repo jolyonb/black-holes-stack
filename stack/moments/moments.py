@@ -48,6 +48,8 @@ class Moments(Persistence):
         self.sigma2squared = None
         self.gamma = None
         self.lengthscale = None
+        self.k2peak = None
+        self.k3peak = None
         
         # Error tolerances used in computing moment integrals
         self.err_abs = 0
@@ -66,12 +68,14 @@ class Moments(Persistence):
         self.sigma1squared = df.sigma1squared[0]
         self.sigma2squared = df.sigma2squared[0]
         self.lengthscale = df.lengthscale[0]
+        self.k2peak = df.k2peak[0]
+        self.k3peak = df.k3peak[0]
         self.compute_dependent()
 
     def save_data(self) -> None:
         """Saves the moments to file"""
-        df = pd.DataFrame([[self.sigma0squared, self.sigma1squared, self.sigma2squared, self.lengthscale]],
-                          columns=['sigma0squared', 'sigma1squared', 'sigma2squared', 'lengthscale'])
+        df = pd.DataFrame([[self.sigma0squared, self.sigma1squared, self.sigma2squared, self.lengthscale, self.k2peak, self.k3peak]],
+                          columns=['sigma0squared', 'sigma1squared', 'sigma2squared', 'lengthscale', 'k2peak', 'k3peak'])
         df.to_csv(self.file_path(self.filename + '.csv'), index=False)
 
     def compute_data(self) -> None:
@@ -79,9 +83,9 @@ class Moments(Persistence):
         self.sigma0squared = self.compute_sigma_n_squared(0)
         self.sigma1squared = self.compute_sigma_n_squared(1)
         self.sigma2squared = self.compute_sigma_n_squared(2)
-        self.lengthscale = self.compute_lengthscale()
+        self.compute_lengthscales()
         self.compute_dependent()
-        
+
     def compute_dependent(self) -> None:
         """Computes and stores dependent quantities"""
         self.sigma0 = sqrt(self.sigma0squared)
@@ -104,16 +108,17 @@ class Moments(Persistence):
 
         return 4 * pi * integral
 
-    def compute_lengthscale(self):
+    def compute_lengthscales(self):
         """
-        Computes the lengthscale of a power spectrum by finding the maximum of k^2 P(k).
-        Stores the result as L = 2*pi/k_max.
+        Computes the lengthscale of a power spectrum by finding the location of the maximum of k^2 P(k).
+        Also stores the maximum of k^3 P(k).
         """
-        def f(k):
-            return - k*k*self.model.powerspectrum(k, self.suppression)
-        
         min_k = self.model.min_k
         max_k = self.model.max_k
+
+        # k^2 P(k) peak
+        def f(k):
+            return - k*k*self.model.powerspectrum(k, self.suppression)
         
         result = optimize.minimize_scalar(f, method='bounded', bounds=(min_k, max_k),
                                           options={'xatol': 1e-5})
@@ -121,6 +126,17 @@ class Moments(Persistence):
         if not result.success:
             raise ValueError("Unable to find characteristic lengthscale of power spectrum")
         
-        k_max = result.x
+        self.k2peak = result.x
+        self.lengthscale = 2 * pi / self.k2peak
 
-        return 2 * pi / k_max
+        # k^3 P(k) peak
+        def f(k):
+            return - k * k * k * self.model.powerspectrum(k, self.suppression)
+
+        result = optimize.minimize_scalar(f, method='bounded', bounds=(min_k, max_k),
+                                          options={'xatol': 1e-5})
+
+        if not result.success:
+            raise ValueError("Unable to find characteristic lengthscale of power spectrum")
+
+        self.k3peak = result.x
