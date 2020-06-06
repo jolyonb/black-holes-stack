@@ -2,8 +2,9 @@
 singlebessel.py
 
 Code to compute integrals of the form
-int_{k_min}^{k_max} dk k^2 P(k) j_l(k r)
-where l = 0 or 1.
+C(r) = 4 pi int_{k_min}^{k_max} dk k^2 P(k) j_0(k r)
+and
+D(r) = 4 pi int_{k_min}^{k_max} dk k^3 P(k) j_1(k r).
 """
 from __future__ import annotations
 
@@ -14,9 +15,8 @@ from scipy.integrate import quad
 from scipy.special import spherical_jn
 
 from stack.common import Persistence, Suppression
-from stack.integrals.levin import LevinIntegrals
 
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from stack import Model
@@ -41,28 +41,7 @@ class SingleBessel(Persistence):
         
         # Error tolerances used in computing integrals
         self.err_abs = 0
-        self.err_rel = 1e-8
-        
-        # Set up a Levin integrator
-        self.integrator = LevinIntegrals(rel_tol=self.err_rel, starting_points=200, refinements=5)
-        self.limit_a = None
-        self.limit_b = None
-        self.amplitudename = None
-    
-    def set_limits(self, a: float, b: float) -> None:
-        """Set the limits on the Levin integrator (idempotently)"""
-        if a == self.limit_a and b == self.limit_b:
-            return
-        self.limit_a = a
-        self.limit_b = b
-        self.integrator.set_limits(a=a, b=b)
-
-    def set_amplitude(self, name: str, func: Callable) -> None:
-        """Set the amplitude function for the Levin integrator (idempotently)"""
-        if name == self.amplitudename:
-            return
-        self.amplitudename = name
-        self.integrator.set_amplitude(func)
+        self.err_rel = 1e-9
 
     def load_data(self) -> None:
         """This class does not save any data, so has nothing to load"""
@@ -92,21 +71,17 @@ class SingleBessel(Persistence):
         Computes the integral
         C(r) = 4 pi int_{k_min}^{k_max} dk k^2 P(k) j_0(k r)
         
-        We've tested this against Mathematica for the dummy power spectrum, and find agreement
-        to 10^-14 (relative).
-        
         :param r: Value of r to use in the integral
         :param suppression: High frequency suppression method to use
         :return: Result of the integral
         """
+        moments = self.model.get_moments(suppression)
+        if suppression == suppression.PEAKS:
+            raise ValueError(f'Bad suppression method: {suppression}')
+
         # Treat the special case
         if r == 0:
-            if suppression == Suppression.RAW:
-                return self.model.moments_raw.sigma0squared
-            elif suppression == Suppression.SAMPLING:
-                return self.model.moments_sampling.sigma0squared
-            else:
-                raise ValueError(f'Bad suppression method: {suppression}')
+            return moments.sigma0
         
         pk = self.model.powerspectrum
         min_k = self.model.min_k
@@ -117,31 +92,51 @@ class SingleBessel(Persistence):
             # At n = 6, this is ~10^-8, which seems like a good place to stop
             max_k = min(max_k, self.model.grid.sampling_cutoff * 6)
 
-        def f(k):
+        def f_sin(k):
             return k*pk(k, suppression)
 
-        # Choose methodology
-        if r / self.model.moments_raw.lengthscale > 10:
-            # Use Levin integration
-            self.set_limits(min_k, max_k)
-            self.set_amplitude('C', lambda k: k*k*pk(k, suppression))
-            result, _ = self.integrator.integrate_I(ell=0, alpha=r)
+        def f(k):
+            return k*k*pk(k, suppression)*spherical_jn(0, k*r)
 
-            # Rescale result
-            integral = result * 4 * pi
-        else:
-            # Use normal quadrature (sine-weighted)
-            result = quad(f, min_k, max_k, weight='sin', wvar=r,
-                          epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
-            # Check for any warnings
-            if len(result) == 4:
-                print('Warning when integrating C(r) at r =', r)
-                print(result[-1])
+        # Integrate first oscillation using normal quadrature
+        k1 = min(2 * pi / r, max_k)
+        int_result = quad(f, min_k, k1,
+                          epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
+        # print(f'{{{min_k}, {k1}, {int_result[0]}}}')
+        # Check for any warnings
+        if len(int_result) == 4 and 'roundoff error is detected' not in int_result[-1]:
+            print('Warning when integrating C(r) (Step 1) at r =', r)
+            print(int_result[-1])
+        # Construct result
+        result = 4 * pi * int_result[0]
+        if k1 == max_k:
+            return result
+
+        # Rest of the integral will be handled using sine-weighted quadrature
+        # Start by setting up the integration ranges
+        endpoints = [10 * k1, moments.k2peak * 5, moments.k2peak * 50, moments.k2peak * 500]
+        using_endpoints = [k1]
+        # Select the points we want to use
+        for endpoint in endpoints:
+            if endpoint > max_k:
+                break
+            if endpoint > using_endpoints[-1]:
+                using_endpoints.append(endpoint)
+        using_endpoints.append(max_k)
         
-            # Rescale the result
-            integral = result[0] * 4 * pi / r
+        # Perform integration using sine-weighted quadrature
+        for idx in range(0, len(using_endpoints) - 1):
+            int_result = quad(f_sin, using_endpoints[idx], using_endpoints[idx+1], weight='sin', wvar=r,
+                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
+            # print(f'{{{using_endpoints[idx]}, {using_endpoints[idx+1]}, {int_result[0] / r}}}')
+            # Check for any warnings
+            if len(int_result) == 4 and 'roundoff error is detected' not in int_result[-1]:
+                print('Warning when integrating C(r) at r =', r)
+                print(int_result[-1])
+            # Construct result
+            result += 4 * pi * int_result[0] / r
 
-        return integral
+        return result
 
     def compute_D(self, r: float, suppression: Suppression) -> float:
         """
@@ -149,19 +144,23 @@ class SingleBessel(Persistence):
         D(r) = 4 pi int_{k_min}^{k_max} dk k^3 P(k) j_1(k r)
         
         Note that j_1(k r) = sin(k r) / (k r)^2 - cos(k r) / (k r)
-        To do the integral, we do a sin integral and a cos integral separately, and difference the two:
+        
+        We integrate the first oscillation using normal quadrature, where cancellation issues are largest.
+        We then integrate the rest of the intergral over a variety of domains by computing the sine and cosine integrals
+        separately:
 
         D(r) = 4 pi int_{k_min}^{k_max} dk k^3 P(k) (sin(k r) / (k r)^2 - cos(k r) / (k r))
              =   (4 pi)/r^2 int_{k_min}^{k_max} dk k P(k) sin(k r)
                - (4 pi)/r   int_{k_min}^{k_max} dk k^2 P(k) cos(k r)
 
-        We've tested this against Mathematica for the dummy power spectrum, and find agreement
-        to 10^-11 for low values of r, where we expect the worst loss of precision to occur.
-
         :param r: Value of r to use in the integral
         :param suppression: High frequency suppression method to use
         :return: Result of the integral
         """
+        moments = self.model.get_moments(suppression)
+        if suppression == suppression.PEAKS:
+            raise ValueError(f'Bad suppression method: {suppression}')
+
         if r == 0:
             # Treat the special case
             return 0.0
@@ -184,41 +183,55 @@ class SingleBessel(Persistence):
         def f(k):
             return k * k * k * pk(k, suppression) * spherical_jn(1, k * r)
 
-        # Choose methodology
-        if r > 10:
-            # Use Levin integration
-            self.set_limits(min_k, max_k)
-            self.set_amplitude('D', lambda k: k*k*k*pk(k, suppression))
-            result, _ = self.integrator.integrate_I(ell=1, alpha=r)
+        # Integrate first peak using normal quadrature
+        oscillation1 = 4.49341  # Half oscillation of j_1(x)
+        oscillation10 = 64.3871  # 10 oscillations of j_1(x)
+        k1 = min(oscillation1 / r, max_k)
+        int_result = quad(f, min_k, k1,
+                          epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
+        # print(f'{{{min_k}, {k1}, {int_result[0]}}}'.replace('e', '*^'))
+        # Check for any warnings
+        if len(int_result) == 4 and 'roundoff error is detected' not in int_result[-1]:
+            print('Warning when integrating D(r) at r =', r)
+            print(int_result[-1])
+        # Construct result
+        result = 4 * pi * int_result[0]
+        if k1 == max_k:
+            return result
 
-            # Rescale result
-            integral = result * 4 * pi
-            
-            # # Perform the integrations using sin and cos quadrature
-            # sin_result = quad(f_sin, min_k, max_k, weight='sin', wvar=r,
-            #                   epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
-            # cos_result = quad(f_cos, min_k, max_k, weight='cos', wvar=r,
-            #                   epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
-            # # Check for any warnings
-            # if len(sin_result) == 4:
-            #     print('Warning when integrating D_sin(r) at r =', r)
-            #     print(sin_result[-1])
-            # if len(cos_result) == 4:
-            #     print('Warning when integrating D_cos(r) at r =', r)
-            #     print(cos_result[-1])
-            #
-            # # Construct the result
-            # result = 4 * pi / r**2 * sin_result[0] - 4 * pi / r * cos_result[0]
-        else:
-            # Perform the integration using direct quadrature
-            int_result = quad(f, min_k, max_k,
-                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=60)
+        # Rest of the integral will be handled using sine-weighted quadrature
+        # Start by setting up the integration ranges
+        endpoints = [oscillation10 / r, moments.k3peak * 5, moments.k3peak * 25, moments.k3peak * 50, moments.k3peak * 75, moments.k3peak * 100,
+                     moments.k3peak * 100, moments.k3peak * 150, moments.k3peak * 200,
+                     moments.k3peak * 250, moments.k3peak * 300, moments.k3peak * 350,
+                     moments.k3peak * 400, moments.k3peak * 450]
+        using_endpoints = [k1]
+        # Select the points we want to use
+        for endpoint in endpoints:
+            if endpoint > max_k:
+                break
+            if endpoint > using_endpoints[-1]:
+                using_endpoints.append(endpoint)
+        using_endpoints.append(max_k)
+
+        # Perform integration using sine-weighted quadrature
+        for idx in range(0, len(using_endpoints) - 1):
+            # Perform the integrations using sin and cos quadrature
+            sin_result = quad(f_sin, using_endpoints[idx], using_endpoints[idx + 1], weight='sin', wvar=r,
+                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
+            cos_result = quad(f_cos, using_endpoints[idx], using_endpoints[idx + 1], weight='cos', wvar=r,
+                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
             # Check for any warnings
-            if len(int_result) == 4:
-                print('Warning when integrating D(r) at r =', r)
-                print(int_result[-1])
+            if len(sin_result) == 4 and 'roundoff error is detected' not in sin_result[-1]:
+                print('Warning when integrating D_sin(r) at r =', r)
+                print(sin_result[-1])
+            if len(cos_result) == 4 and 'roundoff error is detected' not in cos_result[-1]:
+                print('Warning when integrating D_cos(r) at r =', r)
+                print(cos_result[-1])
 
             # Construct the result
-            result = 4 * pi * int_result[0]
+            int_result = sin_result[0] / (r*r) - cos_result[0] / r
+            # print(f'{{{using_endpoints[idx]}, {using_endpoints[idx+1]}, {int_result}}}'.replace('e', '*^'))
+            result += 4 * pi * int_result
 
         return result

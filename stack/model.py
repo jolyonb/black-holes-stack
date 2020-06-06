@@ -124,6 +124,15 @@ class Model(object):
         self.grid = Grid(self)
         self.moments_sampling = Moments(self, Suppression.SAMPLING)
         self.correlations = Correlations(self)
+        
+    def get_moments(self, suppression: Suppression = Suppression.RAW):
+        """Return the appropriate moments class, given the suppression method"""
+        if suppression == Suppression.RAW:
+            return self.moments_raw
+        elif suppression == Suppression.SAMPLING:
+            return self.moments_sampling
+        else:
+            raise ValueError(f'Bad suppression method: {suppression}')
 
     def construct_powerspectrum(self, recalculate: bool = False) -> None:
         """Construct the data for the power spectrum (either by loading or constructing it)"""
