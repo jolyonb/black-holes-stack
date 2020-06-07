@@ -160,8 +160,9 @@ def number_density(n: int, gamma_val: float, nu: float, sigma0: float, sigma1: f
     f = integrand.f_cython(dim=9, N=n, nu=nu, gamma=gamma_val)
 
     # Perform the integration
-    # TODO: Is this next line redundant? I'm turning it off here...
-    # integ(f, nitn=10, neval=num_samples)
+    # Step 1 -- adapt to f; discard results
+    integ(f, nitn=10, neval=num_samples / 10)
+    # Step 2 -- integ has adapted to f; keep results
     vecresult = integ(f, nitn=10, neval=num_samples)
     
     # Compute the scaling prefactor

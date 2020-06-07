@@ -8,7 +8,7 @@ sigma0 = 1.893113063873135
 sigma1 = 6.975159671838396
 gamma = 0.1458203796129053
 
-samples = 1e6
+samples = 1e5
 
 nu_vals = np.linspace(0, 6, 50)
 
