@@ -14,6 +14,7 @@ from stack.integrals import SingleBessel
 from stack.grid import Grid
 from stack.common import Suppression
 from stack.correlations import Correlations
+from stack.peakdensity import PeakDensity
 
 class Model(object):
     """Master class that controls all aspects of modelling"""
@@ -37,6 +38,9 @@ class Model(object):
                  gridpoints: int = 200,
                  # Sampling parameters
                  sampling_cutoff_factor: float = 1.0,
+                 # Number density of peaks parameters
+                 peakdensity_samples: int = 1e6,
+                 nu_steps: int = 50,
                  # Control options
                  recompute_all: bool = False,
                  verbose: bool = False,
@@ -68,6 +72,10 @@ class Model(object):
         Sampling parameters
         :param sampling_cutoff_factor: Factor by which to multiply the Nyquist cutoff wavenumber to obtain the power
                                        spectrum cutoff wavenumber
+                                       
+        Number density of peaks parameters
+        :param peakdensity_samples: Number of samples to use
+        :param nu_steps: Number of steps to sample for nu
         
         Control options
         :param recompute_all: Force recomputation of everything (do not load data)
@@ -98,6 +106,10 @@ class Model(object):
         
         # Sampling parameters
         self.sampling_cutoff_factor = sampling_cutoff_factor
+        
+        # Number density of peaks parameters
+        self.peakdensity_samples = peakdensity_samples
+        self.nu_steps = nu_steps
 
         # Control options
         self.recompute_all = recompute_all
@@ -124,6 +136,9 @@ class Model(object):
         self.grid = Grid(self)
         self.moments_sampling = Moments(self, Suppression.SAMPLING)
         self.correlations = Correlations(self)
+        # Need a class that computes expected peak shape here
+        self.moments_peaks = Moments(self, Suppression.PEAKS)
+        self.peakdensity = PeakDensity(self)
         
     def get_moments(self, suppression: Suppression = Suppression.RAW):
         """Return the appropriate moments class, given the suppression method"""
@@ -131,6 +146,8 @@ class Model(object):
             return self.moments_raw
         elif suppression == Suppression.SAMPLING:
             return self.moments_sampling
+        elif suppression == Suppression.PEAKS:
+            return self.moments_peaks
         else:
             raise ValueError(f'Bad suppression method: {suppression}')
 
@@ -173,4 +190,19 @@ class Model(object):
         print('Constructing correlations...')
         assert self.moments_sampling.ready
         self.correlations.construct_data(prev_timestamp=self.moments_sampling.timestamp, recalculate=recalculate)
+        print('    Done!')
+
+    def construct_moments3(self, recalculate: bool = False) -> None:
+        """Construct moments for the power spectrum with peaks suppression"""
+        print('Constructing peaks moments of the power spectrum...')
+        # TODO: Change to assert that the peak shape computation is ready
+        assert self.correlations.ready
+        self.moments_peaks.construct_data(prev_timestamp=self.correlations.timestamp, recalculate=recalculate)
+        print('    Done!')
+
+    def construct_peakdensity(self, recalculate: bool = False) -> None:
+        """Construct number density of peaks"""
+        print('Constructing number density of peaks...')
+        assert self.moments_peaks.ready
+        self.peakdensity.construct_data(prev_timestamp=self.moments_peaks.timestamp, recalculate=recalculate)
         print('    Done!')

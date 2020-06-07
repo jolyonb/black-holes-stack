@@ -12,6 +12,8 @@ def main():
     model.construct_grid()
     model.construct_moments2()
     model.construct_correlations()
-    
+    model.construct_moments3()
+    model.construct_peakdensity()
+
 if __name__ == '__main__':
     main()
