@@ -57,7 +57,7 @@ testpath==0.4.4
 tornado==6.0.4
 tqdm==4.28.1
 traitlets==4.3.3
-vegas==3.4.2
+vegas==3.4.3
 wcwidth==0.1.9
 webencodings==0.5.1
 widgetsnbextension==3.5.1

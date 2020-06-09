@@ -43,9 +43,9 @@ class PeakDensity(Persistence):
         self.n_fields = model.n_fields
         
         # Construct the grid in nu
-        # We compute number density of peaks values ranging from nu = 0 to nu = 3 * sqrt(n) (well past peaks, but useful for checking)
+        # We compute number density of peaks values ranging from nu = 0 to nu = sqrt(n) (background level)
         self.nu_min = 0
-        self.nu_max = 3 * sqrt(self.n_fields)
+        self.nu_max = sqrt(self.n_fields)
         self.nu_vals = np.linspace(self.nu_min, self.nu_max, self.nu_steps)
         
         # Initialize storage for results
@@ -59,8 +59,10 @@ class PeakDensity(Persistence):
         self.saddleppm_err_vec = np.zeros_like(self.nu_vals)
         self.saddlepmm_err_vec = np.zeros_like(self.nu_vals)
         self.max_err_vec = np.zeros_like(self.nu_vals)
-        # Analytic results
-        self.signed_vec = np.zeros_like(self.nu_vals)
+        # Signed sums
+        self.signed_computed = np.zeros_like(self.nu_vals)
+        self.signed_computed_err = np.zeros_like(self.nu_vals)
+        self.signed_analytic = np.zeros_like(self.nu_vals)
 
     def load_data(self) -> None:
         """Load the peak density data from file"""
@@ -80,7 +82,9 @@ class PeakDensity(Persistence):
         self.saddleppm_err_vec = df['saddleppm_err'].values
         self.saddlepmm_err_vec = df['saddlepmm_err'].values
         self.max_err_vec = df['max_err'].values
-        self.signed_vec = df['signed'].values
+        self.signed_computed = df['signed_computed'].values
+        self.signed_computed_err = df['signed_computed_err'].values
+        self.signed_analytic = df['signed_analytic'].values
 
     def save_data(self) -> None:
         """Saves the peak density data to file"""
@@ -93,9 +97,12 @@ class PeakDensity(Persistence):
                            self.saddleppm_err_vec,
                            self.saddlepmm_err_vec,
                            self.max_err_vec,
-                           self.signed_vec]).transpose()
+                           self.signed_computed,
+                           self.signed_computed_err,
+                           self.signed_analytic]).transpose()
         df.columns = ['nu', 'min', 'saddleppm', 'saddlepmm', 'max',
-                      'min_err', 'saddleppm_err', 'saddlepmm_err', 'max_err', 'signed']
+                      'min_err', 'saddleppm_err', 'saddlepmm_err', 'max_err',
+                      'signed_computed', 'signed_computed_err', 'signed_analytic']
         df.to_csv(self.file_path(self.filename + '.csv'), index=False)
 
     def compute_data(self) -> None:
@@ -114,7 +121,7 @@ class PeakDensity(Persistence):
             if nu == 0:
                 # We need to treat nu=0 as a special case
                 exact = signed_exact(self.n_fields, 0.0, sigma0, sigma1)
-                values = np.array([0, exact, 0, 0, 0])
+                values = np.array([exact, exact, 0, 0, 0])
                 err = np.array([0, 0, 0, 0, 0])
                 self.assign_value(idx, values, err, exact)
             else:
@@ -126,17 +133,19 @@ class PeakDensity(Persistence):
     def assign_value(self, idx: int, values: np.array, err: np.array, signedval: float) -> None:
         """
         Stores integration values at the specified index
-        Assumes that values and err are provided in the form [unused, min, signedppm, signedpmm, max]
+        Assumes that values and err are provided in the form [signed, min, saddleppm, saddlepmm, max]
         """
+        self.signed_computed[idx] = values[0]
         self.min_vec[idx] = values[1]
         self.saddleppm_vec[idx] = values[2]
         self.saddlepmm_vec[idx] = values[3]
         self.max_vec[idx] = values[4]
+        self.signed_computed_err[idx] = err[0]
         self.min_err_vec[idx] = err[1]
         self.saddleppm_err_vec[idx] = err[2]
         self.saddlepmm_err_vec[idx] = err[3]
         self.max_err_vec[idx] = err[4]
-        self.signed_vec[idx] = signedval
+        self.signed_analytic[idx] = signedval
 
 
 def number_density(n: int, gamma_val: float, nu: float, sigma0: float, sigma1: float,
@@ -160,7 +169,7 @@ def number_density(n: int, gamma_val: float, nu: float, sigma0: float, sigma1: f
     f = integrand.f_cython(dim=9, N=n, nu=nu, gamma=gamma_val)
 
     # Perform the integration
-    # Step 1 -- adapt to f; discard results
+    # Step 1 -- adapt the grid to f; discard results
     integ(f, nitn=10, neval=num_samples / 10)
     # Step 2 -- integ has adapted to f; keep results
     vecresult = integ(f, nitn=10, neval=num_samples)
@@ -170,6 +179,7 @@ def number_density(n: int, gamma_val: float, nu: float, sigma0: float, sigma1: f
 
     # Extract results
     # signed, min, saddle++-, saddle+--, max
+    # We compute the signed value because vegas adapts the grid to the first value, and this gives us an error check
     integrals = np.zeros(5)
     errors = np.zeros(5)
     for i in range(5):
