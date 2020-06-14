@@ -114,7 +114,8 @@ class PowerSpectrum(Persistence):
             assert self.model.grid.ready
             suppression_val = exp(-0.5 * (k / self.model.grid.sampling_cutoff)**2)
         elif suppression == Suppression.PEAKS:
-            raise NotImplementedError('Method not ready yet')
+            suppression_val = exp(-0.5 * (k / self.model.grid.sampling_cutoff)**2)
+            # TODO: This needs to be implemented in terms of a suppression value from peak size
         else:
             raise ValueError(f'Bad suppression value passed in: {suppression}')
         return value * suppression_val

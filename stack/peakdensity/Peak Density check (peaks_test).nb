@@ -1,0 +1,290 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 12.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     10575,        282]
+NotebookOptionsPosition[      8930,        252]
+NotebookOutlinePosition[      9300,        268]
+CellTagsIndexPosition[      9257,        265]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Peak Density Testing", "Section",ExpressionUUID->"aa7ef6c0-b2ea-4b5a-83a2-8b8023ea8d74"],
+
+Cell["\<\
+This version of the file is used to look at the results from peaks_test.py.\
+\>", "Text",ExpressionUUID->"3abf4b2a-73fb-47f2-8a95-30955c2c224a"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], ";"}]], "Input",
+ CellLabel->"In[47]:=",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
+
+Cell["Load the results.", "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{
+    "nuvals", ",", "min", ",", "saddleppm", ",", "saddlepmm", ",", "max", ",",
+      "minerr", ",", "saddleppmerr", ",", "saddlepmmerr", ",", "maxerr", ",", 
+     "signedcomp", ",", "signederr", ",", "signedactual"}], "}"}], "=", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"Import", "[", "\"\<../../peaks_test.csv\>\"", "]"}], "[", 
+     RowBox[{"[", 
+      RowBox[{"2", ";;"}], "]"}], "]"}], "//", "Transpose"}]}], 
+  ";"}]], "Input",ExpressionUUID->"c9c49599-2870-4609-a2a4-0862920927bb"],
+
+Cell["Set parameters manually.", "Text",ExpressionUUID->"166ef5ca-0ef2-4fe4-8c2a-bbc3b325f98f"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"n", "=", "4"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"\[Sigma]0", "=", "1"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"\[Sigma]1", "=", "1"}], ";"}]}], "Input",
+ CellLabel->"In[49]:=",ExpressionUUID->"7725dd3f-978f-4180-9d3b-d6aba67e0c31"],
+
+Cell["This is the analytic signed number density.", "Text",ExpressionUUID->"360277c3-d294-4c4a-9b3d-a79d3ad7442a"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Signed", "[", "\[Nu]_", "]"}], ":=", 
+  RowBox[{"Block", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"val", ",", "scale", ",", "alpha", ",", "dpdnu"}], "}"}], ",", 
+    "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"val", "=", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{"n", "-", "1"}], ")"}], 
+        RowBox[{"(", 
+         RowBox[{"n", "-", "2"}], ")"}], 
+        RowBox[{"(", 
+         RowBox[{"n", "-", "3"}], ")"}]}], "-", 
+       RowBox[{"3", 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{"n", "-", "1"}], ")"}], "^", "2"}], 
+        RowBox[{"\[Nu]", "^", "2"}]}], "+", 
+       RowBox[{"3", "n", " ", 
+        RowBox[{"\[Nu]", "^", "4"}]}], "-", 
+       RowBox[{"\[Nu]", "^", "6"}]}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"If", "[", 
+      RowBox[{
+       RowBox[{"\[Nu]", ">", "0"}], ",", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"alpha", "=", 
+         RowBox[{
+          RowBox[{"1", "/", 
+           RowBox[{
+            RowBox[{"(", 
+             RowBox[{"6", "\[Pi]"}], ")"}], "^", "1.5"}]}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"\[Sigma]1", "/", "\[Sigma]0"}], "/", "\[Nu]"}], ")"}], 
+           "^", "3"}]}]}], ";", "\[IndentingNewLine]", 
+        RowBox[{"dpdnu", "=", 
+         RowBox[{
+          RowBox[{"\[Nu]", "^", 
+           RowBox[{"(", 
+            RowBox[{"n", "-", "1"}], ")"}]}], 
+          RowBox[{
+           RowBox[{
+            RowBox[{"Exp", "[", 
+             RowBox[{
+              RowBox[{"-", 
+               RowBox[{"\[Nu]", "^", "2"}]}], "/", "2"}], "]"}], "/", 
+            RowBox[{"2", "^", 
+             RowBox[{"(", 
+              RowBox[{
+               RowBox[{"n", "/", "2"}], "-", "1"}], ")"}]}]}], "/", 
+           RowBox[{"Gamma", "[", 
+            RowBox[{"n", "/", "2"}], "]"}]}]}]}], ";", "\[IndentingNewLine]", 
+        
+        RowBox[{"scale", "=", 
+         RowBox[{"alpha", " ", "dpdnu"}]}]}], ",", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"If", "[", 
+         RowBox[{
+          RowBox[{"n", ">", "4"}], ",", 
+          RowBox[{"scale", "=", "0"}], ",", 
+          RowBox[{"scale", "=", 
+           RowBox[{
+            RowBox[{"1", "/", 
+             RowBox[{
+              RowBox[{"(", 
+               RowBox[{"6", "\[Pi]"}], ")"}], "^", "1.5"}]}], 
+            RowBox[{
+             RowBox[{"(", 
+              RowBox[{"\[Sigma]1", "/", "\[Sigma]0"}], ")"}], "^", "3"}], 
+            RowBox[{
+             RowBox[{
+              RowBox[{"Exp", "[", 
+               RowBox[{
+                RowBox[{"-", 
+                 RowBox[{"\[Nu]", "^", "2"}]}], "/", "2"}], "]"}], "/", 
+              RowBox[{"2", "^", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"n", "/", "2"}], "-", "1"}], ")"}]}]}], "/", 
+             RowBox[{"Gamma", "[", 
+              RowBox[{"n", "/", "2"}], "]"}]}]}]}]}], "]"}], ";"}]}], 
+      "\[IndentingNewLine]", "]"}], ";", "\[IndentingNewLine]", 
+     RowBox[{"val", " ", "scale"}]}]}], "\[IndentingNewLine]", 
+   "]"}]}]], "Input",
+ CellLabel->"In[52]:=",ExpressionUUID->"1a071d39-0fb1-4815-a731-3674a5a78c93"],
+
+Cell["Plot the different extrema with error bars.", "Text",ExpressionUUID->"c8710af9-da5c-4130-946a-c8528d71d1dd"],
+
+Cell[BoxData[
+ RowBox[{"ListPlot", "[", 
+  RowBox[{
+   RowBox[{"{", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"Transpose", "[", 
+      RowBox[{"{", 
+       RowBox[{"nuvals", ",", 
+        RowBox[{"Thread", "[", 
+         RowBox[{"PlusMinus", "[", 
+          RowBox[{"min", ",", "minerr"}], "]"}], "]"}]}], "}"}], "]"}], ",", 
+     "\[IndentingNewLine]", 
+     RowBox[{"Transpose", "[", 
+      RowBox[{"{", 
+       RowBox[{"nuvals", ",", 
+        RowBox[{"Thread", "[", 
+         RowBox[{"PlusMinus", "[", 
+          RowBox[{"saddleppm", ",", "saddleppmerr"}], "]"}], "]"}]}], "}"}], 
+      "]"}], ",", "\[IndentingNewLine]", 
+     RowBox[{"Transpose", "[", 
+      RowBox[{"{", 
+       RowBox[{"nuvals", ",", 
+        RowBox[{"Thread", "[", 
+         RowBox[{"PlusMinus", "[", 
+          RowBox[{"saddlepmm", ",", "saddlepmmerr"}], "]"}], "]"}]}], "}"}], 
+      "]"}], ",", "\[IndentingNewLine]", 
+     RowBox[{"Transpose", "[", 
+      RowBox[{"{", 
+       RowBox[{"nuvals", ",", 
+        RowBox[{"Thread", "[", 
+         RowBox[{"PlusMinus", "[", 
+          RowBox[{"max", ",", "maxerr"}], "]"}], "]"}]}], "}"}], "]"}]}], 
+    "\[IndentingNewLine]", "}"}], "\[IndentingNewLine]", ",", 
+   RowBox[{"PlotRange", "\[Rule]", "All"}], ",", 
+   RowBox[{"Joined", "\[Rule]", "True"}], ",", 
+   RowBox[{"PlotLegends", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+     "\"\<Minima\>\"", ",", "\"\<Saddle ++-\>\"", ",", " ", 
+      "\"\<Saddle +--\>\"", ",", " ", "\"\<Maxima\>\""}], "}"}]}]}], 
+  "]"}]], "Input",
+ CellLabel->"In[53]:=",ExpressionUUID->"a3c0c879-7e0b-4f38-9ce8-ba1842f9fde9"],
+
+Cell["Compare signed number density to computed.", "Text",ExpressionUUID->"dfe687ef-7b40-4201-92ca-ed799030e9ae"],
+
+Cell[BoxData[
+ RowBox[{"Show", "[", "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"ListPlot", "[", 
+    RowBox[{
+     RowBox[{"Transpose", "[", 
+      RowBox[{"{", 
+       RowBox[{"nuvals", ",", 
+        RowBox[{"Thread", "[", 
+         RowBox[{"PlusMinus", "[", 
+          RowBox[{"signedcomp", ",", "signederr"}], "]"}], "]"}]}], "}"}], 
+      "]"}], ",", 
+     RowBox[{"PlotRange", "\[Rule]", "All"}], ",", 
+     RowBox[{"Joined", "\[Rule]", "True"}]}], "]"}], ",", 
+   "\[IndentingNewLine]", 
+   RowBox[{"Plot", "[", 
+    RowBox[{
+     RowBox[{"Signed", "[", "x", "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", 
+       RowBox[{"nuvals", "[", 
+        RowBox[{"[", "1", "]"}], "]"}], ",", 
+       RowBox[{"nuvals", "[", 
+        RowBox[{"[", 
+         RowBox[{"-", "1"}], "]"}], "]"}]}], "}"}], ",", 
+     RowBox[{"PlotStyle", "\[Rule]", "Red"}]}], "]"}]}], 
+  "\[IndentingNewLine]", "]"}]], "Input",
+ CellLabel->"In[54]:=",ExpressionUUID->"e9fe68c4-08fd-4d79-a22d-da71d69cb03b"],
+
+Cell["Here are the residuals.", "Text",ExpressionUUID->"dcdd9af0-a8df-4370-bdf9-abad62229141"],
+
+Cell[BoxData[
+ RowBox[{"ListPlot", "[", 
+  RowBox[{
+   RowBox[{"Transpose", "[", 
+    RowBox[{"{", 
+     RowBox[{"nuvals", ",", 
+      RowBox[{"Thread", "[", 
+       RowBox[{"PlusMinus", "[", 
+        RowBox[{
+         RowBox[{"signedcomp", "-", 
+          RowBox[{"Map", "[", 
+           RowBox[{"Signed", ",", "nuvals"}], "]"}]}], ",", "signederr"}], 
+        "]"}], "]"}]}], "}"}], "]"}], ",", 
+   RowBox[{"PlotRange", "\[Rule]", "All"}], ",", 
+   RowBox[{"Joined", "\[Rule]", "True"}]}], "]"}]], "Input",
+ CellLabel->"In[55]:=",ExpressionUUID->"ce4eba87-7288-41f0-962d-b9f0e4357dd8"]
+}, Open  ]]
+},
+WindowSize->{1440, 795},
+WindowMargins->{{1655, Automatic}, {Automatic, 172}},
+TrackCellChangeTimes->False,
+FrontEndVersion->"12.0 for Mac OS X x86 (64-bit) (April 8, 2019)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 94, 0, 67, "Section",ExpressionUUID->"aa7ef6c0-b2ea-4b5a-83a2-8b8023ea8d74"],
+Cell[677, 24, 154, 2, 35, "Text",ExpressionUUID->"3abf4b2a-73fb-47f2-8a95-30955c2c224a"],
+Cell[834, 28, 202, 4, 30, "Input",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
+Cell[1039, 34, 88, 0, 35, "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
+Cell[1130, 36, 551, 13, 52, "Input",ExpressionUUID->"c9c49599-2870-4609-a2a4-0862920927bb"],
+Cell[1684, 51, 95, 0, 35, "Text",ExpressionUUID->"166ef5ca-0ef2-4fe4-8c2a-bbc3b325f98f"],
+Cell[1782, 53, 300, 7, 73, "Input",ExpressionUUID->"7725dd3f-978f-4180-9d3b-d6aba67e0c31"],
+Cell[2085, 62, 114, 0, 35, "Text",ExpressionUUID->"360277c3-d294-4c4a-9b3d-a79d3ad7442a"],
+Cell[2202, 64, 3205, 90, 220, "Input",ExpressionUUID->"1a071d39-0fb1-4815-a731-3674a5a78c93"],
+Cell[5410, 156, 114, 0, 35, "Text",ExpressionUUID->"c8710af9-da5c-4130-946a-c8528d71d1dd"],
+Cell[5527, 158, 1590, 41, 157, "Input",ExpressionUUID->"a3c0c879-7e0b-4f38-9ce8-ba1842f9fde9"],
+Cell[7120, 201, 113, 0, 35, "Text",ExpressionUUID->"dfe687ef-7b40-4201-92ca-ed799030e9ae"],
+Cell[7236, 203, 991, 27, 94, "Input",ExpressionUUID->"e9fe68c4-08fd-4d79-a22d-da71d69cb03b"],
+Cell[8230, 232, 94, 0, 35, "Text",ExpressionUUID->"dcdd9af0-a8df-4370-bdf9-abad62229141"],
+Cell[8327, 234, 587, 15, 30, "Input",ExpressionUUID->"ce4eba87-7288-41f0-962d-b9f0e4357dd8"]
+}, Open  ]]
+}
+]
+*)
+

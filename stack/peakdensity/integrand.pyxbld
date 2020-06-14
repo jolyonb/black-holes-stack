@@ -1,0 +1,14 @@
+import numpy as np
+
+# Suppress warnings when performing C compile of integrand.pyx
+def make_ext(modname, pyxfilename):
+    from distutils.extension import Extension
+    return Extension(name = modname,
+                     sources=[pyxfilename],
+                     libraries=[],
+                     extra_compile_args=['-w'],
+                     include_dirs=[np.get_include()],
+                    )
+
+def make_setup_args():
+    return dict()

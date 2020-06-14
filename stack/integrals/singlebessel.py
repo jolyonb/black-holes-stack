@@ -21,9 +21,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from stack import Model
 
-# Raise errors on issues rather than printing warnings
+# Raise errors on issues rather than printing warnings (except for underflow; we don't care)
 np.seterr(all='raise')
-
+np.seterr(under='ignore')
 
 class SingleBessel(Persistence):
     """
