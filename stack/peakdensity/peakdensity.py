@@ -46,7 +46,7 @@ class PeakDensity(Persistence):
         # We compute number density of peaks values ranging from nu = 0 to nu = sqrt(n) (background level)
         self.nu_min = 0
         self.nu_max = sqrt(self.n_fields)
-        self.nu_vals = np.linspace(self.nu_min, self.nu_max, self.nu_steps)
+        self.nu_vals = np.linspace(self.nu_min, self.nu_max, self.nu_steps + 1)
         
         # Initialize storage for results
         # Peak densities

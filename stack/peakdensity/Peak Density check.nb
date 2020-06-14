@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     11455,        306]
-NotebookOptionsPosition[      9625,        274]
-NotebookOutlinePosition[      9995,        290]
-CellTagsIndexPosition[      9952,        287]
+NotebookDataLength[     12365,        337]
+NotebookOptionsPosition[     10348,        303]
+NotebookOutlinePosition[     10718,        319]
+CellTagsIndexPosition[     10675,        316]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -26,14 +26,16 @@ Cell[BoxData[
  RowBox[{
   RowBox[{"SetDirectory", "[", 
    RowBox[{"NotebookDirectory", "[", "]"}], "]"}], ";"}]], "Input",
- CellLabel->"In[32]:=",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
+ CellLabel->
+  "In[143]:=",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
 
 Cell["Set the name of the model to load the results from.", "Text",ExpressionUUID->"a8d181f7-cb4c-4d3d-bb38-9d752b15fbd7"],
 
 Cell[BoxData[
  RowBox[{
   RowBox[{"modelname", "=", "\"\<toy_ps\>\""}], ";"}]], "Input",
- CellLabel->"In[33]:=",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
+ CellLabel->
+  "In[144]:=",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
 
 Cell["Load the results.", "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
 
@@ -54,7 +56,8 @@ Cell[BoxData[
      RowBox[{"[", 
       RowBox[{"2", ";;"}], "]"}], "]"}], "//", "Transpose"}]}], 
   ";"}]], "Input",
- CellLabel->"In[34]:=",ExpressionUUID->"c9c49599-2870-4609-a2a4-0862920927bb"],
+ CellLabel->
+  "In[145]:=",ExpressionUUID->"c9c49599-2870-4609-a2a4-0862920927bb"],
 
 Cell[BoxData[{
  RowBox[{
@@ -73,14 +76,16 @@ Cell[BoxData[{
     RowBox[{"vals", "[", 
      RowBox[{"[", 
       RowBox[{"1", ";;", "2"}], "]"}], "]"}], "]"}]}], ";"}]}], "Input",
- CellLabel->"In[35]:=",ExpressionUUID->"d1f6287c-1d67-4d9a-8b0d-eb4d6e1f06fb"],
+ CellLabel->
+  "In[146]:=",ExpressionUUID->"d1f6287c-1d67-4d9a-8b0d-eb4d6e1f06fb"],
 
 Cell["We have to set the number of fields manually.", "Text",ExpressionUUID->"166ef5ca-0ef2-4fe4-8c2a-bbc3b325f98f"],
 
 Cell[BoxData[
  RowBox[{
   RowBox[{"n", "=", "4"}], ";"}]], "Input",
- CellLabel->"In[37]:=",ExpressionUUID->"7725dd3f-978f-4180-9d3b-d6aba67e0c31"],
+ CellLabel->
+  "In[148]:=",ExpressionUUID->"7725dd3f-978f-4180-9d3b-d6aba67e0c31"],
 
 Cell["This is the analytic signed number density.", "Text",ExpressionUUID->"360277c3-d294-4c4a-9b3d-a79d3ad7442a"],
 
@@ -174,7 +179,8 @@ Cell[BoxData[
       "\[IndentingNewLine]", "]"}], ";", "\[IndentingNewLine]", 
      RowBox[{"val", " ", "scale"}]}]}], "\[IndentingNewLine]", 
    "]"}]}]], "Input",
- CellLabel->"In[43]:=",ExpressionUUID->"1a071d39-0fb1-4815-a731-3674a5a78c93"],
+ CellLabel->
+  "In[149]:=",ExpressionUUID->"1a071d39-0fb1-4815-a731-3674a5a78c93"],
 
 Cell["Plot the different extrema with error bars.", "Text",ExpressionUUID->"c8710af9-da5c-4130-946a-c8528d71d1dd"],
 
@@ -219,7 +225,8 @@ Cell[BoxData[
      "\"\<Minima\>\"", ",", "\"\<Saddle ++-\>\"", ",", " ", 
       "\"\<Saddle +--\>\"", ",", " ", "\"\<Maxima\>\""}], "}"}]}]}], 
   "]"}]], "Input",
- CellLabel->"In[44]:=",ExpressionUUID->"a3c0c879-7e0b-4f38-9ce8-ba1842f9fde9"],
+ CellLabel->
+  "In[150]:=",ExpressionUUID->"a3c0c879-7e0b-4f38-9ce8-ba1842f9fde9"],
 
 Cell["Compare signed number density to computed.", "Text",ExpressionUUID->"dfe687ef-7b40-4201-92ca-ed799030e9ae"],
 
@@ -250,7 +257,8 @@ Cell[BoxData[
          RowBox[{"-", "1"}], "]"}], "]"}]}], "}"}], ",", 
      RowBox[{"PlotStyle", "\[Rule]", "Red"}]}], "]"}]}], 
   "\[IndentingNewLine]", "]"}]], "Input",
- CellLabel->"In[45]:=",ExpressionUUID->"e9fe68c4-08fd-4d79-a22d-da71d69cb03b"],
+ CellLabel->
+  "In[151]:=",ExpressionUUID->"e9fe68c4-08fd-4d79-a22d-da71d69cb03b"],
 
 Cell["Here are the residuals.", "Text",ExpressionUUID->"dcdd9af0-a8df-4370-bdf9-abad62229141"],
 
@@ -269,7 +277,28 @@ Cell[BoxData[
         "]"}], "]"}]}], "}"}], "]"}], ",", 
    RowBox[{"PlotRange", "\[Rule]", "All"}], ",", 
    RowBox[{"Joined", "\[Rule]", "True"}]}], "]"}]], "Input",
- CellLabel->"In[46]:=",ExpressionUUID->"ce4eba87-7288-41f0-962d-b9f0e4357dd8"]
+ CellLabel->
+  "In[152]:=",ExpressionUUID->"ce4eba87-7288-41f0-962d-b9f0e4357dd8"],
+
+Cell["\<\
+Comparing signed sum to computed value. Sometimes things are a bit strange, \
+but for the most part they\[CloseCurlyQuote]re in the realm of machine \
+precision.\
+\>", "Text",ExpressionUUID->"1d77d2d0-e814-4ce9-add0-ad36b17d93a2"],
+
+Cell[BoxData[
+ RowBox[{"ListLogPlot", "[", 
+  RowBox[{
+   RowBox[{"Transpose", "[", 
+    RowBox[{"{", 
+     RowBox[{"nuvals", ",", 
+      RowBox[{"Abs", "[", 
+       RowBox[{
+       "min", "-", "saddleppm", "+", "saddlepmm", "-", "max", "-", 
+        "signedcomp"}], "]"}]}], "}"}], "]"}], ",", 
+   RowBox[{"PlotRange", "\[Rule]", "All"}]}], "]"}]], "Input",
+ CellLabel->
+  "In[155]:=",ExpressionUUID->"6369e087-1e76-48d2-9f92-18a06adc7935"]
 }, Open  ]]
 },
 WindowSize->{1440, 795},
@@ -291,22 +320,24 @@ CellTagsIndex->{}
 Notebook[{
 Cell[CellGroupData[{
 Cell[580, 22, 83, 0, 67, "Section",ExpressionUUID->"aa7ef6c0-b2ea-4b5a-83a2-8b8023ea8d74"],
-Cell[666, 24, 202, 4, 30, "Input",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
-Cell[871, 30, 122, 0, 35, "Text",ExpressionUUID->"a8d181f7-cb4c-4d3d-bb38-9d752b15fbd7"],
-Cell[996, 32, 167, 3, 30, "Input",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
-Cell[1166, 37, 88, 0, 35, "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
-Cell[1257, 39, 653, 17, 52, "Input",ExpressionUUID->"c9c49599-2870-4609-a2a4-0862920927bb"],
-Cell[1913, 58, 596, 17, 52, "Input",ExpressionUUID->"d1f6287c-1d67-4d9a-8b0d-eb4d6e1f06fb"],
-Cell[2512, 77, 116, 0, 35, "Text",ExpressionUUID->"166ef5ca-0ef2-4fe4-8c2a-bbc3b325f98f"],
-Cell[2631, 79, 146, 3, 30, "Input",ExpressionUUID->"7725dd3f-978f-4180-9d3b-d6aba67e0c31"],
-Cell[2780, 84, 114, 0, 35, "Text",ExpressionUUID->"360277c3-d294-4c4a-9b3d-a79d3ad7442a"],
-Cell[2897, 86, 3205, 90, 220, "Input",ExpressionUUID->"1a071d39-0fb1-4815-a731-3674a5a78c93"],
-Cell[6105, 178, 114, 0, 35, "Text",ExpressionUUID->"c8710af9-da5c-4130-946a-c8528d71d1dd"],
-Cell[6222, 180, 1590, 41, 157, "Input",ExpressionUUID->"a3c0c879-7e0b-4f38-9ce8-ba1842f9fde9"],
-Cell[7815, 223, 113, 0, 35, "Text",ExpressionUUID->"dfe687ef-7b40-4201-92ca-ed799030e9ae"],
-Cell[7931, 225, 991, 27, 94, "Input",ExpressionUUID->"e9fe68c4-08fd-4d79-a22d-da71d69cb03b"],
-Cell[8925, 254, 94, 0, 35, "Text",ExpressionUUID->"dcdd9af0-a8df-4370-bdf9-abad62229141"],
-Cell[9022, 256, 587, 15, 30, "Input",ExpressionUUID->"ce4eba87-7288-41f0-962d-b9f0e4357dd8"]
+Cell[666, 24, 206, 5, 30, "Input",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
+Cell[875, 31, 122, 0, 35, "Text",ExpressionUUID->"a8d181f7-cb4c-4d3d-bb38-9d752b15fbd7"],
+Cell[1000, 33, 171, 4, 30, "Input",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
+Cell[1174, 39, 88, 0, 35, "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
+Cell[1265, 41, 657, 18, 52, "Input",ExpressionUUID->"c9c49599-2870-4609-a2a4-0862920927bb"],
+Cell[1925, 61, 600, 18, 52, "Input",ExpressionUUID->"d1f6287c-1d67-4d9a-8b0d-eb4d6e1f06fb"],
+Cell[2528, 81, 116, 0, 35, "Text",ExpressionUUID->"166ef5ca-0ef2-4fe4-8c2a-bbc3b325f98f"],
+Cell[2647, 83, 150, 4, 30, "Input",ExpressionUUID->"7725dd3f-978f-4180-9d3b-d6aba67e0c31"],
+Cell[2800, 89, 114, 0, 35, "Text",ExpressionUUID->"360277c3-d294-4c4a-9b3d-a79d3ad7442a"],
+Cell[2917, 91, 3209, 91, 220, "Input",ExpressionUUID->"1a071d39-0fb1-4815-a731-3674a5a78c93"],
+Cell[6129, 184, 114, 0, 35, "Text",ExpressionUUID->"c8710af9-da5c-4130-946a-c8528d71d1dd"],
+Cell[6246, 186, 1594, 42, 157, "Input",ExpressionUUID->"a3c0c879-7e0b-4f38-9ce8-ba1842f9fde9"],
+Cell[7843, 230, 113, 0, 35, "Text",ExpressionUUID->"dfe687ef-7b40-4201-92ca-ed799030e9ae"],
+Cell[7959, 232, 995, 28, 94, "Input",ExpressionUUID->"e9fe68c4-08fd-4d79-a22d-da71d69cb03b"],
+Cell[8957, 262, 94, 0, 35, "Text",ExpressionUUID->"dcdd9af0-a8df-4370-bdf9-abad62229141"],
+Cell[9054, 264, 591, 16, 30, "Input",ExpressionUUID->"ce4eba87-7288-41f0-962d-b9f0e4357dd8"],
+Cell[9648, 282, 240, 4, 35, "Text",ExpressionUUID->"1d77d2d0-e814-4ce9-add0-ad36b17d93a2"],
+Cell[9891, 288, 441, 12, 30, "Input",ExpressionUUID->"6369e087-1e76-48d2-9f92-18a06adc7935"]
 }, Open  ]]
 }
 ]
