@@ -7,7 +7,7 @@ Cython==0.29.13
 decorator==4.4.2
 defusedxml==0.6.0
 entrypoints==0.3
-gvar==11.6
+gvar==9.2
 importlib-metadata==1.6.0
 ipykernel==5.3.0
 ipython==7.14.0
@@ -57,7 +57,7 @@ testpath==0.4.4
 tornado==6.0.4
 tqdm==4.28.1
 traitlets==4.3.3
-vegas==3.4.3
+vegas==3.4
 wcwidth==0.1.9
 webencodings==0.5.1
 widgetsnbextension==3.5.1
