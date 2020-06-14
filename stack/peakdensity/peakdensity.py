@@ -88,6 +88,10 @@ class PeakDensity(Persistence):
 
     def save_data(self) -> None:
         """Saves the peak density data to file"""
+        self._save_data(self.file_path(self.filename + '.csv'))
+
+    def _save_data(self, filename: str) -> None:
+        """Save data to the given filename"""
         df = pd.DataFrame([self.nu_vals,
                            self.min_vec,
                            self.saddleppm_vec,
@@ -103,18 +107,15 @@ class PeakDensity(Persistence):
         df.columns = ['nu', 'min', 'saddleppm', 'saddlepmm', 'max',
                       'min_err', 'saddleppm_err', 'saddlepmm_err', 'max_err',
                       'signed_computed', 'signed_computed_err', 'signed_analytic']
-        df.to_csv(self.file_path(self.filename + '.csv'), index=False)
+        df.to_csv(filename, index=False)
 
     def compute_data(self) -> None:
-        """Compute the number density of peaks at each nu value"""
-        # Grab values we need
-        gamma = self.model.moments_peaks.gamma
-        sigma0 = self.model.moments_peaks.sigma0
-        sigma1 = self.model.moments_peaks.sigma1
-        
-        print(sigma0, sigma1, gamma)
-        
-        # Compute numbers at each value of nu
+        """Compute the number density of peaks"""
+        mom = self.model.moments_peaks
+        self._compute_data(mom.gamma, mom.sigma0, mom.sigma1)
+
+    def _compute_data(self, gammaval: float, sigma0: float, sigma1: float) -> None:
+        """Compute the peak density at each value of nu for the given parameters"""
         for idx, nu in enumerate(self.nu_vals):
             if self.model.verbose:
                 print(f'    Computing {idx+1}/{len(self.nu_vals)} at nu={nu}')
@@ -126,7 +127,7 @@ class PeakDensity(Persistence):
                 self.assign_value(idx, values, err, exact)
             else:
                 # Invoke the vegas routines
-                values, err = number_density(int(self.n_fields), gamma, nu, sigma0, sigma1, int(self.peakdensity_samples))
+                values, err = number_density(int(self.n_fields), gammaval, nu, sigma0, sigma1, int(self.peakdensity_samples))
                 signedval = signed_exact(self.n_fields, nu, sigma0, sigma1)
                 self.assign_value(idx, values, err, signedval)
     
@@ -170,7 +171,7 @@ def number_density(n: int, gamma_val: float, nu: float, sigma0: float, sigma1: f
 
     # Perform the integration
     # Step 1 -- adapt the grid to f; discard results
-    integ(f, nitn=10, neval=num_samples / 10)
+    integ(f, nitn=10, neval=num_samples)
     # Step 2 -- integ has adapted to f; keep results
     vecresult = integ(f, nitn=10, neval=num_samples)
     

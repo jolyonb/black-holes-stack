@@ -23,10 +23,10 @@ class Model(object):
                  # Model parameters
                  model_name: str,
                  # Inflation model parameters
-                 n_efolds: float,
-                 n_fields: int,
-                 mpsi: float,
-                 m0: float,
+                 n_efolds: float = 15,
+                 n_fields: int = 4,
+                 mpsi: float = 0.1,
+                 m0: float = 10,
                  potential_r: int = 2,
                  # Power spectrum parameters
                  min_k: float = 1e-5,
@@ -39,7 +39,7 @@ class Model(object):
                  # Sampling parameters
                  sampling_cutoff_factor: float = 1.0,
                  # Number density of peaks parameters
-                 peakdensity_samples: int = 1e6,
+                 peakdensity_samples: int = 1e5,
                  nu_steps: int = 50,
                  # Control options
                  recompute_all: bool = False,
