@@ -2,9 +2,11 @@
 singlebessel.py
 
 Code to compute integrals of the form
-C(r) = 4 pi int_{k_min}^{k_max} dk k^2 P(k) j_0(k r)
+C(r) = 4 pi int_{k_min}^{k_max} dk k^2 P(k) j_0(k r),
+D(r) = 4 pi int_{k_min}^{k_max} dk k^3 P(k) j_1(k r),
+K1(r) = 4 pi int_{k_min}^{k_max} dk k^4 P(k) j_0(k r)
 and
-D(r) = 4 pi int_{k_min}^{k_max} dk k^3 P(k) j_1(k r).
+F(r) = 4 pi int_{k_min}^{k_max} dk k^4 P(k) j_2(k r).
 """
 from __future__ import annotations
 
@@ -14,9 +16,10 @@ from math import pi
 from scipy.integrate import quad
 from scipy.special import spherical_jn
 
-from stack.common import Persistence, Suppression
+from stack.common import Suppression
+from stack.integrals.common import Integrals
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
 if TYPE_CHECKING:
     from stack import Model
@@ -25,31 +28,11 @@ if TYPE_CHECKING:
 np.seterr(all='raise')
 np.seterr(under='ignore')
 
-class SingleBessel(Persistence):
+class SingleBessel(Integrals):
     """
     Computes single bessel integrals over the power spectrum.
     """
     filename = 'singlebessel'
-
-    def __init__(self, model: 'Model') -> None:
-        """
-        Initialize the class.
-        
-        :param model: Model class we are computing integrals for.
-        """
-        super().__init__(model)
-        
-        # Error tolerances used in computing integrals
-        self.err_abs = 0
-        self.err_rel = 1e-9
-
-    def load_data(self) -> None:
-        """This class does not save any data, so has nothing to load"""
-        pass
-
-    def compute_data(self) -> None:
-        """This class does not save any data, so has nothing to compute"""
-        pass
 
     def save_data(self) -> None:
         """This class does not save any data, but does output some results for comparison with Mathematica"""
@@ -94,51 +77,45 @@ class SingleBessel(Persistence):
             # At n = 6, this is ~10^-8, which seems like a good place to stop
             max_k = min(max_k, self.model.grid.sampling_cutoff * 6)
 
-        def f_sin(k):
-            return k*pk(k, suppression)
+        # Construct the list of domains
+        osc = 2 * pi / r
+        domains = self.generate_domains(min_k, max_k, moments.k2peak, osc, 10 * osc)
 
+        # Define integration functions
         def f(k):
-            return k*k*pk(k, suppression)*spherical_jn(0, k*r)
+            """Straight function to integrate"""
+            return k * k * pk(k, suppression) * spherical_jn(0, k * r)
+        low_osc = self.gen_low_osc(f, "C", r)
 
-        # Integrate first oscillation using normal quadrature
-        k1 = min(2 * pi / r, max_k)
-        int_result = quad(f, min_k, k1,
-                          epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
-        # print(f'{{{min_k}, {k1}, {int_result[0]}}}')
-        # Check for any warnings
-        if len(int_result) == 4 and 'roundoff error is detected' not in int_result[-1]:
-            print('Warning when integrating C(r) (Step 1) at r =', r)
-            print(int_result[-1])
-        # Construct result
-        result = 4 * pi * int_result[0]
-        if k1 == max_k:
-            return result
+        def hi_osc(min_k: float, max_k: float) -> float:
+            """Compute integrals for highly-oscillatory functions"""
+            def f_sin(k):
+                """Define function to integrate"""
+                return k * pk(k, suppression)
 
-        # Rest of the integral will be handled using sine-weighted quadrature
-        # Start by setting up the integration ranges
-        endpoints = [10 * k1, moments.k2peak * 5, moments.k2peak * 50, moments.k2peak * 500]
-        using_endpoints = [k1]
-        # Select the points we want to use
-        for endpoint in endpoints:
-            if endpoint > max_k:
-                break
-            if endpoint > using_endpoints[-1]:
-                using_endpoints.append(endpoint)
-        using_endpoints.append(max_k)
-        
-        # Perform integration using sine-weighted quadrature
-        for idx in range(0, len(using_endpoints) - 1):
-            int_result = quad(f_sin, using_endpoints[idx], using_endpoints[idx+1], weight='sin', wvar=r,
+            # Compute the integral using sine-weighted quadrature
+            int_result = quad(f_sin, min_k, max_k, weight='sin', wvar=r,
                               epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
-            # print(f'{{{using_endpoints[idx]}, {using_endpoints[idx+1]}, {int_result[0] / r}}}')
+
             # Check for any warnings
             if len(int_result) == 4 and 'roundoff error is detected' not in int_result[-1]:
                 print('Warning when integrating C(r) at r =', r)
                 print(int_result[-1])
-            # Construct result
-            result += 4 * pi * int_result[0] / r
 
+            return int_result[0] / r
+        
+        # Define selector function
+        def selector(min_k: float, max_k: float) -> Callable:
+            """Returns the function to use to perform integration on the given domain"""
+            if max_k > 10 * osc:
+                return hi_osc
+            return low_osc
+
+        # Perform integration
+        result = self.perform_integral(domains, selector)
+        
         return result
+
 
     def compute_D(self, r: float, suppression: Suppression) -> float:
         """
@@ -176,53 +153,33 @@ class SingleBessel(Persistence):
             # At n = 6, this is ~10^-8, which seems like a good place to stop
             max_k = min(max_k, self.model.grid.sampling_cutoff * 6)
 
-        def f_sin(k):
-            return k * pk(k, suppression)
+        # Construct the list of domains
+        oscillation1 = 7.72525183693771    # 1 oscillation of j_1(x)
+        oscillation10 = 64.38711959055742  # 10 oscillations of j_1(x)
+        osc1 = oscillation1 / r
+        osc10 = oscillation10 / r
+        domains = self.generate_domains(min_k, max_k, moments.k3peak, osc1, osc10)
 
-        def f_cos(k):
-            return k * k * pk(k, suppression)
-        
+        # Define integration functions
         def f(k):
+            """Straight function to integrate"""
             return k * k * k * pk(k, suppression) * spherical_jn(1, k * r)
+        low_osc = self.gen_low_osc(f, "D", r)
 
-        # Integrate first peak using normal quadrature
-        oscillation1 = 4.49341  # Half oscillation of j_1(x)
-        oscillation10 = 64.3871  # 10 oscillations of j_1(x)
-        k1 = min(oscillation1 / r, max_k)
-        int_result = quad(f, min_k, k1,
-                          epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
-        # print(f'{{{min_k}, {k1}, {int_result[0]}}}'.replace('e', '*^'))
-        # Check for any warnings
-        if len(int_result) == 4 and 'roundoff error is detected' not in int_result[-1]:
-            print('Warning when integrating D(r) at r =', r)
-            print(int_result[-1])
-        # Construct result
-        result = 4 * pi * int_result[0]
-        if k1 == max_k:
-            return result
+        def hi_osc(min_k: float, max_k: float) -> float:
+            """Compute integrals for highly-oscillatory functions"""
+            def f_sin(k):
+                return k * pk(k, suppression)
 
-        # Rest of the integral will be handled using sine-weighted quadrature
-        # Start by setting up the integration ranges
-        endpoints = [oscillation10 / r, moments.k3peak * 5, moments.k3peak * 25, moments.k3peak * 50, moments.k3peak * 75, moments.k3peak * 100,
-                     moments.k3peak * 100, moments.k3peak * 150, moments.k3peak * 200,
-                     moments.k3peak * 250, moments.k3peak * 300, moments.k3peak * 350,
-                     moments.k3peak * 400, moments.k3peak * 450]
-        using_endpoints = [k1]
-        # Select the points we want to use
-        for endpoint in endpoints:
-            if endpoint > max_k:
-                break
-            if endpoint > using_endpoints[-1]:
-                using_endpoints.append(endpoint)
-        using_endpoints.append(max_k)
+            def f_cos(k):
+                return k * k * pk(k, suppression)
 
-        # Perform integration using sine-weighted quadrature
-        for idx in range(0, len(using_endpoints) - 1):
             # Perform the integrations using sin and cos quadrature
-            sin_result = quad(f_sin, using_endpoints[idx], using_endpoints[idx + 1], weight='sin', wvar=r,
+            sin_result = quad(f_sin, min_k, max_k, weight='sin', wvar=r,
                               epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
-            cos_result = quad(f_cos, using_endpoints[idx], using_endpoints[idx + 1], weight='cos', wvar=r,
+            cos_result = quad(f_cos, min_k, max_k, weight='cos', wvar=r,
                               epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
+
             # Check for any warnings
             if len(sin_result) == 4 and 'roundoff error is detected' not in sin_result[-1]:
                 print('Warning when integrating D_sin(r) at r =', r)
@@ -233,8 +190,18 @@ class SingleBessel(Persistence):
 
             # Construct the result
             int_result = sin_result[0] / (r*r) - cos_result[0] / r
-            # print(f'{{{using_endpoints[idx]}, {using_endpoints[idx+1]}, {int_result}}}'.replace('e', '*^'))
-            result += 4 * pi * int_result
+
+            return int_result
+
+        # Define selector function
+        def selector(min_k: float, max_k: float) -> Callable:
+            """Returns the function to use to perform integration on the given domain"""
+            if max_k > osc10:
+                return hi_osc
+            return low_osc
+
+        # Perform integration
+        result = self.perform_integral(domains, selector)
 
         return result
 
@@ -263,51 +230,46 @@ class SingleBessel(Persistence):
             # At k = n k_0, the suppression is exp(-n^2/2)
             # At n = 6, this is ~10^-8, which seems like a good place to stop
             max_k = min(max_k, self.model.grid.sampling_cutoff * 6)
-    
-        def f_sin(k):
-            return k * k * k * pk(k, suppression)
-    
+
+        # Construct the list of domains
+        osc = 2 * pi / r
+        domains = self.generate_domains(min_k, max_k, moments.k4peak, osc, 10 * osc)
+
+        # Define integration functions
         def f(k):
+            """Straight function to integrate"""
             return k * k * k * k * pk(k, suppression) * spherical_jn(0, k * r)
+
+        low_osc = self.gen_low_osc(f, "K1", r)
+
+        def hi_osc(min_k: float, max_k: float) -> float:
+            """Compute integrals for highly-oscillatory functions"""
     
-        # Integrate first oscillation using normal quadrature
-        k1 = min(2 * pi / r, max_k)
-        int_result = quad(f, min_k, k1,
-                          epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
-        # print(f'{{{min_k}, {k1}, {int_result[0]}}}')
-        # Check for any warnings
-        if len(int_result) == 4 and 'roundoff error is detected' not in int_result[-1]:
-            print('Warning when integrating K1(r) (Step 1) at r =', r)
-            print(int_result[-1])
-        # Construct result
-        result = 4 * pi * int_result[0]
-        if k1 == max_k:
-            return result
+            def f_sin(k):
+                """Define function to integrate"""
+                return k * k * k * pk(k, suppression)
     
-        # Rest of the integral will be handled using sine-weighted quadrature
-        # Start by setting up the integration ranges
-        endpoints = [10 * k1, moments.k4peak * 5, moments.k4peak * 50, moments.k4peak * 500]
-        using_endpoints = [k1]
-        # Select the points we want to use
-        for endpoint in endpoints:
-            if endpoint > max_k:
-                break
-            if endpoint > using_endpoints[-1]:
-                using_endpoints.append(endpoint)
-        using_endpoints.append(max_k)
-    
-        # Perform integration using sine-weighted quadrature
-        for idx in range(0, len(using_endpoints) - 1):
-            int_result = quad(f_sin, using_endpoints[idx], using_endpoints[idx + 1], weight='sin', wvar=r,
+            # Compute the integral using sine-weighted quadrature
+            int_result = quad(f_sin, min_k, max_k, weight='sin', wvar=r,
                               epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
-            # print(f'{{{using_endpoints[idx]}, {using_endpoints[idx+1]}, {int_result[0] / r}}}')
+    
             # Check for any warnings
             if len(int_result) == 4 and 'roundoff error is detected' not in int_result[-1]:
-                print('Warning when integrating K_1(r) at r =', r)
+                print('Warning when integrating K1(r) at r =', r)
                 print(int_result[-1])
-            # Construct result
-            result += 4 * pi * int_result[0] / r
     
+            return int_result[0] / r
+
+        # Define selector function
+        def selector(min_k: float, max_k: float) -> Callable:
+            """Returns the function to use to perform integration on the given domain"""
+            if max_k > 10 * osc:
+                return hi_osc
+            return low_osc
+
+        # Perform integration
+        result = self.perform_integral(domains, selector)
+
         return result
 
     def compute_F(self, r: float, suppression: Suppression) -> float:
@@ -341,59 +303,39 @@ class SingleBessel(Persistence):
             # At k = n k_0, the suppression is exp(-n^2/2)
             # At n = 6, this is ~10^-8, which seems like a good place to stop
             max_k = min(max_k, self.model.grid.sampling_cutoff * 6)
-    
-        def f_sin1(k):
-            return k * pk(k, suppression)
-    
-        def f_cos2(k):
-            return k * k * pk(k, suppression)
 
-        def f_sin3(k):
-            return k * k * k * pk(k, suppression)
+        # Construct the list of domains
+        halfoscillation = 5.76345919689455  # Half oscillation of j_2(x)
+        oscillation1 = 9.09501133047638     # 1 oscillation of j_2(x)
+        oscillation10 = 65.92794150295865   # 10 oscillations of j_2(x)
+        halfosc = halfoscillation / r
+        osc1 = oscillation1 / r
+        osc10 = oscillation10 / r
+        domains = self.generate_domains(min_k, max_k, moments.k4peak, osc1, osc10)
 
+        # Define integration functions
         def f(k):
+            """Straight function to integrate"""
             return k * k * k * k * pk(k, suppression) * spherical_jn(2, k * r)
-    
-        # Integrate first peak using normal quadrature
-        oscillation1 = 5.76345919689455  # Half oscillation of j_2(x)
-        oscillation10 = 65.92794150295865  # 10 oscillations of j_2(x)
-        k1 = min(oscillation1 / r, max_k)
-        int_result = quad(f, min_k, k1,
-                          epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
-        # print(f'{{{min_k}, {k1}, {int_result[0]}}}'.replace('e', '*^'))
-        # Check for any warnings
-        if len(int_result) == 4 and 'roundoff error is detected' not in int_result[-1]:
-            print('Warning when integrating F(r) at r =', r)
-            print(int_result[-1])
-        # Construct result
-        result = 4 * pi * int_result[0]
-        if k1 == max_k:
-            return result
-    
-        # Rest of the integral will be handled using sine-weighted quadrature
-        # Start by setting up the integration ranges
-        endpoints = [oscillation10 / r, moments.k4peak * 5, moments.k4peak * 25, moments.k4peak * 50,
-                     moments.k4peak * 75, moments.k4peak * 100,
-                     moments.k4peak * 100, moments.k4peak * 150, moments.k4peak * 200,
-                     moments.k4peak * 250, moments.k4peak * 300, moments.k4peak * 350,
-                     moments.k4peak * 400, moments.k4peak * 450]
-        using_endpoints = [k1]
-        # Select the points we want to use
-        for endpoint in endpoints:
-            if endpoint > max_k:
-                break
-            if endpoint > using_endpoints[-1]:
-                using_endpoints.append(endpoint)
-        using_endpoints.append(max_k)
-    
-        # Perform integration using weighted quadrature
-        for idx in range(0, len(using_endpoints) - 1):
+        low_osc = self.gen_low_osc(f, "F", r)
+
+        def hi_osc(min_k: float, max_k: float) -> float:
+            """Compute integrals for highly-oscillatory functions"""
+            def f_sin1(k):
+                return k * pk(k, suppression)
+
+            def f_cos2(k):
+                return k * k * pk(k, suppression)
+
+            def f_sin3(k):
+                return k * k * k * pk(k, suppression)
+
             # Perform the integrations using sin and cos quadrature
-            sin1_result = quad(f_sin1, using_endpoints[idx], using_endpoints[idx + 1], weight='sin', wvar=r,
+            sin1_result = quad(f_sin1, min_k, max_k, weight='sin', wvar=r,
                                epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
-            cos2_result = quad(f_cos2, using_endpoints[idx], using_endpoints[idx + 1], weight='cos', wvar=r,
+            cos2_result = quad(f_cos2, min_k, max_k, weight='cos', wvar=r,
                                epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
-            sin3_result = quad(f_sin3, using_endpoints[idx], using_endpoints[idx + 1], weight='sin', wvar=r,
+            sin3_result = quad(f_sin3, min_k, max_k, weight='sin', wvar=r,
                                epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
             # Check for any warnings
             if len(sin1_result) == 4 and 'roundoff error is detected' not in sin1_result[-1]:
@@ -403,12 +345,22 @@ class SingleBessel(Persistence):
                 print('Warning when integrating F_cos2(r) at r =', r)
                 print(cos2_result[-1])
             if len(sin3_result) == 4 and 'roundoff error is detected' not in sin3_result[-1]:
-                print('Warning when integrating F_sin1(r) at r =', r)
+                print('Warning when integrating F_sin3(r) at r =', r)
                 print(sin3_result[-1])
 
             # Construct the result
             int_result = 3 * sin1_result[0] / (r * r * r) - 3 * cos2_result[0] / (r * r) - sin3_result[0] / r
-            # print(f'{{{using_endpoints[idx]}, {using_endpoints[idx+1]}, {int_result}}}'.replace('e', '*^'))
-            result += 4 * pi * int_result
-    
+
+            return int_result
+
+        # Define selector function
+        def selector(min_k: float, max_k: float) -> Callable:
+            """Returns the function to use to perform integration on the given domain"""
+            if max_k > halfosc:
+                return hi_osc
+            return low_osc
+
+        # Perform integration
+        result = self.perform_integral(domains, selector)
+
         return result

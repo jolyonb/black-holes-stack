@@ -10,7 +10,7 @@ from math import sqrt, exp
 
 from stack.powerspectrum import PowerSpectrum
 from stack.moments import Moments
-from stack.integrals import SingleBessel
+from stack.integrals import SingleBessel, DoubleBessel
 from stack.grid import Grid
 from stack.common import Suppression
 from stack.correlations import Correlations
@@ -133,6 +133,7 @@ class Model(object):
         self.powerspectrum = PowerSpectrum(self)
         self.moments_raw = Moments(self, Suppression.RAW)
         self.singlebessel = SingleBessel(self)
+        self.doublebessel = DoubleBessel(self)
         self.grid = Grid(self)
         self.moments_sampling = Moments(self, Suppression.SAMPLING)
         self.correlations = Correlations(self)
@@ -171,10 +172,17 @@ class Model(object):
         self.singlebessel.construct_data(prev_timestamp=self.moments_raw.timestamp, recalculate=recalculate)
         print('    Done!')
 
+    def construct_doublebessel(self, recalculate: bool = False) -> None:
+        """Initialize double bessel integrals"""
+        print('Initializing double bessel integrals...')
+        assert self.singlebessel.ready
+        self.doublebessel.construct_data(prev_timestamp=self.singlebessel.timestamp, recalculate=recalculate)
+        print('    Done!')
+
     def construct_grid(self, recalculate: bool = False) -> None:
         """Initialize grid"""
         print('Initializing grid...')
-        assert self.singlebessel.ready
+        assert self.doublebessel.ready
         self.grid.construct_data(prev_timestamp=self.singlebessel.timestamp, recalculate=recalculate)
         print('    Done!')
 
