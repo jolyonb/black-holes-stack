@@ -1,7 +1,7 @@
 """
 correlations.py
 
-Contains the Correlations class, which stores the correlation functions C(r) and D(r) on the sampling grid.
+Contains the Correlations class, which stores the correlation functions C(r), D(r), K_1(r) and F(r) on the sampling grid.
 """
 from __future__ import annotations
 
@@ -32,6 +32,8 @@ class Correlations(Persistence):
         super().__init__(model)
         self.C = None
         self.D = None
+        self.K1 = None
+        self.F = None
         self.rhoC = None
         self.rhoD = None
 
@@ -46,6 +48,8 @@ class Correlations(Persistence):
 
         self.C = df['C(r)'].values
         self.D = df['D(r)'].values
+        self.K1 = df['K1(r)'].values
+        self.F = df['F(r)'].values
         self.rhoC = df['rhoC(r)'].values
         self.rhoD = df['rhoD(r)'].values
 
@@ -55,14 +59,16 @@ class Correlations(Persistence):
         mom = self.model.moments_sampling
         grid = self.model.grid.grid
 
-        # Compute C(r), D(r) and rhoC(r) on the radial grid
+        # Compute C(r), D(r), K1(r), F(r), rhoC(r) and rhoD(r) on the radial grid
         self.C = np.array([sb.compute_C(r, Suppression.SAMPLING) for r in grid])
         self.D = np.array([sb.compute_D(r, Suppression.SAMPLING) for r in grid])
+        self.K1 = np.array([sb.compute_K1(r, Suppression.SAMPLING) for r in grid])
+        self.F = np.array([sb.compute_F(r, Suppression.SAMPLING) for r in grid])
         self.rhoC = self.C / mom.sigma0squared
         self.rhoD = self.D * np.sqrt(3 / mom.sigma0squared / mom.sigma1squared)
 
     def save_data(self) -> None:
         """Save precomputed values to file"""
-        df = pd.DataFrame([self.C, self.D, self.rhoC, self.rhoD]).transpose()
-        df.columns = ['C(r)', 'D(r)', 'rhoC(r)', 'rhoD(r)']
+        df = pd.DataFrame([self.C, self.D, self.K1, self.F, self.rhoC, self.rhoD]).transpose()
+        df.columns = ['C(r)', 'D(r)', 'K1(r)', 'F(r)', 'rhoC(r)', 'rhoD(r)']
         df.to_csv(self.file_path(self.filename + '.csv'), index=False)
