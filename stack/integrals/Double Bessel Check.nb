@@ -1,0 +1,338 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 12.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     12180,        330]
+NotebookOptionsPosition[     10311,        296]
+NotebookOutlinePosition[     10682,        312]
+CellTagsIndexPosition[     10639,        309]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell["Load Data", "Section",ExpressionUUID->"aa7ef6c0-b2ea-4b5a-83a2-8b8023ea8d74"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"SetDirectory", "[", 
+   RowBox[{"NotebookDirectory", "[", "]"}], "]"}], ";"}]], "Input",
+ CellLabel->"In[41]:=",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
+
+Cell["\<\
+Set the name of the model to load the power spectrum mode function results \
+from.\
+\>", "Text",ExpressionUUID->"a8d181f7-cb4c-4d3d-bb38-9d752b15fbd7"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"modelname", "=", "\"\<toy_ps\>\""}], ";"}]], "Input",
+ CellLabel->"In[42]:=",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
+
+Cell["Load the power spectrum.", "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"params", " ", "=", " ", 
+   RowBox[{"Import", "[", 
+    RowBox[{
+    "\"\<../../models/\>\"", "<>", "modelname", "<>", 
+     "\"\</powerspectrum-params.txt\>\""}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"testps", "=", 
+   RowBox[{"StringContainsQ", "[", 
+    RowBox[{"params", ",", "\"\<test_ps: True\>\""}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{"If", "[", 
+  RowBox[{"testps", ",", "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{"Test", " ", "power", " ", "spectrum"}], " ", "*)"}], 
+   "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"Pk", "[", "k_", "]"}], ":=", 
+     RowBox[{"100", "/", 
+      RowBox[{"(", 
+       RowBox[{"1", "+", 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{"20", "k"}], ")"}], "^", "2"}], "+", 
+        RowBox[{
+         RowBox[{"(", 
+          RowBox[{"5", "k"}], ")"}], "^", "4"}], "+", 
+        RowBox[{
+         RowBox[{"(", "k", ")"}], "^", "6"}]}], ")"}]}]}], ";", 
+    "\[IndentingNewLine]", 
+    RowBox[{"kmin", "=", "1*^-5"}], ";", "\[IndentingNewLine]", 
+    RowBox[{"kmax", "=", "250"}], ";"}], ",", "\[IndentingNewLine]", 
+   RowBox[{"(*", " ", 
+    RowBox[{"Load", " ", "power", " ", "spectrum", " ", "from", " ", "file"}],
+     " ", "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"kvals", ",", "Pkvals"}], "}"}], "=", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"Import", "[", 
+        RowBox[{
+        "\"\<../../models/\>\"", "<>", "modelname", "<>", 
+         "\"\</powerspectrum.csv\>\""}], "]"}], "[", 
+       RowBox[{"[", 
+        RowBox[{"2", ";;"}], "]"}], "]"}], "//", "Transpose"}]}], ";", 
+    "\[IndentingNewLine]", 
+    RowBox[{"kmin", "=", 
+     RowBox[{"kvals", "[", 
+      RowBox[{"[", "1", "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"kmax", "=", 
+     RowBox[{"kvals", "[", 
+      RowBox[{"[", 
+       RowBox[{"-", "1"}], "]"}], "]"}]}], ";", "\[IndentingNewLine]", 
+    RowBox[{"Pk", "=", 
+     RowBox[{"Interpolation", "[", 
+      RowBox[{
+       RowBox[{"Transpose", "[", 
+        RowBox[{"{", 
+         RowBox[{"kvals", ",", "Pkvals"}], "}"}], "]"}], ",", 
+       RowBox[{"Method", "->", "\"\<Spline\>\""}]}], "]"}]}], ";"}]}], 
+  "\[IndentingNewLine]", "]"}]}], "Input",
+ CellLabel->"In[43]:=",ExpressionUUID->"c9c49599-2870-4609-a2a4-0862920927bb"],
+
+Cell["Load the comparison data.", "Text",ExpressionUUID->"e8488400-67b1-46fd-a287-3ff065923f50"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"data", "=", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"Import", "[", 
+      RowBox[{
+      "\"\<../../models/\>\"", "<>", "modelname", "<>", 
+       "\"\</doublebessel.csv\>\""}], "]"}], "[", 
+     RowBox[{"[", 
+      RowBox[{"2", ";;"}], "]"}], "]"}], "//", "Transpose"}]}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"rvals", "=", 
+   RowBox[{"data", "[", 
+    RowBox[{"[", "1", "]"}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Evals", "=", 
+   RowBox[{"data", "[", 
+    RowBox[{"[", 
+     RowBox[{"2", ";;"}], "]"}], "]"}]}], ";"}]}], "Input",
+ CellLabel->
+  "In[304]:=",ExpressionUUID->"ba849058-2a8c-444d-b93c-f507ef85e73f"],
+
+Cell["\<\
+Evals[[ell+1]] gives the E function evaluations for the given r values.\
+\>", "Text",ExpressionUUID->"cdda2988-7ba1-46b4-b3ad-dd5c27816e38"],
+
+Cell["Turn off precision warning.", "Text",ExpressionUUID->"2956ad80-a012-4d0e-9ab2-734a0a9f1161"],
+
+Cell[BoxData[
+ RowBox[{"Off", "[", 
+  RowBox[{"NIntegrate", "::", "precw"}], "]"}]], "Input",
+ CellLabel->"In[54]:=",ExpressionUUID->"cbf7236b-5c86-4463-80a5-b827d0446831"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell["Compare Integrals", "Section",ExpressionUUID->"9d977029-1fac-4033-a1ef-90d1088695ec"],
+
+Cell["Compare python E integrals to Mathematica integrals.", "Text",ExpressionUUID->"88b71fd5-ff14-49d5-be2b-46d489f3ab51"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"doEintegral", "[", 
+   RowBox[{"ell_", ",", "r_"}], "]"}], ":=", 
+  RowBox[{"Block", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"res1", ",", "res2", ",", "res3", ",", "res4", ",", "res5"}], 
+     "}"}], ",", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"res1", "=", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"k", "^", "2"}], " ", 
+         RowBox[{"Pk", "[", "k", "]"}], 
+         RowBox[{
+          RowBox[{"SphericalBesselJ", "[", 
+           RowBox[{"ell", ",", 
+            RowBox[{"k", " ", "r"}]}], "]"}], "^", "2"}]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "kmin", ",", "10"}], "}"}], ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "25"}], ",", 
+        RowBox[{"AccuracyGoal", "\[Rule]", "15"}], ",", 
+        RowBox[{"PrecisionGoal", "\[Rule]", "15"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"res2", "=", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"k", "^", "2"}], " ", 
+         RowBox[{"Pk", "[", "k", "]"}], 
+         RowBox[{
+          RowBox[{"SphericalBesselJ", "[", 
+           RowBox[{"ell", ",", 
+            RowBox[{"k", " ", "r"}]}], "]"}], "^", "2"}]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "10", ",", "50"}], "}"}], ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "25"}], ",", 
+        RowBox[{"AccuracyGoal", "\[Rule]", "15"}], ",", 
+        RowBox[{"PrecisionGoal", "\[Rule]", "15"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"res3", "=", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"k", "^", "2"}], " ", 
+         RowBox[{"Pk", "[", "k", "]"}], 
+         RowBox[{
+          RowBox[{"SphericalBesselJ", "[", 
+           RowBox[{"ell", ",", 
+            RowBox[{"k", " ", "r"}]}], "]"}], "^", "2"}]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "50", ",", "100"}], "}"}], ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "25"}], ",", 
+        RowBox[{"AccuracyGoal", "\[Rule]", "15"}], ",", 
+        RowBox[{"PrecisionGoal", "\[Rule]", "15"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"res4", "=", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"k", "^", "2"}], " ", 
+         RowBox[{"Pk", "[", "k", "]"}], 
+         RowBox[{
+          RowBox[{"SphericalBesselJ", "[", 
+           RowBox[{"ell", ",", 
+            RowBox[{"k", " ", "r"}]}], "]"}], "^", "2"}]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "100", ",", "150"}], "}"}], ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "25"}], ",", 
+        RowBox[{"AccuracyGoal", "\[Rule]", "15"}], ",", 
+        RowBox[{"PrecisionGoal", "\[Rule]", "15"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"res5", "=", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"k", "^", "2"}], " ", 
+         RowBox[{"Pk", "[", "k", "]"}], 
+         RowBox[{
+          RowBox[{"SphericalBesselJ", "[", 
+           RowBox[{"ell", ",", 
+            RowBox[{"k", " ", "r"}]}], "]"}], "^", "2"}]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "150", ",", "kmax"}], "}"}], ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "25"}], ",", 
+        RowBox[{"AccuracyGoal", "\[Rule]", "15"}], ",", 
+        RowBox[{"PrecisionGoal", "\[Rule]", "15"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"4", "\[Pi]", " ", 
+      RowBox[{"(", 
+       RowBox[{"res1", "+", "res2", "+", "res3", "+", "res4", "+", "res5"}], 
+       ")"}]}]}]}], "\[IndentingNewLine]", "]"}]}]], "Input",
+ CellLabel->
+  "In[359]:=",ExpressionUUID->"f97e27fc-f28d-4471-8f6f-b13e3e6a99fa"],
+
+Cell["\<\
+Set the ell value here. We generate from ell = 0 to ell = 30.\
+\>", "Text",ExpressionUUID->"6ba87335-e566-4400-8af8-0732f61151e0"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"ell", "=", "20"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Eres", "=", 
+   RowBox[{"Eresults", "[", "ell", "]"}]}], ";"}]}], "Input",
+ CellLabel->
+  "In[360]:=",ExpressionUUID->"2871029c-1dc7-4083-96b7-0d398a58c531"],
+
+Cell[BoxData[{
+ RowBox[{"ListLogLogPlot", "[", 
+  RowBox[{
+   RowBox[{"Transpose", "[", 
+    RowBox[{"{", 
+     RowBox[{"rvals", ",", " ", 
+      RowBox[{"Abs", "[", 
+       RowBox[{"Eres", "-", 
+        RowBox[{"Evals", "[", 
+         RowBox[{"[", 
+          RowBox[{"ell", "+", "1"}], "]"}], "]"}]}], "]"}]}], "}"}], "]"}], 
+   ",", 
+   RowBox[{"PlotLabel", "\[Rule]", "\"\<Absolute difference\>\""}]}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"ListLogLogPlot", "[", 
+  RowBox[{
+   RowBox[{"Transpose", "[", 
+    RowBox[{"{", 
+     RowBox[{"rvals", ",", " ", 
+      RowBox[{"Abs", "[", 
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{"Eres", "-", 
+          RowBox[{"Evals", "[", 
+           RowBox[{"[", 
+            RowBox[{"ell", "+", "1"}], "]"}], "]"}]}], ")"}], "/", "Eres"}], 
+       "]"}]}], "}"}], "]"}], ",", 
+   RowBox[{"PlotLabel", "\[Rule]", "\"\<Relative difference\>\""}]}], 
+  "]"}]}], "Input",
+ CellLabel->
+  "In[362]:=",ExpressionUUID->"95df95e3-94ab-4ca2-88f7-6dc53f32bb4e"]
+}, Open  ]]
+},
+WindowSize->{1440, 795},
+WindowMargins->{{1816, Automatic}, {-179, Automatic}},
+TrackCellChangeTimes->False,
+FrontEndVersion->"12.0 for Mac OS X x86 (64-bit) (April 8, 2019)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 83, 0, 67, "Section",ExpressionUUID->"aa7ef6c0-b2ea-4b5a-83a2-8b8023ea8d74"],
+Cell[666, 24, 202, 4, 30, "Input",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
+Cell[871, 30, 161, 3, 35, "Text",ExpressionUUID->"a8d181f7-cb4c-4d3d-bb38-9d752b15fbd7"],
+Cell[1035, 35, 167, 3, 30, "Input",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
+Cell[1205, 40, 95, 0, 35, "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
+Cell[1303, 42, 2384, 66, 283, "Input",ExpressionUUID->"c9c49599-2870-4609-a2a4-0862920927bb"],
+Cell[3690, 110, 96, 0, 35, "Text",ExpressionUUID->"e8488400-67b1-46fd-a287-3ff065923f50"],
+Cell[3789, 112, 672, 21, 73, "Input",ExpressionUUID->"ba849058-2a8c-444d-b93c-f507ef85e73f"],
+Cell[4464, 135, 150, 2, 35, "Text",ExpressionUUID->"cdda2988-7ba1-46b4-b3ad-dd5c27816e38"],
+Cell[4617, 139, 98, 0, 35, "Text",ExpressionUUID->"2956ad80-a012-4d0e-9ab2-734a0a9f1161"],
+Cell[4718, 141, 172, 3, 30, "Input",ExpressionUUID->"cbf7236b-5c86-4463-80a5-b827d0446831"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[4927, 149, 91, 0, 67, "Section",ExpressionUUID->"9d977029-1fac-4033-a1ef-90d1088695ec"],
+Cell[5021, 151, 123, 0, 35, "Text",ExpressionUUID->"88b71fd5-ff14-49d5-be2b-46d489f3ab51"],
+Cell[5147, 153, 3729, 95, 178, "Input",ExpressionUUID->"f97e27fc-f28d-4471-8f6f-b13e3e6a99fa"],
+Cell[8879, 250, 140, 2, 35, "Text",ExpressionUUID->"6ba87335-e566-4400-8af8-0732f61151e0"],
+Cell[9022, 254, 264, 7, 52, "Input",ExpressionUUID->"2871029c-1dc7-4083-96b7-0d398a58c531"],
+Cell[9289, 263, 1006, 30, 52, "Input",ExpressionUUID->"95df95e3-94ab-4ca2-88f7-6dc53f32bb4e"]
+}, Open  ]]
+}
+]
+*)
+
