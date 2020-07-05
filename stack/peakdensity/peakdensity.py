@@ -173,7 +173,7 @@ def number_density(n: int, gamma_val: float, nu: float, sigma0: float, sigma1: f
     # Step 1 -- adapt the grid to f; discard results
     integ(f, nitn=10, neval=num_samples)
     # Step 2 -- integ has adapted to f; keep results
-    vecresult = integ(f, nitn=10, neval=num_samples)
+    vecresult = integ(f, nitn=10, neval=num_samples, adapt=False)
     
     # Compute the scaling prefactor
     prefactor = scale(n, nu, sigma0, sigma1) / V_n(n, gamma_val)
