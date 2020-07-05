@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     16322,        427]
-NotebookOptionsPosition[     14261,        391]
-NotebookOutlinePosition[     14632,        407]
-CellTagsIndexPosition[     14589,        404]
+NotebookDataLength[     26809,        692]
+NotebookOptionsPosition[     23990,        648]
+NotebookOutlinePosition[     24361,        664]
+CellTagsIndexPosition[     24318,        661]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -35,7 +35,7 @@ from.\
 
 Cell[BoxData[
  RowBox[{
-  RowBox[{"modelname", "=", "\"\<real_ps\>\""}], ";"}]], "Input",
+  RowBox[{"modelname", "=", "\"\<toy_ps\>\""}], ";"}]], "Input",
  CellLabel->"In[2]:=",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
 
 Cell["Load the power spectrum.", "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
@@ -114,7 +114,9 @@ Cell[BoxData[
  RowBox[{
   RowBox[{
    RowBox[{"{", 
-    RowBox[{"rvals", ",", "Cvals", ",", "Dvals"}], "}"}], "=", 
+    RowBox[{
+    "rvals", ",", "Cvals", ",", "Dvals", ",", "K1vals", ",", "Fvals"}], "}"}],
+    "=", 
    RowBox[{
     RowBox[{
      RowBox[{"Import", "[", 
@@ -124,7 +126,7 @@ Cell[BoxData[
      RowBox[{"[", 
       RowBox[{"2", ";;"}], "]"}], "]"}], "//", "Transpose"}]}], 
   ";"}]], "Input",
- CellLabel->"In[6]:=",ExpressionUUID->"ba849058-2a8c-444d-b93c-f507ef85e73f"],
+ CellLabel->"In[30]:=",ExpressionUUID->"ba849058-2a8c-444d-b93c-f507ef85e73f"],
 
 Cell["Turn off precision warning.", "Text",ExpressionUUID->"2956ad80-a012-4d0e-9ab2-734a0a9f1161"],
 
@@ -386,11 +388,266 @@ Cell[BoxData[{
        "]"}]}], "}"}], "]"}], ",", 
    RowBox[{"PlotLabel", "\[Rule]", "\"\<Relative difference\>\""}], ",", 
    RowBox[{"PlotRange", "\[Rule]", "All"}]}], "]"}]}], "Input",
- CellLabel->"In[14]:=",ExpressionUUID->"e4e40b42-f0eb-4200-806b-1552d99f108f"]
+ CellLabel->"In[14]:=",ExpressionUUID->"e4e40b42-f0eb-4200-806b-1552d99f108f"],
+
+Cell["Compare python K1 integrals to Mathematica integrals.", "Text",ExpressionUUID->"430c5b03-9914-4fc6-9312-ae9393ee5df6"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"doK1integral", "[", "r_", "]"}], ":=", 
+  RowBox[{"Block", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"res1", ",", "res2", ",", "res3", ",", "res4", ",", "res5"}], 
+     "}"}], ",", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"res1", "=", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"k", "^", "3"}], " ", 
+         RowBox[{"Pk", "[", "k", "]"}], 
+         RowBox[{
+          RowBox[{"Sin", "[", 
+           RowBox[{"r", " ", "k"}], "]"}], "/", "r"}]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "kmin", ",", "10"}], "}"}], ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "50"}], ",", 
+        RowBox[{"AccuracyGoal", "\[Rule]", "20"}], ",", 
+        RowBox[{"PrecisionGoal", "\[Rule]", "20"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"res2", "=", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"k", "^", "3"}], " ", 
+         RowBox[{"Pk", "[", "k", "]"}], 
+         RowBox[{
+          RowBox[{"Sin", "[", 
+           RowBox[{"r", " ", "k"}], "]"}], "/", "r"}]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "10", ",", "50"}], "}"}], ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "50"}], ",", 
+        RowBox[{"AccuracyGoal", "\[Rule]", "20"}], ",", 
+        RowBox[{"PrecisionGoal", "\[Rule]", "20"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"res3", "=", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"k", "^", "3"}], " ", 
+         RowBox[{"Pk", "[", "k", "]"}], 
+         RowBox[{
+          RowBox[{"Sin", "[", 
+           RowBox[{"r", " ", "k"}], "]"}], "/", "r"}]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "50", ",", "100"}], "}"}], ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "50"}], ",", 
+        RowBox[{"AccuracyGoal", "\[Rule]", "20"}], ",", 
+        RowBox[{"PrecisionGoal", "\[Rule]", "20"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"res4", "=", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"k", "^", "3"}], " ", 
+         RowBox[{"Pk", "[", "k", "]"}], 
+         RowBox[{
+          RowBox[{"Sin", "[", 
+           RowBox[{"r", " ", "k"}], "]"}], "/", "r"}]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "100", ",", "150"}], "}"}], ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "50"}], ",", 
+        RowBox[{"AccuracyGoal", "\[Rule]", "20"}], ",", 
+        RowBox[{"PrecisionGoal", "\[Rule]", "20"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"res5", "=", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"k", "^", "3"}], " ", 
+         RowBox[{"Pk", "[", "k", "]"}], 
+         RowBox[{
+          RowBox[{"Sin", "[", 
+           RowBox[{"r", " ", "k"}], "]"}], "/", "r"}]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "150", ",", "kmax"}], "}"}], ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "50"}], ",", 
+        RowBox[{"AccuracyGoal", "\[Rule]", "20"}], ",", 
+        RowBox[{"PrecisionGoal", "\[Rule]", "20"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"4", "\[Pi]", " ", 
+      RowBox[{"(", 
+       RowBox[{"res1", "+", "res2", "+", "res3", "+", "res4", "+", "res5"}], 
+       ")"}]}]}]}], "\[IndentingNewLine]", "]"}]}]], "Input",
+ CellLabel->"In[16]:=",ExpressionUUID->"bf7c9989-6f9a-469f-8b80-7a24f7e7af7c"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"K1results", "=", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"doK1integral", "[", "r", "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"r", ",", "rvals"}], "}"}]}], "]"}]}], ";"}]], "Input",
+ CellLabel->"In[17]:=",ExpressionUUID->"981aa4e6-35d9-46db-b6c8-ebcdd9dad6ec"],
+
+Cell[BoxData[{
+ RowBox[{"ListLogLogPlot", "[", 
+  RowBox[{
+   RowBox[{"Transpose", "[", 
+    RowBox[{"{", 
+     RowBox[{"rvals", ",", " ", 
+      RowBox[{"Abs", "[", 
+       RowBox[{"K1results", "-", "K1vals"}], "]"}]}], "}"}], "]"}], ",", 
+   RowBox[{"PlotLabel", "\[Rule]", "\"\<Absolute difference\>\""}]}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"ListLogLogPlot", "[", 
+  RowBox[{
+   RowBox[{"Transpose", "[", 
+    RowBox[{"{", 
+     RowBox[{"rvals", ",", " ", 
+      RowBox[{"Abs", "[", 
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{"K1results", "-", "K1vals"}], ")"}], "/", "K1results"}], 
+       "]"}]}], "}"}], "]"}], ",", 
+   RowBox[{"PlotLabel", "\[Rule]", "\"\<Relative difference\>\""}]}], 
+  "]"}]}], "Input",
+ CellLabel->"In[18]:=",ExpressionUUID->"5c8275a1-7de0-4829-b42c-77bb04ba78fa"],
+
+Cell["Compare python F integrals to Mathematica integrals.", "Text",ExpressionUUID->"1e6dd6b4-63c8-4bac-b506-2fd67081202d"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"doFintegral", "[", "r_", "]"}], ":=", 
+  RowBox[{"Block", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"res1", ",", "res2", ",", "res3", ",", "res4", ",", "res5"}], 
+     "}"}], ",", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{"res1", "=", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"k", "^", "4"}], " ", 
+         RowBox[{"Pk", "[", "k", "]"}], 
+         RowBox[{"SphericalBesselJ", "[", 
+          RowBox[{"2", ",", 
+           RowBox[{"k", " ", "r"}]}], "]"}]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "kmin", ",", "10"}], "}"}], ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "50"}], ",", 
+        RowBox[{"AccuracyGoal", "\[Rule]", "16"}], ",", 
+        RowBox[{"PrecisionGoal", "\[Rule]", "16"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"res2", "=", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"k", "^", "4"}], " ", 
+         RowBox[{"Pk", "[", "k", "]"}], 
+         RowBox[{"SphericalBesselJ", "[", 
+          RowBox[{"2", ",", 
+           RowBox[{"k", " ", "r"}]}], "]"}]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "10", ",", "50"}], "}"}], ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "50"}], ",", 
+        RowBox[{"AccuracyGoal", "\[Rule]", "16"}], ",", 
+        RowBox[{"PrecisionGoal", "\[Rule]", "16"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"res3", "=", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"k", "^", "4"}], 
+         RowBox[{"Pk", "[", "k", "]"}], 
+         RowBox[{"SphericalBesselJ", "[", 
+          RowBox[{"2", ",", 
+           RowBox[{"k", " ", "r"}]}], "]"}]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "50", ",", "100"}], "}"}], ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "50"}], ",", 
+        RowBox[{"AccuracyGoal", "\[Rule]", "16"}], ",", 
+        RowBox[{"PrecisionGoal", "\[Rule]", "16"}], ",", 
+        RowBox[{"Method", "\[Rule]", "\"\<LevinRule\>\""}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"res4", "=", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"k", "^", "4"}], " ", 
+         RowBox[{"Pk", "[", "k", "]"}], 
+         RowBox[{"SphericalBesselJ", "[", 
+          RowBox[{"2", ",", 
+           RowBox[{"k", " ", "r"}]}], "]"}]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "100", ",", "150"}], "}"}], ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "50"}], ",", 
+        RowBox[{"AccuracyGoal", "\[Rule]", "16"}], ",", 
+        RowBox[{"PrecisionGoal", "\[Rule]", "16"}], ",", 
+        RowBox[{"Method", "\[Rule]", "\"\<LevinRule\>\""}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"res5", "=", 
+      RowBox[{"NIntegrate", "[", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"k", "^", "4"}], " ", 
+         RowBox[{"Pk", "[", "k", "]"}], 
+         RowBox[{"SphericalBesselJ", "[", 
+          RowBox[{"2", ",", 
+           RowBox[{"k", " ", "r"}]}], "]"}]}], ",", 
+        RowBox[{"{", 
+         RowBox[{"k", ",", "150", ",", "kmax"}], "}"}], ",", 
+        RowBox[{"WorkingPrecision", "\[Rule]", "50"}], ",", 
+        RowBox[{"AccuracyGoal", "\[Rule]", "16"}], ",", 
+        RowBox[{"PrecisionGoal", "\[Rule]", "16"}], ",", 
+        RowBox[{"Method", "\[Rule]", "\"\<LevinRule\>\""}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"4", "\[Pi]", " ", 
+      RowBox[{"(", 
+       RowBox[{"res1", "+", "res2", "+", "res3", "+", "res4", "+", "res5"}], 
+       ")"}]}]}]}], "\[IndentingNewLine]", "]"}]}]], "Input",
+ CellLabel->"In[31]:=",ExpressionUUID->"583d8d8e-1f41-4d2c-bf19-2ca15cd41903"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Fresults", "=", 
+   RowBox[{"Table", "[", 
+    RowBox[{
+     RowBox[{"doFintegral", "[", "r", "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"r", ",", "rvals"}], "}"}]}], "]"}]}], ";"}]], "Input",
+ CellLabel->"In[32]:=",ExpressionUUID->"4da9bd68-40ff-4227-b9af-7f21e33bac25"],
+
+Cell[BoxData[{
+ RowBox[{"ListLogLogPlot", "[", 
+  RowBox[{
+   RowBox[{"Transpose", "[", 
+    RowBox[{"{", 
+     RowBox[{"rvals", ",", " ", 
+      RowBox[{"Abs", "[", 
+       RowBox[{"Fresults", "-", "Fvals"}], "]"}]}], "}"}], "]"}], ",", 
+   RowBox[{"PlotLabel", "\[Rule]", "\"\<Absolute difference\>\""}]}], 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"ListLogLogPlot", "[", 
+  RowBox[{
+   RowBox[{"Transpose", "[", 
+    RowBox[{"{", 
+     RowBox[{"rvals", ",", " ", 
+      RowBox[{"Abs", "[", 
+       RowBox[{
+        RowBox[{"(", 
+         RowBox[{"Fresults", "-", "Fvals"}], ")"}], "/", "Fresults"}], 
+       "]"}]}], "}"}], "]"}], ",", 
+   RowBox[{"PlotLabel", "\[Rule]", "\"\<Relative difference\>\""}]}], 
+  "]"}]}], "Input",
+ CellLabel->"In[33]:=",ExpressionUUID->"1a5d8a07-6140-4736-8543-d0366405c56a"]
 }, Open  ]]
 },
 WindowSize->{1440, 795},
-WindowMargins->{{1893, Automatic}, {-297, Automatic}},
+WindowMargins->{{1816, Automatic}, {-179, Automatic}},
 TrackCellChangeTimes->False,
 FrontEndVersion->"12.0 for Mac OS X x86 (64-bit) (April 8, 2019)",
 StyleDefinitions->"Default.nb"
@@ -410,24 +667,32 @@ Cell[CellGroupData[{
 Cell[580, 22, 83, 0, 67, "Section",ExpressionUUID->"aa7ef6c0-b2ea-4b5a-83a2-8b8023ea8d74"],
 Cell[666, 24, 201, 4, 30, "Input",ExpressionUUID->"0b005c7b-c56f-415e-a732-2ffc5fceece9"],
 Cell[870, 30, 161, 3, 35, "Text",ExpressionUUID->"a8d181f7-cb4c-4d3d-bb38-9d752b15fbd7"],
-Cell[1034, 35, 167, 3, 30, "Input",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
-Cell[1204, 40, 95, 0, 35, "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
-Cell[1302, 42, 2383, 66, 283, "Input",ExpressionUUID->"c9c49599-2870-4609-a2a4-0862920927bb"],
-Cell[3688, 110, 96, 0, 35, "Text",ExpressionUUID->"e8488400-67b1-46fd-a287-3ff065923f50"],
-Cell[3787, 112, 473, 14, 30, "Input",ExpressionUUID->"ba849058-2a8c-444d-b93c-f507ef85e73f"],
-Cell[4263, 128, 98, 0, 35, "Text",ExpressionUUID->"2956ad80-a012-4d0e-9ab2-734a0a9f1161"],
-Cell[4364, 130, 171, 3, 30, "Input",ExpressionUUID->"cbf7236b-5c86-4463-80a5-b827d0446831"]
+Cell[1034, 35, 166, 3, 30, "Input",ExpressionUUID->"1dcffa44-0c4a-4342-9000-b9449dad94cc"],
+Cell[1203, 40, 95, 0, 35, "Text",ExpressionUUID->"aab7685f-66c1-48c2-a0cf-ee6c84591023"],
+Cell[1301, 42, 2383, 66, 283, "Input",ExpressionUUID->"c9c49599-2870-4609-a2a4-0862920927bb"],
+Cell[3687, 110, 96, 0, 35, "Text",ExpressionUUID->"e8488400-67b1-46fd-a287-3ff065923f50"],
+Cell[3786, 112, 512, 16, 30, "Input",ExpressionUUID->"ba849058-2a8c-444d-b93c-f507ef85e73f"],
+Cell[4301, 130, 98, 0, 35, "Text",ExpressionUUID->"2956ad80-a012-4d0e-9ab2-734a0a9f1161"],
+Cell[4402, 132, 171, 3, 30, "Input",ExpressionUUID->"cbf7236b-5c86-4463-80a5-b827d0446831"]
 }, Open  ]],
 Cell[CellGroupData[{
-Cell[4572, 138, 91, 0, 67, "Section",ExpressionUUID->"9d977029-1fac-4033-a1ef-90d1088695ec"],
-Cell[4666, 140, 123, 0, 35, "Text",ExpressionUUID->"88b71fd5-ff14-49d5-be2b-46d489f3ab51"],
-Cell[4792, 142, 3307, 83, 178, "Input",ExpressionUUID->"75cd3693-f917-4388-81d9-971cd6375bd3"],
-Cell[8102, 227, 308, 8, 30, "Input",ExpressionUUID->"830f3792-a47f-4314-8454-76fff235113a"],
-Cell[8413, 237, 810, 22, 52, "Input",ExpressionUUID->"95df95e3-94ab-4ca2-88f7-6dc53f32bb4e"],
-Cell[9226, 261, 123, 0, 35, "Text",ExpressionUUID->"38c123d7-b6a0-4cbc-b7ab-ec9a2cf69f87"],
-Cell[9352, 263, 3721, 91, 178, "Input",ExpressionUUID->"dda3b0a5-da18-4c60-8c23-d180ca6b3c4a"],
-Cell[13076, 356, 309, 8, 30, "Input",ExpressionUUID->"5443fbf1-4896-4414-8dc4-dbf15054c26a"],
-Cell[13388, 366, 857, 22, 52, "Input",ExpressionUUID->"e4e40b42-f0eb-4200-806b-1552d99f108f"]
+Cell[4610, 140, 91, 0, 67, "Section",ExpressionUUID->"9d977029-1fac-4033-a1ef-90d1088695ec"],
+Cell[4704, 142, 123, 0, 35, "Text",ExpressionUUID->"88b71fd5-ff14-49d5-be2b-46d489f3ab51"],
+Cell[4830, 144, 3307, 83, 178, "Input",ExpressionUUID->"75cd3693-f917-4388-81d9-971cd6375bd3"],
+Cell[8140, 229, 308, 8, 30, "Input",ExpressionUUID->"830f3792-a47f-4314-8454-76fff235113a"],
+Cell[8451, 239, 810, 22, 52, "Input",ExpressionUUID->"95df95e3-94ab-4ca2-88f7-6dc53f32bb4e"],
+Cell[9264, 263, 123, 0, 35, "Text",ExpressionUUID->"38c123d7-b6a0-4cbc-b7ab-ec9a2cf69f87"],
+Cell[9390, 265, 3721, 91, 178, "Input",ExpressionUUID->"dda3b0a5-da18-4c60-8c23-d180ca6b3c4a"],
+Cell[13114, 358, 309, 8, 30, "Input",ExpressionUUID->"5443fbf1-4896-4414-8dc4-dbf15054c26a"],
+Cell[13426, 368, 857, 22, 52, "Input",ExpressionUUID->"e4e40b42-f0eb-4200-806b-1552d99f108f"],
+Cell[14286, 392, 124, 0, 35, "Text",ExpressionUUID->"430c5b03-9914-4fc6-9312-ae9393ee5df6"],
+Cell[14413, 394, 3459, 88, 178, "Input",ExpressionUUID->"bf7c9989-6f9a-469f-8b80-7a24f7e7af7c"],
+Cell[17875, 484, 311, 8, 30, "Input",ExpressionUUID->"981aa4e6-35d9-46db-b6c8-ebcdd9dad6ec"],
+Cell[18189, 494, 815, 22, 52, "Input",ExpressionUUID->"5c8275a1-7de0-4829-b42c-77bb04ba78fa"],
+Cell[19007, 518, 123, 0, 35, "Text",ExpressionUUID->"1e6dd6b4-63c8-4bac-b506-2fd67081202d"],
+Cell[19133, 520, 3716, 91, 178, "Input",ExpressionUUID->"583d8d8e-1f41-4d2c-bf19-2ca15cd41903"],
+Cell[22852, 613, 309, 8, 30, "Input",ExpressionUUID->"4da9bd68-40ff-4227-b9af-7f21e33bac25"],
+Cell[23164, 623, 810, 22, 52, "Input",ExpressionUUID->"1a5d8a07-6140-4736-8543-d0366405c56a"]
 }, Open  ]]
 }
 ]
