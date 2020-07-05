@@ -1,7 +1,7 @@
 """
 correlations.py
 
-Contains the Correlations class, which stores the correlation functions C(r), D(r) and K_1(r) on the sampling grid.
+Contains the Correlations class, which stores the correlation functions C(r), D(r), K_1(r) and F(r) on the sampling grid.
 """
 from __future__ import annotations
 

@@ -313,7 +313,7 @@ class SingleBessel(Persistence):
     def compute_F(self, r: float, suppression: Suppression) -> float:
         """
         Computes the integral
-        D(r) = 4 pi int_{k_min}^{k_max} dk k^4 P(k) j_2(k r)
+        F(r) = 4 pi int_{k_min}^{k_max} dk k^4 P(k) j_2(k r)
 
         Note that j_2(k r) = 3 * sin(k r) / (k r)^3 - 3 * cos(k r) / (k r)^2 - sin(k r) / (k r)
 
