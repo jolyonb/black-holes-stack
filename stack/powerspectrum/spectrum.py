@@ -149,6 +149,20 @@ class PowerSpectrum(Persistence):
         # Figure out the time to start integrating from. Each mode has its own value of N.
         # N = 0 is the waterfall transition
         startN = log(8 * 10**(-8) * kvals**4) / 4.0
+        # We need each time to differ from endN by a factor of an integer/10, so that our
+        # time stepper will land on the desired value without needing to perform any interpolation.
+        # Start by taking the floor values of all startN entries (negative numbers become more negative).
+        startN = np.floor(startN)
+        # We now have integer start times. Figure out the decimal part of the ending N (hundredths column).
+        decpart = 10 * endN - np.floor(10 * endN)
+        if decpart > 0:
+            # Divide by 10
+            decpart /= 10
+            # Add this to all of the startN values and subtract 0.1
+            startN += decpart - 0.1
+        # Eg: endN is 15.23
+        # startN values are all integers; we need to subtract 0.07 from all startN values to land on 15.23.
+        # decpart is computed as 0.03, which is added to all start values; 0.1 is then subtracted.
         minN = np.min(startN)
 
         # Compute initial condition corrections (field values and derivatives)
