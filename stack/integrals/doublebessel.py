@@ -143,8 +143,11 @@ class DoubleBessel(Integrals):
         :return: Result of the integral
         """
         moments = self.model.get_moments(suppression)
-        if suppression == suppression.PEAKS:
+        suppression_factor = None
+        if suppression == Suppression.PEAKS:
             raise ValueError(f'Bad suppression method: {suppression}')
+        elif suppression == Suppression.RAW:
+            suppression_factor = self.model.grid.sampling_cutoff
 
         # Treat the special case
         if r == 0:
@@ -165,7 +168,7 @@ class DoubleBessel(Integrals):
         osc1 = j_ell_roots[ell] / r       # 1 oscillation of j_0(x)
         osc10 = j_ell_roots10[ell] / r    # 10 oscillations of j_0(x)
         osc50 = j_ell_roots50[ell] / r    # 50 oscillations of j_0(x)
-        domains = self.generate_domains(min_k, max_k, moments.k2peak, osc1, osc10)
+        domains = self.generate_domains(min_k, max_k, moments.k2peak, osc1, osc10, suppression_factor)
 
         # Define integration functions
         def f(k):

@@ -10,7 +10,7 @@ from scipy.integrate import quad
 
 from stack.common import Persistence
 
-from typing import TYPE_CHECKING, List, Tuple, Callable
+from typing import TYPE_CHECKING, List, Tuple, Callable, Optional
 
 if TYPE_CHECKING:
     from stack import Model
@@ -46,7 +46,7 @@ class Integrals(Persistence):
     
     @staticmethod
     def generate_domains(min_k: float, max_k: float, peak: float,
-                         osc1: float, osc10: float) -> List[Tuple[float, float]]:
+                         osc1: float, osc10: float, suppress: Optional[float]) -> List[Tuple[float, float]]:
         """
         Generates a list of domain tuples (start_k, stop_k) that span the domain (min_k, max_k), with splits
         based on the following parameters:
@@ -56,11 +56,17 @@ class Integrals(Persistence):
         :param peak: Peak value of integral
         :param osc1: First oscillation k value
         :param osc10: 10th oscillation k value
+        :param suppress: Suppression scale (or None if not using)
         :return: List of (min, max) tuples
         """
         possible_points = [min_k, max_k, osc1, osc10,
                            5*peak, 10*peak, 15*peak, 20*peak, 40*peak, 80*peak, 100*peak,
                            150*peak, 200*peak, 250*peak, 300*peak, 350*peak, 400*peak, 450*peak, 500*peak]
+        if suppress is not None:
+            # Make sure the suppression factor doesn't drop too quickly over the domain
+            # by inserting suppression scale domain endpoints
+            # End of domain is 6*suppress, which has exp(-18) ~ 1.5e-8
+            possible_points += [n * suppress for n in range(1, 6)]
         points = sorted([p for p in possible_points if min_k <= p <= max_k])
         tuples = [(points[i], points[i+1]) for i in range(len(points) - 1)]
         return tuples

@@ -61,8 +61,11 @@ class SingleBessel(Integrals):
         :return: Result of the integral
         """
         moments = self.model.get_moments(suppression)
-        if suppression == suppression.PEAKS:
+        suppression_factor = None
+        if suppression == Suppression.PEAKS:
             raise ValueError(f'Bad suppression method: {suppression}')
+        elif suppression == Suppression.RAW:
+            suppression_factor = self.model.grid.sampling_cutoff
 
         # Treat the special case
         if r == 0:
@@ -79,7 +82,7 @@ class SingleBessel(Integrals):
 
         # Construct the list of domains
         osc = 2 * pi / r
-        domains = self.generate_domains(min_k, max_k, moments.k2peak, osc, 10 * osc)
+        domains = self.generate_domains(min_k, max_k, moments.k2peak, osc, 10 * osc, suppression_factor)
 
         # Define integration functions
         def f(k):
@@ -137,8 +140,11 @@ class SingleBessel(Integrals):
         :return: Result of the integral
         """
         moments = self.model.get_moments(suppression)
-        if suppression == suppression.PEAKS:
+        suppression_factor = None
+        if suppression == Suppression.PEAKS:
             raise ValueError(f'Bad suppression method: {suppression}')
+        elif suppression == Suppression.RAW:
+            suppression_factor = self.model.grid.sampling_cutoff
 
         if r == 0:
             # Treat the special case
@@ -158,7 +164,7 @@ class SingleBessel(Integrals):
         oscillation10 = 64.38711959055742  # 10 oscillations of j_1(x)
         osc1 = oscillation1 / r
         osc10 = oscillation10 / r
-        domains = self.generate_domains(min_k, max_k, moments.k3peak, osc1, osc10)
+        domains = self.generate_domains(min_k, max_k, moments.k3peak, osc1, osc10, suppression_factor)
 
         # Define integration functions
         def f(k):
@@ -215,8 +221,11 @@ class SingleBessel(Integrals):
         :return: Result of the integral
         """
         moments = self.model.get_moments(suppression)
-        if suppression == suppression.PEAKS:
+        suppression_factor = None
+        if suppression == Suppression.PEAKS:
             raise ValueError(f'Bad suppression method: {suppression}')
+        elif suppression == Suppression.RAW:
+            suppression_factor = self.model.grid.sampling_cutoff
     
         # Treat the special case
         if r == 0:
@@ -233,7 +242,7 @@ class SingleBessel(Integrals):
 
         # Construct the list of domains
         osc = 2 * pi / r
-        domains = self.generate_domains(min_k, max_k, moments.k4peak, osc, 10 * osc)
+        domains = self.generate_domains(min_k, max_k, moments.k4peak, osc, 10 * osc, suppression_factor)
 
         # Define integration functions
         def f(k):
@@ -288,8 +297,11 @@ class SingleBessel(Integrals):
         :return: Result of the integral
         """
         moments = self.model.get_moments(suppression)
-        if suppression == suppression.PEAKS:
+        suppression_factor = None
+        if suppression == Suppression.PEAKS:
             raise ValueError(f'Bad suppression method: {suppression}')
+        elif suppression == Suppression.RAW:
+            suppression_factor = self.model.grid.sampling_cutoff
     
         if r == 0:
             # Treat the special case
@@ -311,7 +323,7 @@ class SingleBessel(Integrals):
         halfosc = halfoscillation / r
         osc1 = oscillation1 / r
         osc10 = oscillation10 / r
-        domains = self.generate_domains(min_k, max_k, moments.k4peak, osc1, osc10)
+        domains = self.generate_domains(min_k, max_k, moments.k4peak, osc1, osc10, suppression_factor)
 
         # Define integration functions
         def f(k):
