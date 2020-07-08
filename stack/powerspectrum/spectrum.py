@@ -43,7 +43,7 @@ class PowerSpectrum(Persistence):
         self.interp = None
 
         # Error tolerances used in computing ODE solutions
-        self.err_abs = 0
+        self.err_abs = 1e-15  # Nonzero so that variables = 0 don't give 0 error tolerance (this happens to start times)
         self.err_rel = 1e-12
         
         # Storage for mode function integration
@@ -148,11 +148,12 @@ class PowerSpectrum(Persistence):
 
         # Figure out the time to start integrating from. Each mode has its own value of N.
         # N = 0 is the waterfall transition
-        startN = log(8 * 10**(-8) * kvals**4) / 4.0
+        startN = log(8 * 10**(-8) * kvals**4) / 4.0 - 1
         # We need each time to differ from endN by a factor of an integer/10, so that our
         # time stepper will land on the desired value without needing to perform any interpolation.
-        # Start by taking the floor values of all startN entries (negative numbers become more negative).
-        startN = np.floor(startN)
+        # Start by taking the floor values of all startN entries in the first decimal place
+        # (negative numbers become more negative).
+        startN = np.floor(10 * startN) / 10
         # We now have integer start times. Figure out the decimal part of the ending N (hundredths column).
         decpart = 10 * endN - np.floor(10 * endN)
         if decpart > 0:
