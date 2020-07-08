@@ -247,7 +247,7 @@ class SingleBessel(Integrals):
         # Define integration functions
         def f(k):
             """Straight function to integrate"""
-            return k * k * k * k * pk(k, suppression) * spherical_jn(0, k * r)
+            return k * k * k * pk(k, suppression) * spherical_jn(0, k * r)
 
         low_osc = self.gen_low_osc(f, "K1", r)
 
