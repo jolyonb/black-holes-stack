@@ -247,7 +247,7 @@ class SingleBessel(Integrals):
         # Define integration functions
         def f(k):
             """Straight function to integrate"""
-            return k * k * k * pk(k, suppression) * spherical_jn(0, k * r)
+            return k * k * k * k * pk(k, suppression) * spherical_jn(0, k * r)
 
         low_osc = self.gen_low_osc(f, "K1", r)
 
@@ -272,7 +272,7 @@ class SingleBessel(Integrals):
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
             """Returns the function to use to perform integration on the given domain"""
-            if max_k > 10 * osc:
+            if max_k > 2 * osc:
                 return hi_osc
             return low_osc
 
