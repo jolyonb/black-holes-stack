@@ -46,7 +46,8 @@ class Integrals(Persistence):
     
     @staticmethod
     def generate_domains(min_k: float, max_k: float, peak: float,
-                         osc1: float, osc10: float, suppress: Optional[float]) -> List[Tuple[float, float]]:
+                         osc1: float, osc10: float, suppress: Optional[float],
+                         osc1_2: Optional[float] = None, osc10_2: Optional[float] = None) -> List[Tuple[float, float]]:
         """
         Generates a list of domain tuples (start_k, stop_k) that span the domain (min_k, max_k), with splits
         based on the following parameters:
@@ -57,11 +58,17 @@ class Integrals(Persistence):
         :param osc1: First oscillation k value
         :param osc10: 10th oscillation k value
         :param suppress: Suppression scale (or None if not using)
+        :param osc1_2: First oscillation k value (for double Bessels with two r values) (or None if not using)
+        :param osc10_2: 10th oscillation k value (for double Bessels with two r values) (or None if not using)
         :return: List of (min, max) tuples
         """
         possible_points = [min_k, max_k, osc1, osc10,
                            5*peak, 10*peak, 15*peak, 20*peak, 40*peak, 80*peak, 100*peak,
                            150*peak, 200*peak, 250*peak, 300*peak, 350*peak, 400*peak, 450*peak, 500*peak]
+        if osc1_2:
+            possible_points.append(osc1_2)
+        if osc10_2:
+            possible_points.append(osc10_2)
         if suppress is not None:
             # Make sure the suppression factor doesn't drop too quickly over the domain
             # by inserting suppression scale domain endpoints
