@@ -317,7 +317,7 @@ class DoubleBessel(Integrals):
                 # Each spherical bessel function has less than 10 oscillations
                 # Use direct integration
                 return low_osc
-            elif max_k < osc1min or max_k - min_k < 2 * pi:
+            elif max_k < osc1min or (max_k - min_k) * rmin < 2 * pi:
                 # The slower oscillations don't have time to complete a full oscillation
                 # Treat this like a single-bessel integral with weight k**2*P(k)*j_ell(k*rmin)
                 # For ell = 0, 1, 2, use sine- and cosine-weighted integration
