@@ -144,6 +144,7 @@ class DoubleBessel(Integrals):
                             stop=2.5,
                             num=21,
                             endpoint=True)
+        return  # TODO: Remove this!
         # Compute E on that grid
         Evals = []
         for ell in range(0, 31):
@@ -198,7 +199,7 @@ class DoubleBessel(Integrals):
             """Straight function to integrate"""
             return k * k * pk(k, suppression) * spherical_jn(ell, k*r)**2
 
-        low_osc = self.gen_low_osc(f, "F", r)
+        low_osc = self.gen_low_osc(f, "E", r)
 
         def hi_osc(min_k: float, max_k: float) -> float:
             """Compute integrals for highly-oscillatory functions"""
@@ -222,7 +223,7 @@ class DoubleBessel(Integrals):
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
             """Returns the function to use to perform integration on the given domain"""
-            if max_k < osc50 or (max_k - min_k) < 2 * pi:
+            if max_k < osc50 or (max_k - min_k) * r < 2 * pi:
                 # This works amazingly well - integrand is positive definite
                 return low_osc
             return hi_osc
@@ -281,14 +282,14 @@ class DoubleBessel(Integrals):
         osc1max = j_ell_roots1[ell] / rmax  # 1 oscillation of j_0(x)
         osc10max = j_ell_roots10[ell] / rmax  # 10 oscillations of j_0(x)
         # Note that the min values will be larger than the max values
-        domains = self.generate_domains(min_k, max_k, moments.k2peak, osc1min, osc10min, suppression_factor, osc1max, osc10max)
+        domains = self.generate_domains(min_k, max_k, moments.k2peak, osc1min, osc10min, suppression_factor)
 
         # Define integration functions
         def f(k):
             """Straight function to integrate"""
             return k * k * pk(k, suppression) * spherical_jn(ell, k * rmin) * spherical_jn(ell, k * rmax)
     
-        low_osc = self.gen_low_osc(f, "F", r)
+        low_osc = self.gen_low_osc(f, "G", r)
     
         def hi_osc(min_k: float, max_k: float) -> float:
             """Compute integrals for highly-oscillatory functions"""
@@ -306,30 +307,102 @@ class DoubleBessel(Integrals):
             # Perform the integration
             int_result, _ = self.integrator.integrate_K(ell=ell, alpha=rmin, beta=rmax)
         
-            # print(f'mink={min_k}; maxk={max_k}; r={r}; l={ell}; ans={int_result};'.replace("e", "*^"))
+            # print(f"(* hi_osc *)")
+            # print(f'mink={min_k}; maxk={max_k}; r={r}; rp={rp}; l={ell}; ans={int_result};'.replace("e", "*^"))
         
             return int_result
     
+        def ell0_osc(min_k: float, max_k: float) -> float:
+            """Compute integrals for ell = 0 with r_min small enough to be slowly-oscillating"""
+            def f_sin(k):
+                """Define function to integrate"""
+                return k * pk(k, suppression) * spherical_jn(0, k * rmin)
+
+            # Compute the integral using sine-weighted quadrature
+            int_result = quad(f_sin, min_k, max_k, weight='sin', wvar=rmax,
+                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
+
+            # Check for any warnings
+            if len(int_result) == 4 and 'roundoff error is detected' not in int_result[-1]:
+                print(f"Warning when integrating (sine) G_ell(r, r') at ell = {ell}, r = {r}, r' = {rp}")
+                print(int_result[-1])
+                
+            int_result = int_result[0] / rmax
+
+            # print(f"(* ell0_osc *)")
+            # print(f'mink={min_k}; maxk={max_k}; r={r}; rp={rp}; l={ell}; ans={int_result};'.replace("e", "*^"))
+
+            return int_result
+
+        def ell1_osc(min_k: float, max_k: float) -> float:
+            """Compute integrals for ell = 1 with r_min small enough to be slowly-oscillating"""
+            def f_sin(k):
+                return pk(k, suppression) * spherical_jn(1, k * rmin)
+
+            def f_cos(k):
+                return k * pk(k, suppression) * spherical_jn(1, k * rmin)
+
+            # Perform the integrations using sin and cos quadrature
+            sin_result = quad(f_sin, min_k, max_k, weight='sin', wvar=rmax,
+                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
+            cos_result = quad(f_cos, min_k, max_k, weight='cos', wvar=rmax,
+                              epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
+
+            # Check for any warnings
+            if len(sin_result) == 4 and 'roundoff error is detected' not in sin_result[-1]:
+                print(f"Warning when integrating (sine) G_ell(r, r') at ell = {ell}, r = {r}, r' = {rp}")
+                print(sin_result[-1])
+            if len(cos_result) == 4 and 'roundoff error is detected' not in cos_result[-1]:
+                print(f"Warning when integrating (cosine) G_ell(r, r') at ell = {ell}, r = {r}, r' = {rp}")
+                print(cos_result[-1])
+
+            # Construct the result
+            int_result = sin_result[0] / (r*r) - cos_result[0] / r
+
+            # print(f"(* ell1_osc *)")
+            # print(f'mink={min_k}; maxk={max_k}; r={r}; rp={rp}; l={ell}; ans={int_result};'.replace("e", "*^"))
+
+            return int_result
+
+        def levin_osc(min_k: float, max_k: float) -> float:
+            """Compute integrals where one of two bessels are highly oscillatory"""
+    
+            def func(k):
+                """Integrand weight function (excluding Levin kernel)"""
+                return k * k * pk(k, suppression) * spherical_jn(ell, k * rmin)
+    
+            # Set the limits of integration
+            self.integrator.set_limits(a=min_k, b=max_k)
+    
+            # Set the amplitude function
+            self.integrator.set_amplitude(func)
+    
+            # Perform the integration
+            int_result, _ = self.integrator.integrate_I(ell=ell, alpha=rmax)
+    
+            # print(f"(* levin_osc *)")
+            # print(f'mink={min_k}; maxk={max_k}; r={r}; rp={rp}; l={ell}; ans={int_result};'.replace("e", "*^"))
+    
+            return int_result
+
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
             """Returns the function to use to perform integration on the given domain"""
             # Choose from the following regimes
-            if max_k < osc10max:
+            if max_k < osc10max or (max_k - min_k) * rmax < 2 * pi:
                 # Each spherical bessel function has less than 10 oscillations
                 # Use direct integration
                 return low_osc
             elif max_k < osc1min or (max_k - min_k) * rmin < 2 * pi:
                 # The slower oscillations don't have time to complete a full oscillation
                 # Treat this like a single-bessel integral with weight k**2*P(k)*j_ell(k*rmin)
-                # For ell = 0, 1, 2, use sine- and cosine-weighted integration
+                # For ell = 0 or 1, use sine- and cosine-weighted integration
                 # For higher ell, use Levin integration (single-Bessel)
                 if ell == 0:
-                    raise NotImplementedError("Can't do this one just yet...")
+                    return ell0_osc
                 elif ell == 1:
-                    raise NotImplementedError("Can't do this one just yet...")
-                elif ell == 2:
-                    raise NotImplementedError("Can't do this one just yet...")
-                raise NotImplementedError("Can't do this one just yet...")
+                    return ell1_osc
+                return levin_osc
             # Otherwise, use Levin integration (double-Bessel)
             return hi_osc
     

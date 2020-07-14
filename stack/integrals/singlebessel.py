@@ -110,7 +110,7 @@ class SingleBessel(Integrals):
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
             """Returns the function to use to perform integration on the given domain"""
-            if max_k < 10 * osc or (max_k - min_k) < 2 * pi:
+            if max_k < 10 * osc or (max_k - min_k) * r < 2 * pi:
                 return low_osc
             return hi_osc
 
@@ -202,7 +202,7 @@ class SingleBessel(Integrals):
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
             """Returns the function to use to perform integration on the given domain"""
-            if max_k < osc10 or (max_k - min_k) < 2 * pi:
+            if max_k < osc10 or (max_k - min_k) * r < 2 * pi:
                 return low_osc
             return hi_osc
 
@@ -272,7 +272,7 @@ class SingleBessel(Integrals):
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
             """Returns the function to use to perform integration on the given domain"""
-            if max_k < 2 * osc or (max_k - min_k) < 2 * pi:
+            if max_k < 2 * osc or (max_k - min_k) * r < 2 * pi:
                 return low_osc
             return hi_osc
 
@@ -369,7 +369,7 @@ class SingleBessel(Integrals):
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
             """Returns the function to use to perform integration on the given domain"""
-            if max_k < halfosc or (max_k - min_k) < 2 * pi:
+            if max_k < halfosc or (max_k - min_k) * r < 2 * pi:
                 return low_osc
             return hi_osc
 
