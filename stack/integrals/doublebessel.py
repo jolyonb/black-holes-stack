@@ -222,9 +222,10 @@ class DoubleBessel(Integrals):
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
             """Returns the function to use to perform integration on the given domain"""
-            if max_k > osc50:  # This works amazingly well - integrand is positive definite
-                return hi_osc
-            return low_osc
+            if max_k < osc50 or (max_k - min_k) < 2 * pi:
+                # This works amazingly well - integrand is positive definite
+                return low_osc
+            return hi_osc
 
         # Perform integration
         result = self.perform_integral(domains, selector)

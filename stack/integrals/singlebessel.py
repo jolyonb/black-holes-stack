@@ -110,9 +110,9 @@ class SingleBessel(Integrals):
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
             """Returns the function to use to perform integration on the given domain"""
-            if max_k > 10 * osc:
-                return hi_osc
-            return low_osc
+            if max_k < 10 * osc or (max_k - min_k) < 2 * pi:
+                return low_osc
+            return hi_osc
 
         # Perform integration
         result = self.perform_integral(domains, selector)
@@ -202,9 +202,9 @@ class SingleBessel(Integrals):
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
             """Returns the function to use to perform integration on the given domain"""
-            if max_k > osc10:
-                return hi_osc
-            return low_osc
+            if max_k < osc10 or (max_k - min_k) < 2 * pi:
+                return low_osc
+            return hi_osc
 
         # Perform integration
         result = self.perform_integral(domains, selector)
@@ -272,9 +272,10 @@ class SingleBessel(Integrals):
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
             """Returns the function to use to perform integration on the given domain"""
-            if max_k > 2 * osc:
-                return hi_osc
-            return low_osc
+            if max_k < 2 * osc or (max_k - min_k) < 2 * pi:
+                return low_osc
+            return hi_osc
+
 
         # Perform integration
         result = self.perform_integral(domains, selector)
@@ -368,9 +369,9 @@ class SingleBessel(Integrals):
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
             """Returns the function to use to perform integration on the given domain"""
-            if max_k > halfosc:
-                return hi_osc
-            return low_osc
+            if max_k < halfosc or (max_k - min_k) < 2 * pi:
+                return low_osc
+            return hi_osc
 
         # Perform integration
         result = self.perform_integral(domains, selector)
