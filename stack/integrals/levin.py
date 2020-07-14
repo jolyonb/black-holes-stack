@@ -237,7 +237,7 @@ class Levin(object):
             result = self._integrate(gridsize)
             
             # Check to see if the result is within the appropriate tolerance
-            tolerance = self.abs_tol + result * self.rel_tol
+            tolerance = self.abs_tol + np.abs(result) * self.rel_tol
             rel_err = abs(result - base) / result
             if abs(result - base) < tolerance:
                 return result, rel_err
