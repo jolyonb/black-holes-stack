@@ -144,16 +144,25 @@ class DoubleBessel(Integrals):
                             stop=2.5,
                             num=21,
                             endpoint=True)
-        return  # TODO: Remove this!
         # Compute E on that grid
         Evals = []
-        for ell in range(0, 31):
+        for ell in range(0,31):
             if self.model.verbose:
                 print(f"Computing E_{ell}(r)...")
             Evals.append(np.array([self.compute_E(ell, r, Suppression.RAW) for r in rvals]))
+
+        # Compute G on that grid for a given rprime value
+        # To-Do: Output all data for all rprime values we're interested in!
+        Gvals = []
+        for ell in range(0,31):
+            if self.model.verbose:
+                print(f"Computing G_{ell}(r,90)...")
+            Gvals.append(np.array([self.compute_G(ell, r, 90, Suppression.RAW) for r in rvals]))
+
         # Save them to file
-        df = pd.DataFrame([rvals] + Evals).transpose()
-        df.columns = ['r'] + [f'E_{ell}(r)' for ell in range(0, 31)]
+        # df = pd.DataFrame([rvals] + Evals).transpose()
+        df = pd.DataFrame([rvals] + Evals + Gvals).transpose()
+        df.columns = ['r'] + [f'E_{ell}(r)' for ell in range(0, 31)] + [f'G_{ell}(r,90)' for ell in range(0, 31)]
         df.to_csv(self.file_path(self.filename + '.csv'), index=False)
 
     def compute_E(self, ell: int, r: float, suppression: Suppression) -> float:
