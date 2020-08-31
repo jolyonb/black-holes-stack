@@ -43,7 +43,7 @@ class PowerSpectrum(Persistence):
         self.interp = None
 
         # Error tolerances used in computing ODE solutions
-        self.err_abs = 1e-15  # Nonzero so that variables = 0 don't give 0 error tolerance (this happens to start times)
+        self.err_abs = 0
         self.err_rel = 1e-12
         
         # Storage for mode function integration
@@ -211,78 +211,41 @@ class PowerSpectrum(Persistence):
         deltadot0 = (exp(startN) * prime_correction * (1 - exp(startN) * correction + (exp(startN) * correction)**2 - (exp(startN) * correction)**3 + (exp(startN) * correction)**4)
                      + exp(startN) * correction - (exp(startN) * correction) ** 2 + (exp(startN) * correction) ** 3 - (exp(startN) * correction) ** 4)
         
-        ics = np.concatenate([delta0, deltadot0, startN])
+        ics = np.concatenate([delta0, deltadot0])
 
         def derivs(t: float, x: np.array) -> np.array:
             """Compute the time derivatives for the mode function evolution ODE"""
             # Extract values
             delta = x[0:num_k]
             deltadot = x[num_k:2*num_k]
-            Nvals = x[2*num_k:3*num_k]
+            # Compute time
+            Nvals = t + startN
             # Compute deltaddot
             deltaddot = - deltadot**2 - deltadot + 2 + kvals2 * exp(-2 * Nvals) * expm1(-4 * delta) - muphi2 * (exp(-mupsi2 * Nvals) - 1)
-            # N increases linearly in time
-            Ndot = np.ones_like(Nvals)
             # Return results
-            derivatives = np.concatenate([deltadot, deltaddot, Ndot])
+            derivatives = np.concatenate([deltadot, deltaddot])
             return derivatives
-
-        def jacobian(t: float, x: np.array) -> np.array:
-            """
-            Compute the Jacobian of the ODE
-
-            Warning: this is a (3*num_k)^2 sparse matrix, and is unfortunately slow to construct...
-            """
-            # Extract values
-            delta = x[0:num_k]
-            deltadot = x[num_k:2*num_k]
-            Nvals = x[2*num_k:3*num_k]
-
-            zeroblock = np.zeros((num_k, num_k))
-
-            # Compute Jacobian in 9 blocks
-            # deltadot
-            ddeltadot_ddelta = zeroblock
-            ddeltadot_ddeltadot = np.eye(num_k)
-            ddeltadot_dN = zeroblock
-
-            # deltaddot
-            ddeltaddot_ddelta = np.diag(- 4 * kvals2 * exp(-2 * Nvals) * exp(-4 * delta))
-            ddeltaddot_ddeltadot = np.diag(- 2 * deltadot - 1)
-            ddeltaddot_dN = np.diag(- 2 * kvals2 * exp(-2 * Nvals) * expm1(-4 * delta) + mupsi2 * muphi2 * exp(-mupsi2 * Nvals))
-
-            # Ndot
-            dNdot_ddelta = zeroblock
-            dNdot_ddeltadot = zeroblock
-            dNdot_dN = zeroblock
-            
-            # Construct the Jacobian from the blocks
-            jac = np.block([[ddeltadot_ddelta, ddeltadot_ddeltadot, ddeltadot_dN],
-                            [ddeltaddot_ddelta, ddeltaddot_ddeltadot, ddeltaddot_dN],
-                            [dNdot_ddelta, dNdot_ddeltadot, dNdot_dN]])
-
-            return jac
 
         # Set up the integrator
         # Can use jacobian by using ode(derivs, jacobian) if desired, but may be very slow
         integrator = ode(derivs).set_integrator('vode', method='bdf', rtol=self.err_rel, atol=self.err_abs,
                                                 nsteps=100000, first_step=1e-10, max_step=1e-2)
-        integrator.set_initial_value(ics, minN)
+        integrator.set_initial_value(ics, 0)
 
         # Save initial conditions
-        Rvals = [exp(integrator.y[0:num_k] - integrator.y[2*num_k:3*num_k])]
+        Rvals = [exp(integrator.y[0:num_k] - startN)]
         Rpvals = [(integrator.y[num_k:2*num_k] - 1) * Rvals[0]]
-        times = [integrator.y[2*num_k:3*num_k]]
+        times = [startN]
 
         # Perform integration
-        while integrator.successful() and integrator.t < endN:
+        while integrator.successful() and integrator.t < endN - minN:
             newN = integrator.t + 0.1
-            if newN > endN:
-                newN = endN + 1e-8
+            if newN > endN - minN:
+                newN = endN - minN + 1e-8
             integrator.integrate(newN)
 
             # Save results
-            timevals = integrator.y[2 * num_k:3 * num_k]
+            timevals = integrator.t + startN
             times.append(timevals)
 
             rvals = integrator.y[0:num_k] - timevals
@@ -291,7 +254,7 @@ class PowerSpectrum(Persistence):
             Rpvals.append((integrator.y[num_k:2*num_k] - 1) * Rval)
 
             if self.model.verbose:
-                print(f"    {integrator.t} / {endN}")
+                print(f"    {integrator.t} / {endN - minN}")
 
         assert integrator.successful()
         
