@@ -238,16 +238,16 @@ class Levin(object):
             
             # Check to see if the result is within the appropriate tolerance
             tolerance = self.abs_tol + np.abs(result) * self.rel_tol
-            rel_err = abs(result - base) / result
-            if abs(result - base) < tolerance:
-                return result, rel_err
+            err = abs(result - base)
+            if err <= tolerance:
+                return result, err
             
             # Make the result the next base, and try again
             base = result
         else:
             # If we got here, we didn't converge
-            print('Warning: Did not converge to the desired tolerance within desired number of refinements')
-            return base, rel_err
+            # print('Warning: Did not converge to the desired tolerance within desired number of refinements')
+            return base, err
 
 
 class LevinIntegrals(Levin):

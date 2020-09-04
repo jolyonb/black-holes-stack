@@ -19,7 +19,7 @@ from scipy.special import spherical_jn
 from stack.common import Suppression
 from stack.integrals.common import Integrals
 
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Tuple
 
 if TYPE_CHECKING:
     from stack import Model
@@ -90,7 +90,7 @@ class SingleBessel(Integrals):
             return k * k * pk(k, suppression) * spherical_jn(0, k * r)
         low_osc = self.gen_low_osc(f, "C", r)
 
-        def hi_osc(min_k: float, max_k: float) -> float:
+        def hi_osc(min_k: float, max_k: float) -> Tuple[float, float]:
             """Compute integrals for highly-oscillatory functions"""
             def f_sin(k):
                 """Define function to integrate"""
@@ -105,7 +105,7 @@ class SingleBessel(Integrals):
                 print('Warning when integrating C(r) at r =', r)
                 print(int_result[-1])
 
-            return int_result[0] / r
+            return int_result[0] / r, int_result[1] / r
         
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
@@ -172,7 +172,7 @@ class SingleBessel(Integrals):
             return k * k * k * pk(k, suppression) * spherical_jn(1, k * r)
         low_osc = self.gen_low_osc(f, "D", r)
 
-        def hi_osc(min_k: float, max_k: float) -> float:
+        def hi_osc(min_k: float, max_k: float) -> Tuple[float, float]:
             """Compute integrals for highly-oscillatory functions"""
             def f_sin(k):
                 return k * pk(k, suppression)
@@ -196,8 +196,9 @@ class SingleBessel(Integrals):
 
             # Construct the result
             int_result = sin_result[0] / (r*r) - cos_result[0] / r
+            err_est = sin_result[1] / (r*r) + cos_result[1] / r
 
-            return int_result
+            return int_result, err_est
 
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
@@ -251,7 +252,7 @@ class SingleBessel(Integrals):
 
         low_osc = self.gen_low_osc(f, "K1", r)
 
-        def hi_osc(min_k: float, max_k: float) -> float:
+        def hi_osc(min_k: float, max_k: float) -> Tuple[float, float]:
             """Compute integrals for highly-oscillatory functions"""
     
             def f_sin(k):
@@ -267,7 +268,7 @@ class SingleBessel(Integrals):
                 print('Warning when integrating K1(r) at r =', r)
                 print(int_result[-1])
     
-            return int_result[0] / r
+            return int_result[0] / r, int_result[1] / r
 
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
@@ -332,7 +333,7 @@ class SingleBessel(Integrals):
             return k * k * k * k * pk(k, suppression) * spherical_jn(2, k * r)
         low_osc = self.gen_low_osc(f, "F", r)
 
-        def hi_osc(min_k: float, max_k: float) -> float:
+        def hi_osc(min_k: float, max_k: float) -> Tuple[float, float]:
             """Compute integrals for highly-oscillatory functions"""
             def f_sin1(k):
                 return k * pk(k, suppression)
@@ -363,13 +364,14 @@ class SingleBessel(Integrals):
 
             # Construct the result
             int_result = 3 * sin1_result[0] / (r * r * r) - 3 * cos2_result[0] / (r * r) - sin3_result[0] / r
+            err_est = 3 * sin1_result[1] / (r * r * r) + 3 * cos2_result[1] / (r * r) + sin3_result[1] / r
 
-            return int_result
+            return int_result, err_est
 
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
             """Returns the function to use to perform integration on the given domain"""
-            if max_k < halfosc or (max_k - min_k) * r < 2 * pi:
+            if max_k < osc1 or (max_k - min_k) * r < 2 * pi:
                 return low_osc
             return hi_osc
 

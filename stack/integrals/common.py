@@ -59,8 +59,8 @@ class Integrals(Persistence):
         :param suppress: Suppression scale (or None if not using)
         :return: List of (min, max) tuples
         """
-        possible_points = [min_k, max_k, osc1, osc10, 5*peak,
-                           0.2 * max_k, 0.4 * max_k, 0.6 * max_k, 0.8 * max_k]
+        possible_points = [min_k, max_k, osc1, 2*osc1, osc10/3, 2/3*osc10, osc10, 1.5*osc10, 2*osc10, 5*osc10, 5*peak, 10*peak,
+                           0.2 * max_k, 0.4 * max_k, 0.5 * max_k, 0.6 * max_k, 0.7 * max_k, 0.9 * max_k, 0.8 * max_k]
         if suppress is not None:
             # Make sure the suppression factor doesn't drop too quickly over the domain
             # by inserting suppression scale domain endpoints
@@ -80,16 +80,57 @@ class Integrals(Persistence):
         :param selector: Function that returns another function corresponding to the integration method
         :return: Result of the integral
         """
-        result = 0
+        # Start by integrating each domain
+        results = []
+        errors = []
         for mink, maxk in domains:
             integrator = selector(mink, maxk)
-            result += integrator(mink, maxk)
-        result *= 4 * np.pi
-        return result
+            res, err = integrator(mink, maxk)
+            results.append(res)
+            errors.append(err)
+
+        # Now compare errors to the result, to see if we need to go and recompute with combined domains
+        results = np.array(results)
+        errors = np.array(errors)
+        result = np.sum(results)
+        err_est = np.sum(errors)
+        rel_err = abs(err_est / result)
+        
+        # Compare the biggest result to the final result to determine the cancellation error
+        cancel_err = np.max(np.abs(results)) / np.abs(result)
+        
+        if cancel_err > 1e5:
+            # Try combining domains for results that were too big, and rerunning
+            threshold = np.abs(1e5 * result)
+            bad_domains = []
+            # Flag all results that were bigger than the threshold, making sure we get at least two domains to combine
+            while len(bad_domains) < 2:
+                threshold /= 10
+                bad_domains = np.argwhere(np.abs(results) > threshold)
+            first = int(bad_domains[0])
+            last = int(bad_domains[-1])
+            # Need to bring together all domains that were bad, in order for them to cancel
+            mink = domains[first][0]
+            maxk = domains[last][1]
+            integrator = selector(mink, maxk)
+            res, err = integrator(mink, maxk)
+            # Combine results again
+            results2 = np.concatenate([results[0:first], np.array([res]), results[last+1:]])
+            errors2 = np.concatenate([errors[0:first], np.array([err]), errors[last+1:]])
+            result = np.sum(results)
+            err_est = np.sum(errors2)
+            cancel_err = np.max(np.abs(results2)) / np.abs(result)
+            rel_err = abs(err_est / result)
+            print(f'    result: {result}')
+            print(f'    abs: {err_est}')
+            print(f'    rel: {rel_err}')
+            print(f'    cancel: {cancel_err}')
+
+        return 4 * np.pi * result
 
     def gen_low_osc(self, f: Callable, name: str, rval: float) -> Callable:
         """Generates a function that computes an integral of f using normal quadrature"""
-        def func(min_k: float, max_k: float) -> float:
+        def func(min_k: float, max_k: float) -> Tuple[float, float]:
             # Compute the integral
             int_result = quad(f, min_k, max_k,
                               epsrel=self.err_rel, epsabs=self.err_abs, full_output=1, limit=70)
@@ -102,6 +143,6 @@ class Integrals(Persistence):
             # print(f"(* low_osc *)")
             # print(f'mink={min_k}; maxk={max_k}; ans={int_result[0]};'.replace("e", "*^"))
 
-            return int_result[0]
+            return int_result[0], int_result[1]
   
         return func
