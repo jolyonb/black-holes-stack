@@ -71,7 +71,7 @@ class Integrals(Persistence):
         return tuples
     
     @staticmethod
-    def perform_integral(domains: List[Tuple[float, float]], selector: Callable) -> float:
+    def perform_integral(domains: List[Tuple[float, float]], selector: Callable) -> Tuple[float, float]:
         """
         Performs an integral over a list of domains, using a selector function to determine which integration
         method to use.
@@ -92,8 +92,8 @@ class Integrals(Persistence):
         # Now compare errors to the result, to see if we need to go and recompute with combined domains
         results = np.array(results)
         errors = np.array(errors)
-        result = np.sum(results)
-        err_est = np.sum(errors)
+        result = float(np.sum(results))
+        err_est = float(np.sum(errors))
         rel_err = abs(err_est / result)
         
         # Compare the biggest result to the final result to determine the cancellation error
@@ -117,16 +117,20 @@ class Integrals(Persistence):
             # Combine results again
             results2 = np.concatenate([results[0:first], np.array([res]), results[last+1:]])
             errors2 = np.concatenate([errors[0:first], np.array([err]), errors[last+1:]])
-            result = np.sum(results)
-            err_est = np.sum(errors2)
+            result = float(np.sum(results))
+            err_est = float(np.sum(errors2))
             cancel_err = np.max(np.abs(results2)) / np.abs(result)
             rel_err = abs(err_est / result)
-            print(f'    result: {result}')
-            print(f'    abs: {err_est}')
-            print(f'    rel: {rel_err}')
-            print(f'    cancel: {cancel_err}')
+            # print(f'    result: {result}')
+            # print(f'    abs: {err_est}')
+            # print(f'    rel: {rel_err}')
+            # print(f'    cancel: {cancel_err}')
+            
+        # Compare cancellation error to integral error estimate
+        # Take the bigger of the errors
+        # TODO: Implement this!
 
-        return 4 * np.pi * result
+        return 4 * np.pi * result, err_est
 
     def gen_low_osc(self, f: Callable, name: str, rval: float) -> Callable:
         """Generates a function that computes an integral of f using normal quadrature"""

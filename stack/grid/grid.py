@@ -80,6 +80,8 @@ class Grid(Persistence):
 
         # Compute rhoC on this grid
         rhoCvals = np.array([sb.compute_C(r, Suppression.RAW) for r in rvals]) / mom.sigma0squared
+        # Take the values, discard the errors
+        rhoCvals = rhoCvals[:, 0]
 
         # Find FWHM radius
         self.FWHM = rvals[np.argmax(rhoCvals < 0.5)]
@@ -91,6 +93,8 @@ class Grid(Persistence):
         gridspacing = self.grid[1]
         wavelength = gridspacing / 2
         self.sampling_cutoff = 2 * pi / wavelength * self.model.sampling_cutoff_factor
+        
+        # TODO: Estimate suggested ell_max value
         
     def save_data(self) -> None:
         """Save precomputed values to file"""

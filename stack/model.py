@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import os
 from math import sqrt, exp
+import time
 
 from stack.powerspectrum import PowerSpectrum
 from stack.moments import Moments
@@ -35,7 +36,8 @@ class Model(object):
                  test_ps: bool = False,
                  # Grid parameters
                  rmaxfactor: float = 20,
-                 gridpoints: int = 200,
+                 gridpoints: int = 10,
+                 ell_max: int = 1,
                  # Sampling parameters
                  sampling_cutoff_factor: float = 1.0,
                  # Number density of peaks parameters
@@ -68,6 +70,7 @@ class Model(object):
         Grid parameters
         :param rmaxfactor: Number of FWHMs to go out to get to rmax
         :param gridpoints: Number of radial gridpoints to use in physical space (excluding origin)
+        :param ell_max: Maximum ell to take for spherical harmonics
         
         Sampling parameters
         :param sampling_cutoff_factor: Factor by which to multiply the Nyquist cutoff wavenumber to obtain the power
@@ -103,6 +106,7 @@ class Model(object):
         # Grid parameters
         self.rmaxfactor = rmaxfactor
         self.gridpoints = gridpoints
+        self.ell_max = ell_max
         
         # Sampling parameters
         self.sampling_cutoff_factor = sampling_cutoff_factor
@@ -155,62 +159,80 @@ class Model(object):
     def construct_powerspectrum(self, recalculate: bool = False) -> None:
         """Construct the data for the power spectrum (either by loading or constructing it)"""
         print('Constructing the power spectrum...')
+        start_time = time.time()
         self.powerspectrum.construct_data(recalculate=recalculate)
-        print('    Done!')
+        end_time = time.time()
+        print(f'    Done in {end_time - start_time:0.2f}s')
 
     def construct_moments(self, recalculate: bool = False) -> None:
         """Construct the data for the moments of the power spectrum (either by loading or constructing them)"""
         print('Constructing raw moments of the power spectrum...')
+        start_time = time.time()
         assert self.powerspectrum.ready
         self.moments_raw.construct_data(prev_timestamp=self.powerspectrum.timestamp, recalculate=recalculate)
-        print('    Done!')
+        end_time = time.time()
+        print(f'    Done in {end_time - start_time:0.2f}s')
 
     def construct_singlebessel(self, recalculate: bool = False) -> None:
         """Initialize single bessel integrals"""
         print('Initializing single bessel integrals...')
+        start_time = time.time()
         assert self.moments_raw.ready
         self.singlebessel.construct_data(prev_timestamp=self.moments_raw.timestamp, recalculate=recalculate)
-        print('    Done!')
+        end_time = time.time()
+        print(f'    Done in {end_time - start_time:0.2f}s')
 
     def construct_doublebessel(self, recalculate: bool = False) -> None:
         """Initialize double bessel integrals"""
         print('Initializing double bessel integrals...')
+        start_time = time.time()
         assert self.singlebessel.ready
         self.doublebessel.construct_data(prev_timestamp=self.singlebessel.timestamp, recalculate=recalculate)
-        print('    Done!')
+        end_time = time.time()
+        print(f'    Done in {end_time - start_time:0.2f}s')
 
     def construct_grid(self, recalculate: bool = False) -> None:
         """Initialize grid"""
         print('Initializing grid...')
+        start_time = time.time()
         assert self.doublebessel.ready
         self.grid.construct_data(prev_timestamp=self.singlebessel.timestamp, recalculate=recalculate)
-        print('    Done!')
+        end_time = time.time()
+        print(f'    Done in {end_time - start_time:0.2f}s')
 
     def construct_moments2(self, recalculate: bool = False) -> None:
         """Construct moments for the power spectrum with sampling suppression"""
         print('Constructing sampling moments of the power spectrum...')
+        start_time = time.time()
         assert self.grid.ready
         self.moments_sampling.construct_data(prev_timestamp=self.grid.timestamp, recalculate=recalculate)
-        print('    Done!')
+        end_time = time.time()
+        print(f'    Done in {end_time - start_time:0.2f}s')
 
     def construct_correlations(self, recalculate: bool = False) -> None:
         """Construct correlation functions C(r) and D(r) on the grid"""
         print('Constructing correlations...')
+        start_time = time.time()
         assert self.moments_sampling.ready
         self.correlations.construct_data(prev_timestamp=self.moments_sampling.timestamp, recalculate=recalculate)
-        print('    Done!')
+        end_time = time.time()
+        print(f'    Done in {end_time - start_time:0.2f}s')
 
     def construct_moments3(self, recalculate: bool = False) -> None:
         """Construct moments for the power spectrum with peaks suppression"""
         print('Constructing peaks moments of the power spectrum...')
         # TODO: Change to assert that the peak shape computation is ready
+        start_time = time.time()
         assert self.correlations.ready
         self.moments_peaks.construct_data(prev_timestamp=self.correlations.timestamp, recalculate=recalculate)
-        print('    Done!')
+        end_time = time.time()
+        print(f'    Done in {end_time - start_time:0.2f}s')
 
     def construct_peakdensity(self, recalculate: bool = False) -> None:
         """Construct number density of peaks"""
         print('Constructing number density of peaks...')
+        start_time = time.time()
         assert self.moments_peaks.ready
         self.peakdensity.construct_data(prev_timestamp=self.moments_peaks.timestamp, recalculate=recalculate)
-        print('    Done!')
+        end_time = time.time()
+        print(f'    Done in {end_time - start_time:0.2f}s')

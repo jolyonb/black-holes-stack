@@ -138,25 +138,10 @@ class DoubleBessel(Integrals):
         self.integrator = LevinIntegrals(rel_tol=self.err_rel, abs_tol=self.err_abs, refinements=6)
 
     def save_data(self) -> None:
-        """This class does not save any data, but does output some results for comparison with Mathematica"""
-        # Construct a grid in physical space
-        rvals = np.logspace(start=-3,
-                            stop=2.5,
-                            num=21,
-                            endpoint=True)
-        return  # TODO: Remove this!
-        # Compute E on that grid
-        Evals = []
-        for ell in range(0, 31):
-            if self.model.verbose:
-                print(f"Computing E_{ell}(r)...")
-            Evals.append(np.array([self.compute_E(ell, r, Suppression.RAW) for r in rvals]))
-        # Save them to file
-        df = pd.DataFrame([rvals] + Evals).transpose()
-        df.columns = ['r'] + [f'E_{ell}(r)' for ell in range(0, 31)]
-        df.to_csv(self.file_path(self.filename + '.csv'), index=False)
+        """This class does not save any data"""
+        pass
 
-    def compute_E(self, ell: int, r: float, suppression: Suppression) -> float:
+    def compute_E(self, ell: int, r: float, suppression: Suppression) -> Tuple[float, float]:
         """
         Computes the integral
         E_ell(r) = 4 pi int_{k_min}^{k_max} dk k^2 P(k) j_ell(k r)^2
@@ -176,8 +161,8 @@ class DoubleBessel(Integrals):
         # Treat the special case
         if r == 0:
             if ell == 0:
-                return moments.sigma0
-            return 0
+                return moments.sigma0, 0
+            return 0, 0
         
         pk = self.model.powerspectrum
         min_k = self.model.min_k
@@ -229,11 +214,11 @@ class DoubleBessel(Integrals):
             return hi_osc
 
         # Perform integration
-        result = self.perform_integral(domains, selector)
+        result, err = self.perform_integral(domains, selector)
 
-        return result
+        return result, err
 
-    def compute_G(self, ell: int, r: float, rp: float, suppression: Suppression) -> float:
+    def compute_G(self, ell: int, r: float, rp: float, suppression: Suppression) -> Tuple[float, float]:
         """
         Computes the integral
         G_ell(r, r') = 4 pi int_{k_min}^{k_max} dk k^2 P(k) j_ell(k r) j_ell(k r').
@@ -255,8 +240,8 @@ class DoubleBessel(Integrals):
         # Treat the special case
         if rmin == 0:
             if ell == 0:
-                return self.model.singlebessel.computeC(rmax, suppression)
-            return 0
+                return self.model.singlebessel.compute_C(rmax, suppression)
+            return 0, 0
 
         moments = self.model.get_moments(suppression)
         suppression_factor = None
@@ -409,6 +394,6 @@ class DoubleBessel(Integrals):
             return hi_osc
     
         # Perform integration
-        result = self.perform_integral(domains, selector)
+        result, err = self.perform_integral(domains, selector)
     
-        return result
+        return result, err

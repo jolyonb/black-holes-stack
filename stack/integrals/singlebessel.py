@@ -47,11 +47,12 @@ class SingleBessel(Integrals):
         K1vals = np.array([self.compute_K1(r, Suppression.RAW) for r in rvals])
         Fvals = np.array([self.compute_F(r, Suppression.RAW) for r in rvals])
         # Save them to file
-        df = pd.DataFrame([rvals, Cvals, Dvals, K1vals, Fvals]).transpose()
-        df.columns = ['r', 'C(r)', 'D(r)', 'K1(r)', 'F(r)']
+        df = pd.DataFrame([rvals, Cvals[:, 0], Dvals[:, 0], K1vals[:, 0], Fvals[:, 0],
+                           Cvals[:, 1], Dvals[:, 1], K1vals[:, 1], Fvals[:, 1]]).transpose()
+        df.columns = ['r', 'C(r)', 'D(r)', 'K1(r)', 'F(r)', 'dC(r)', 'dD(r)', 'dK1(r)', 'dF(r)']
         df.to_csv(self.file_path(self.filename + '.csv'), index=False)
 
-    def compute_C(self, r: float, suppression: Suppression) -> float:
+    def compute_C(self, r: float, suppression: Suppression) -> Tuple[float, float]:
         """
         Computes the integral
         C(r) = 4 pi int_{k_min}^{k_max} dk k^2 P(k) j_0(k r)
@@ -69,7 +70,7 @@ class SingleBessel(Integrals):
 
         # Treat the special case
         if r == 0:
-            return moments.sigma0
+            return moments.sigma0, 0.0
         
         pk = self.model.powerspectrum
         min_k = self.model.min_k
@@ -115,12 +116,12 @@ class SingleBessel(Integrals):
             return hi_osc
 
         # Perform integration
-        result = self.perform_integral(domains, selector)
+        result, err = self.perform_integral(domains, selector)
         
-        return result
+        return result, err
 
 
-    def compute_D(self, r: float, suppression: Suppression) -> float:
+    def compute_D(self, r: float, suppression: Suppression) -> Tuple[float, float]:
         """
         Computes the integral
         D(r) = 4 pi int_{k_min}^{k_max} dk k^3 P(k) j_1(k r)
@@ -148,7 +149,7 @@ class SingleBessel(Integrals):
 
         if r == 0:
             # Treat the special case
-            return 0.0
+            return 0.0, 0.0
 
         pk = self.model.powerspectrum
         min_k = self.model.min_k
@@ -212,7 +213,7 @@ class SingleBessel(Integrals):
 
         return result
 
-    def compute_K1(self, r: float, suppression: Suppression) -> float:
+    def compute_K1(self, r: float, suppression: Suppression) -> Tuple[float, float]:
         """
         Computes the integral
         K_1(r) = 4 pi int_{k_min}^{k_max} dk k^4 P(k) j_0(k r)
@@ -230,7 +231,7 @@ class SingleBessel(Integrals):
     
         # Treat the special case
         if r == 0:
-            return moments.sigma1
+            return moments.sigma1, 0.0
     
         pk = self.model.powerspectrum
         min_k = self.model.min_k
@@ -279,11 +280,11 @@ class SingleBessel(Integrals):
 
 
         # Perform integration
-        result = self.perform_integral(domains, selector)
+        result, err = self.perform_integral(domains, selector)
 
-        return result
+        return result, err
 
-    def compute_F(self, r: float, suppression: Suppression) -> float:
+    def compute_F(self, r: float, suppression: Suppression) -> Tuple[float, float]:
         """
         Computes the integral
         F(r) = 4 pi int_{k_min}^{k_max} dk k^4 P(k) j_2(k r)
@@ -307,7 +308,7 @@ class SingleBessel(Integrals):
     
         if r == 0:
             # Treat the special case
-            return 0.0
+            return 0.0, 0.0
     
         pk = self.model.powerspectrum
         min_k = self.model.min_k
@@ -376,6 +377,6 @@ class SingleBessel(Integrals):
             return hi_osc
 
         # Perform integration
-        result = self.perform_integral(domains, selector)
+        result, err = self.perform_integral(domains, selector)
 
-        return result
+        return result, err
