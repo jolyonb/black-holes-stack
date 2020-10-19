@@ -19,7 +19,7 @@ from scipy.special import spherical_jn
 from stack.common import Suppression
 from stack.integrals.common import Integrals
 
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Tuple
 
 if TYPE_CHECKING:
     from stack import Model
@@ -47,11 +47,12 @@ class SingleBessel(Integrals):
         K1vals = np.array([self.compute_K1(r, Suppression.RAW) for r in rvals])
         Fvals = np.array([self.compute_F(r, Suppression.RAW) for r in rvals])
         # Save them to file
-        df = pd.DataFrame([rvals, Cvals, Dvals, K1vals, Fvals]).transpose()
-        df.columns = ['r', 'C(r)', 'D(r)', 'K1(r)', 'F(r)']
+        df = pd.DataFrame([rvals, Cvals[:, 0], Dvals[:, 0], K1vals[:, 0], Fvals[:, 0],
+                           Cvals[:, 1], Dvals[:, 1], K1vals[:, 1], Fvals[:, 1]]).transpose()
+        df.columns = ['r', 'C(r)', 'D(r)', 'K1(r)', 'F(r)', 'dC(r)', 'dD(r)', 'dK1(r)', 'dF(r)']
         df.to_csv(self.file_path(self.filename + '.csv'), index=False)
 
-    def compute_C(self, r: float, suppression: Suppression) -> float:
+    def compute_C(self, r: float, suppression: Suppression) -> Tuple[float, float]:
         """
         Computes the integral
         C(r) = 4 pi int_{k_min}^{k_max} dk k^2 P(k) j_0(k r)
@@ -69,7 +70,7 @@ class SingleBessel(Integrals):
 
         # Treat the special case
         if r == 0:
-            return moments.sigma0
+            return moments.sigma0, 0.0
         
         pk = self.model.powerspectrum
         min_k = self.model.min_k
@@ -90,7 +91,7 @@ class SingleBessel(Integrals):
             return k * k * pk(k, suppression) * spherical_jn(0, k * r)
         low_osc = self.gen_low_osc(f, "C", r)
 
-        def hi_osc(min_k: float, max_k: float) -> float:
+        def hi_osc(min_k: float, max_k: float) -> Tuple[float, float]:
             """Compute integrals for highly-oscillatory functions"""
             def f_sin(k):
                 """Define function to integrate"""
@@ -105,7 +106,7 @@ class SingleBessel(Integrals):
                 print('Warning when integrating C(r) at r =', r)
                 print(int_result[-1])
 
-            return int_result[0] / r
+            return int_result[0] / r, int_result[1] / r
         
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
@@ -115,12 +116,12 @@ class SingleBessel(Integrals):
             return hi_osc
 
         # Perform integration
-        result = self.perform_integral(domains, selector)
+        result, err = self.perform_integral(domains, selector)
         
-        return result
+        return result, err
 
 
-    def compute_D(self, r: float, suppression: Suppression) -> float:
+    def compute_D(self, r: float, suppression: Suppression) -> Tuple[float, float]:
         """
         Computes the integral
         D(r) = 4 pi int_{k_min}^{k_max} dk k^3 P(k) j_1(k r)
@@ -148,7 +149,7 @@ class SingleBessel(Integrals):
 
         if r == 0:
             # Treat the special case
-            return 0.0
+            return 0.0, 0.0
 
         pk = self.model.powerspectrum
         min_k = self.model.min_k
@@ -172,7 +173,7 @@ class SingleBessel(Integrals):
             return k * k * k * pk(k, suppression) * spherical_jn(1, k * r)
         low_osc = self.gen_low_osc(f, "D", r)
 
-        def hi_osc(min_k: float, max_k: float) -> float:
+        def hi_osc(min_k: float, max_k: float) -> Tuple[float, float]:
             """Compute integrals for highly-oscillatory functions"""
             def f_sin(k):
                 return k * pk(k, suppression)
@@ -196,8 +197,9 @@ class SingleBessel(Integrals):
 
             # Construct the result
             int_result = sin_result[0] / (r*r) - cos_result[0] / r
+            err_est = sin_result[1] / (r*r) + cos_result[1] / r
 
-            return int_result
+            return int_result, err_est
 
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
@@ -211,7 +213,7 @@ class SingleBessel(Integrals):
 
         return result
 
-    def compute_K1(self, r: float, suppression: Suppression) -> float:
+    def compute_K1(self, r: float, suppression: Suppression) -> Tuple[float, float]:
         """
         Computes the integral
         K_1(r) = 4 pi int_{k_min}^{k_max} dk k^4 P(k) j_0(k r)
@@ -229,7 +231,7 @@ class SingleBessel(Integrals):
     
         # Treat the special case
         if r == 0:
-            return moments.sigma1
+            return moments.sigma1, 0.0
     
         pk = self.model.powerspectrum
         min_k = self.model.min_k
@@ -251,7 +253,7 @@ class SingleBessel(Integrals):
 
         low_osc = self.gen_low_osc(f, "K1", r)
 
-        def hi_osc(min_k: float, max_k: float) -> float:
+        def hi_osc(min_k: float, max_k: float) -> Tuple[float, float]:
             """Compute integrals for highly-oscillatory functions"""
     
             def f_sin(k):
@@ -267,7 +269,7 @@ class SingleBessel(Integrals):
                 print('Warning when integrating K1(r) at r =', r)
                 print(int_result[-1])
     
-            return int_result[0] / r
+            return int_result[0] / r, int_result[1] / r
 
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
@@ -278,11 +280,11 @@ class SingleBessel(Integrals):
 
 
         # Perform integration
-        result = self.perform_integral(domains, selector)
+        result, err = self.perform_integral(domains, selector)
 
-        return result
+        return result, err
 
-    def compute_F(self, r: float, suppression: Suppression) -> float:
+    def compute_F(self, r: float, suppression: Suppression) -> Tuple[float, float]:
         """
         Computes the integral
         F(r) = 4 pi int_{k_min}^{k_max} dk k^4 P(k) j_2(k r)
@@ -306,7 +308,7 @@ class SingleBessel(Integrals):
     
         if r == 0:
             # Treat the special case
-            return 0.0
+            return 0.0, 0.0
     
         pk = self.model.powerspectrum
         min_k = self.model.min_k
@@ -332,7 +334,7 @@ class SingleBessel(Integrals):
             return k * k * k * k * pk(k, suppression) * spherical_jn(2, k * r)
         low_osc = self.gen_low_osc(f, "F", r)
 
-        def hi_osc(min_k: float, max_k: float) -> float:
+        def hi_osc(min_k: float, max_k: float) -> Tuple[float, float]:
             """Compute integrals for highly-oscillatory functions"""
             def f_sin1(k):
                 return k * pk(k, suppression)
@@ -363,17 +365,18 @@ class SingleBessel(Integrals):
 
             # Construct the result
             int_result = 3 * sin1_result[0] / (r * r * r) - 3 * cos2_result[0] / (r * r) - sin3_result[0] / r
+            err_est = 3 * sin1_result[1] / (r * r * r) + 3 * cos2_result[1] / (r * r) + sin3_result[1] / r
 
-            return int_result
+            return int_result, err_est
 
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
             """Returns the function to use to perform integration on the given domain"""
-            if max_k < halfosc or (max_k - min_k) * r < 2 * pi:
+            if max_k < osc1 or (max_k - min_k) * r < 2 * pi:
                 return low_osc
             return hi_osc
 
         # Perform integration
-        result = self.perform_integral(domains, selector)
+        result, err = self.perform_integral(domains, selector)
 
-        return result
+        return result, err

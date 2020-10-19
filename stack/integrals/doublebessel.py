@@ -18,7 +18,7 @@ from stack.common import Suppression
 from stack.integrals.common import Integrals
 from stack.integrals.levin import LevinIntegrals
 
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Tuple
 
 if TYPE_CHECKING:
     from stack import Model
@@ -138,25 +138,10 @@ class DoubleBessel(Integrals):
         self.integrator = LevinIntegrals(rel_tol=self.err_rel, abs_tol=self.err_abs, refinements=6)
 
     def save_data(self) -> None:
-        """This class does not save any data, but does output some results for comparison with Mathematica"""
-        # Construct a grid in physical space
-        rvals = np.logspace(start=-3,
-                            stop=2.5,
-                            num=21,
-                            endpoint=True)
-        return  # TODO: Remove this!
-        # Compute E on that grid
-        Evals = []
-        for ell in range(0, 31):
-            if self.model.verbose:
-                print(f"Computing E_{ell}(r)...")
-            Evals.append(np.array([self.compute_E(ell, r, Suppression.RAW) for r in rvals]))
-        # Save them to file
-        df = pd.DataFrame([rvals] + Evals).transpose()
-        df.columns = ['r'] + [f'E_{ell}(r)' for ell in range(0, 31)]
-        df.to_csv(self.file_path(self.filename + '.csv'), index=False)
+        """This class does not save any data"""
+        pass
 
-    def compute_E(self, ell: int, r: float, suppression: Suppression) -> float:
+    def compute_E(self, ell: int, r: float, suppression: Suppression) -> Tuple[float, float]:
         """
         Computes the integral
         E_ell(r) = 4 pi int_{k_min}^{k_max} dk k^2 P(k) j_ell(k r)^2
@@ -176,8 +161,8 @@ class DoubleBessel(Integrals):
         # Treat the special case
         if r == 0:
             if ell == 0:
-                return moments.sigma0
-            return 0
+                return moments.sigma0, 0
+            return 0, 0
         
         pk = self.model.powerspectrum
         min_k = self.model.min_k
@@ -201,7 +186,7 @@ class DoubleBessel(Integrals):
 
         low_osc = self.gen_low_osc(f, "E", r)
 
-        def hi_osc(min_k: float, max_k: float) -> float:
+        def hi_osc(min_k: float, max_k: float) -> Tuple[float, float]:
             """Compute integrals for highly-oscillatory functions"""
             def func(k):
                 """Integrand weight function (excluding Levin kernel)"""
@@ -214,11 +199,11 @@ class DoubleBessel(Integrals):
             self.integrator.set_amplitude(func)
             
             # Perform the integration
-            int_result, _ = self.integrator.integrate_H(ell=ell, alpha=r)
+            int_result, err_est = self.integrator.integrate_H(ell=ell, alpha=r)
             
             # print(f'mink={min_k}; maxk={max_k}; r={r}; l={ell}; ans={int_result};'.replace("e", "*^"))
 
-            return int_result
+            return int_result, err_est
 
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
@@ -229,11 +214,11 @@ class DoubleBessel(Integrals):
             return hi_osc
 
         # Perform integration
-        result = self.perform_integral(domains, selector)
+        result, err = self.perform_integral(domains, selector)
 
-        return result
+        return result, err
 
-    def compute_G(self, ell: int, r: float, rp: float, suppression: Suppression) -> float:
+    def compute_G(self, ell: int, r: float, rp: float, suppression: Suppression) -> Tuple[float, float]:
         """
         Computes the integral
         G_ell(r, r') = 4 pi int_{k_min}^{k_max} dk k^2 P(k) j_ell(k r) j_ell(k r').
@@ -255,8 +240,8 @@ class DoubleBessel(Integrals):
         # Treat the special case
         if rmin == 0:
             if ell == 0:
-                return self.model.singlebessel.computeC(rmax, suppression)
-            return 0
+                return self.model.singlebessel.compute_C(rmax, suppression)
+            return 0, 0
 
         moments = self.model.get_moments(suppression)
         suppression_factor = None
@@ -275,12 +260,12 @@ class DoubleBessel(Integrals):
             max_k = min(max_k, self.model.grid.sampling_cutoff * 6)
     
         # Construct the list of domains
-        oschalfmin = j_ell_roots_half[ell] / rmin  # half oscillation of j_0(x)
-        osc1min = j_ell_roots1[ell] / rmin  # 1 oscillation of j_0(x)
-        osc10min = j_ell_roots10[ell] / rmin  # 10 oscillations of j_0(x)
-        oschalfmax = j_ell_roots_half[ell] / rmax  # half oscillation of j_0(x)
-        osc1max = j_ell_roots1[ell] / rmax  # 1 oscillation of j_0(x)
-        osc10max = j_ell_roots10[ell] / rmax  # 10 oscillations of j_0(x)
+        oschalfmin = j_ell_roots_half[ell] / rmin  # half oscillation of j_ell(x)
+        osc1min = j_ell_roots1[ell] / rmin  # 1 oscillation of j_ell(x)
+        osc10min = j_ell_roots10[ell] / rmin  # 10 oscillations of j_ell(x)
+        oschalfmax = j_ell_roots_half[ell] / rmax  # half oscillation of j_ell(x)
+        osc1max = j_ell_roots1[ell] / rmax  # 1 oscillation of j_ell(x)
+        osc10max = j_ell_roots10[ell] / rmax  # 10 oscillations of j_ell(x)
         # Note that the min values will be larger than the max values
         domains = self.generate_domains(min_k, max_k, moments.k2peak, osc1min, osc10min, suppression_factor)
 
@@ -291,7 +276,7 @@ class DoubleBessel(Integrals):
     
         low_osc = self.gen_low_osc(f, "G", r)
     
-        def hi_osc(min_k: float, max_k: float) -> float:
+        def hi_osc(min_k: float, max_k: float) -> Tuple[float, float]:
             """Compute integrals for highly-oscillatory functions"""
         
             def func(k):
@@ -305,14 +290,14 @@ class DoubleBessel(Integrals):
             self.integrator.set_amplitude(func)
         
             # Perform the integration
-            int_result, _ = self.integrator.integrate_K(ell=ell, alpha=rmin, beta=rmax)
+            int_result, err_est = self.integrator.integrate_K(ell=ell, alpha=rmin, beta=rmax)
         
             # print(f"(* hi_osc *)")
             # print(f'mink={min_k}; maxk={max_k}; r={r}; rp={rp}; l={ell}; ans={int_result};'.replace("e", "*^"))
         
-            return int_result
+            return int_result, err_est
     
-        def ell0_osc(min_k: float, max_k: float) -> float:
+        def ell0_osc(min_k: float, max_k: float) -> Tuple[float, float]:
             """Compute integrals for ell = 0 with r_min small enough to be slowly-oscillating"""
             def f_sin(k):
                 """Define function to integrate"""
@@ -327,14 +312,15 @@ class DoubleBessel(Integrals):
                 print(f"Warning when integrating (sine) G_ell(r, r') at ell = {ell}, r = {r}, r' = {rp}")
                 print(int_result[-1])
                 
-            int_result = int_result[0] / rmax
+            result = int_result[0] / rmax
+            err_est = int_result[1] / rmax
 
             # print(f"(* ell0_osc *)")
             # print(f'mink={min_k}; maxk={max_k}; r={r}; rp={rp}; l={ell}; ans={int_result};'.replace("e", "*^"))
 
-            return int_result
+            return result, err_est
 
-        def ell1_osc(min_k: float, max_k: float) -> float:
+        def ell1_osc(min_k: float, max_k: float) -> Tuple[float, float]:
             """Compute integrals for ell = 1 with r_min small enough to be slowly-oscillating"""
             def f_sin(k):
                 return pk(k, suppression) * spherical_jn(1, k * rmin)
@@ -357,14 +343,15 @@ class DoubleBessel(Integrals):
                 print(cos_result[-1])
 
             # Construct the result
-            int_result = sin_result[0] / (r*r) - cos_result[0] / r
+            result = sin_result[0] / (r*r) - cos_result[0] / r
+            err_est = sin_result[1] / (r*r) + cos_result[1] / r
 
             # print(f"(* ell1_osc *)")
             # print(f'mink={min_k}; maxk={max_k}; r={r}; rp={rp}; l={ell}; ans={int_result};'.replace("e", "*^"))
 
-            return int_result
+            return result, err_est
 
-        def levin_osc(min_k: float, max_k: float) -> float:
+        def levin_osc(min_k: float, max_k: float) -> Tuple[float, float]:
             """Compute integrals where one of two bessels are highly oscillatory"""
     
             def func(k):
@@ -378,12 +365,12 @@ class DoubleBessel(Integrals):
             self.integrator.set_amplitude(func)
     
             # Perform the integration
-            int_result, _ = self.integrator.integrate_I(ell=ell, alpha=rmax)
+            int_result, err_est = self.integrator.integrate_I(ell=ell, alpha=rmax)
     
             # print(f"(* levin_osc *)")
             # print(f'mink={min_k}; maxk={max_k}; r={r}; rp={rp}; l={ell}; ans={int_result};'.replace("e", "*^"))
     
-            return int_result
+            return int_result, err_est
 
         # Define selector function
         def selector(min_k: float, max_k: float) -> Callable:
@@ -407,6 +394,6 @@ class DoubleBessel(Integrals):
             return hi_osc
     
         # Perform integration
-        result = self.perform_integral(domains, selector)
+        result, err = self.perform_integral(domains, selector)
     
-        return result
+        return result, err
