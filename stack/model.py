@@ -37,7 +37,7 @@ class Model(object):
                  # Grid parameters
                  rmaxfactor: float = 20,
                  gridpoints: int = 10,
-                 ell_max: int = 1,
+                 ell_max: int = 2,
                  # Sampling parameters
                  sampling_cutoff_factor: float = 1.0,
                  # Number density of peaks parameters
