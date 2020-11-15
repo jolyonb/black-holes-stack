@@ -6,7 +6,7 @@ import numpy as np
 #from stack.model import Model
 from model import Model
 #from stack.linear.linearevolveMX import Linear
-from linearevolve import Linear
+from linearevolveMXold import Linear
 import matplotlib.pyplot as plt
 
 # Set up an evenly spaced grid with gridpoints at 0, h/2, 3h/2, 5h/2, etc
@@ -56,7 +56,7 @@ def test_A(r):
 phi = test_phi(rvals)
 
 model = Model(n_ef=15, n_fields=5, mpsi=0.5, m0=2)
-linu = Linear(model=model, phi=phi, rvals=rvals)
+linu = Linear(model=model, phi=phi, rvals=rvals,rhomethod=True)
 #linrho = Linear(model=model, phi=phi, rvals=rvals, rhomethod=True)
 
 linu.construct_grid()
