@@ -3,9 +3,11 @@ Quick and dirty test suite for the full stack (uses a toy analytic power spectru
 """
 from stack import Model
 
-def main():
-    model = Model(model_name='toy_ps', n_efolds=15, n_fields=4, mpsi=0.1, m0=10.0, verbose=True,
-                  test_ps=True)
+import numpy as np
+
+def load_model(model_name, method, scaling):
+    model = Model(model_name=model_name, n_efolds=15, n_fields=4, mpsi=0.1, m0=10.0, verbose=True,
+                  test_ps=True, ell_max=2, num_k_points=15001, method=method, scaling=scaling)
     model.construct_powerspectrum()
     model.construct_moments()
     model.construct_singlebessel()
@@ -13,97 +15,151 @@ def main():
     model.construct_grid()
     model.construct_moments2()
     model.construct_correlations()
+    model.construct_correlations2()
     # model.construct_moments3()
     # model.construct_peakdensity()
     
+    return model
+
+def main():
+    model_lin_trap = load_model('toy_ps', 'trapezoid', 'linear')
+    model_lin_simp = load_model('toy_ps_simp', 'simpson', 'linear')
+    model_log_trap = load_model('toy_ps_log', 'trapezoid', 'log')
+    model_log_simp = load_model('toy_ps_simp_log', 'simpson', 'log')
+
+    ell = 0
+    cov = model_lin_trap.correlations.covariance[ell][1:, 1:]
+    errs = model_lin_trap.correlations.covariance_errs[ell][1:, 1:]
+
+    if ell == 2:
+        start = 1
+        end = 11
+    else:
+        start = 2
+        end = 12
+    cov_lin_trap = model_lin_trap.correlations2.covariance[ell][start:end, start:end] / 4 / np.pi
+    cov_lin_simp = model_lin_simp.correlations2.covariance[ell][start:end, start:end] / 4 / np.pi
+    cov_log_trap = model_log_trap.correlations2.covariance[ell][start:end, start:end] / 4 / np.pi
+    cov_log_simp = model_log_simp.correlations2.covariance[ell][start:end, start:end] / 4 / np.pi
+
+    import sys
+    sys.exit()
+    
+    from math import pi
+    fourpi = 4 * pi
+    row0 = model.correlations2.covariance[0][0]
+    sigma02 = row0[0] / fourpi
+    sigma12 = - 3 * row0[1] / fourpi
+    Cr = row0[2:12] / fourpi
+    Dr = - row0[12:22] / fourpi
+    row1 = model.correlations2.covariance[0][1]
+    K1r = - 3 * row1[2:12] / fourpi
+    row2 = model.correlations2.covariance[2][0]
+    Fr = row2[1:11] * 15 / 2 / fourpi
+    othersigma02 = model.moments_sampling.sigma0squared
+    othersigma12 = model.moments_sampling.sigma1squared
+    otherCr = model.correlations.C[1:]
+    otherDr = model.correlations.D[1:]
+    otherK1r = model.correlations.K1[1:]
+    otherFr = model.correlations.F[1:]
+    
+    # Compare biased covariance matrices
+    cov0 = model.correlations2.covariance[0][2:12, 2:12]
+    bcov0 = model.correlations2.biased_covariance_0[2:12, 2:12]
+    othercov0 = model.correlations.covariance[0][1:, 1:] * fourpi
+    
+    test0 = cov0 / othercov0
+    
+    cov1 = model.correlations2.covariance[1][1:11, 1:11]
+    bcov1 = model.correlations2.biased_covariance_1[1:11, 1:11]
+    othercov1 = model.correlations.covariance[1][1:, 1:] * fourpi
+    
+    test1 = cov1 / othercov1
+
+    # Comparison of biased covariance matrix computation methods
+    # Should have unit ratio
+    test0 = (cov0 - fourpi * np.outer(Cr, Cr) / sigma02) / bcov0
+    test1 = (cov1 - fourpi * np.outer(Dr, Dr) / sigma12) / bcov1
+
+    # Play with number of gripoints in k, integration method, compare with what's happening at different ell values
+    # Optimize!
+    
+    # Means should be:
+    mean = Cr / sigma02
+    computed_means = model.correlations2.biased_sampling_0[2:12, 0] / np.sqrt(fourpi * sigma02)  # denominator from chi_0 = nu / sqrt(fourpi * sigma02)
+
+    # Still worried about factors of 1/4pi from Y_00...
+    
+    print('here')
+    
     # Construct the A matrix
-    import numpy as np
     from stack.common import Suppression
     from scipy.special import spherical_jn
     from numpy.linalg import svd
     max_k = model.powerspectrum.max_k
     min_k = model.powerspectrum.min_k
     max_k = min(max_k, model.grid.sampling_cutoff * 6)    # Move this into the power spectrum class
-    numpoints = 15000
-    
-    method = 'linear'
+
+    numpoints = 20001   # Must be odd to support Simpson's rule
+    integrator = 'trapezoid'
+    method = 'log'
+    ell = 2
+
+    w_vec = np.ones(numpoints) * 2
+    w_vec[0] = 1
+    w_vec[-1] = 1
+    if integrator == 'trapezoid':
+        # 1 2 2 2 2 2 1
+        w_vec /= 2
+    elif integrator == 'simpson':
+        # 1 4 2 4 2 4 1
+        assert numpoints % 2 == 1
+        w_vec[1::2] = 4
+        w_vec /= 3
+    else:
+        raise ValueError()
+
     if method == 'linear':
         k_grid = np.linspace(min_k, max_k, numpoints, endpoint=True)
-        w_vec = np.ones_like(k_grid) * 2
-        w_vec[0] = 1
-        w_vec[-1] = 1
-        w_vec *= (k_grid[1] - k_grid[0]) / 2
-
-        s_vec = np.ones_like(k_grid)
-        s_vec[::2] = 0
-        s_vec += 1
-        s_vec *= 2
-        s_vec[0] = 1
-        s_vec[-1] = 1
-        s_vec *= (k_grid[1] - k_grid[0]) / 3
-
+        w_vec *= k_grid[1] - k_grid[0]
     elif method == 'log':
         k_grid = np.logspace(np.log10(min_k), np.log10(max_k), numpoints, endpoint=True)
-
-        diffs = np.diff(k_grid)
-        adiff = np.concatenate(([0], diffs))
-        bdiff = np.concatenate((diffs, [0]))
-        w_vec = (adiff + bdiff) / 2
+        w_vec *= (np.log(k_grid[1]) - np.log(k_grid[0])) * k_grid
     else:
         raise ValueError()
 
     p_grid = np.array([model.powerspectrum(k, Suppression.SAMPLING) for k in k_grid])
     r_grid = model.grid.grid
 
-    integrator = 'trapezoid'
-    if integrator == 'trapezoid':
-        usew = w_vec
-    elif integrator == 'simpsons':
-        usew = s_vec
-    else:
-        raise ValueError()
-
-
     # integral = np.dot(w_vec, test_vec)
 
-
     An_coeff = 4 * np.pi * k_grid * np.sqrt(w_vec * p_grid)
-    
+
     # M = discretization of integral
     # N = discretization of space
     M = len(k_grid)
     N = len(r_grid)
-    ell = 2
-    
+
     A = np.array([[An_coeff[m] * spherical_jn(ell, k_grid[m] * r) for m in range(M)] for r in r_grid])
-
     u, s, vh = svd(A, full_matrices=False, compute_uv=True, hermitian=False)
-   
-    # First index of A is length M
-    # Second index of A is length N
-    # Shape of A is (N, M) - N rows, M columns
-
-    # vh has the vectors we want: its shape is N, M. Transpose it to get the basis vectors we want.
     v = vh.transpose()
-    
+
     # Test the dot product of every vector with every other vector
     orthonormality_check = np.dot(vh, v)
-    
+
     # Construct C_ij as the matrix product of A (NxM) and v (MxN), contracting on the M indices.
     C_ij = np.matmul(A, v)
     # First index of C is i, and comes from A
     # Second index of X is j, and comes from v
-    
+
     cov = np.matmul(C_ij, C_ij.transpose())
-    
+
     othercov = model.correlations.covariance[ell]
 
-    # For some reason, cov is larger than our covariance by a factor of 4 pi.
-    # This appears to come from Alan's Eq 1, where he has 16 pi^2 (but our cov matrices only use 4 pi)
     ratio = cov[1:, 1:] / othercov[1:, 1:] / 4 / np.pi - 1
-    
+
     test = cov / 4 / np.pi - othercov
-    
+
     output = test[1:, 1:] / model.correlations.covariance_errs[ell][1:, 1:]
 
     print('here')
@@ -144,6 +200,11 @@ def main():
     # * Package things up
     # * Implement derivative covariance
     # * Biasing
+    
+    # Implement pipeline version of covariance computation
+    # Implement biasing
+    # Implement derivatives
+    # Implement switches - grid points, trapezoid/simpson, log/linear
 
 
 
