@@ -40,9 +40,9 @@ class Model(object):
                  ell_max: int = 2,
                  # Sampling parameters
                  sampling_cutoff_factor: float = 1.0,
-                 num_k_points: int = 15001,
-                 method: str = 'trapezoid',
-                 scaling: str = 'linear',
+                 num_k_points: int = 20001,
+                 method: str = 'simpson',
+                 scaling: str = 'log',
                  # Number density of peaks parameters
                  peakdensity_samples: int = 1e5,
                  nu_steps: int = 50,

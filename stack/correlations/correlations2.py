@@ -29,7 +29,7 @@ All missing quantities are identically vanishing. We need covariances for all pa
 """
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 from math import pi
@@ -61,6 +61,12 @@ class Correlations2(Persistence):
         self.biased_covariance_1 = None
         self.biased_sampling_0 = None
         self.biased_sampling_1 = None
+        self.sigma02 = None
+        self.sigma12 = None
+        self.Cr = None
+        self.Dr = None
+        self.K1r = None
+        self.Fr = None
 
     def load_data(self) -> None:
         """Loads saved values from file"""
@@ -81,6 +87,8 @@ class Correlations2(Persistence):
             self.biased_sampling_1 = np.load(f)
             self.biased_covariance_0 = np.load(f)
             self.biased_covariance_1 = np.load(f)
+        
+        self.extract_values()
 
     def compute_data(self) -> None:
         """Constructs correlations on the radial grid"""
@@ -117,7 +125,8 @@ class Correlations2(Persistence):
             w_vec *= k_grid[1] - k_grid[0]
         elif scaling == 'log':
             k_grid = np.geomspace(min_k, max_k, numpoints, endpoint=True)
-            w_vec *= np.log(k_grid[1] / k_grid[0]) * k_grid
+            # w_vec *= np.log(k_grid[1] / k_grid[0]) * k_grid
+            w_vec *= np.log(max_k / min_k) / (numpoints - 1) * k_grid
         else:
             raise ValueError()
 
@@ -164,8 +173,6 @@ class Correlations2(Persistence):
             # This is the sampling matrix (in k space)
             A = np.array(stack)
 
-            # Ignoring biasing completely for the moment
-            
             # Perform a Singular Value Decomposition of A
             u, s, vh = svd(A, full_matrices=False, compute_uv=True, hermitian=False)
 
@@ -231,7 +238,22 @@ class Correlations2(Persistence):
                     # ell = 1
                     self.biased_sampling_1 = C_ij
                     self.biased_covariance_1 = cov
-            
+
+        self.extract_values()
+
+    def extract_values(self):
+        """Extracts useful values from the covariance matrices"""
+        fourpi = 4 * np.pi
+        row0 = self.covariance[0][0]
+        row1 = self.covariance[0][1]
+        row2 = self.covariance[2][0]
+        self.sigma02 = row0[0] / fourpi
+        self.sigma12 = - 3 * row0[1] / fourpi
+        self.Cr = row0[2:12] / fourpi
+        self.Dr = - row0[12:22] / fourpi
+        self.K1r = - 3 * row1[2:12] / fourpi
+        self.Fr = row2[1:11] * 15 / 2 / fourpi
+
     def save_data(self) -> None:
         """Save precomputed values to file"""
         # Save covariance matrices
@@ -243,3 +265,65 @@ class Correlations2(Persistence):
             np.save(f, self.biased_sampling_1)
             np.save(f, self.biased_covariance_0)
             np.save(f, self.biased_covariance_1)
+
+    def generate_sample(self, ell: int, bias_val: Optional[float] = None):
+        """
+        Generates a sample for the given ell value and bias value. Does not bias if bias_val is not provided.
+        
+        Returns two numpy arrays and a float:
+        * (phi(0), phi(r_1), ..., phi(r_N)) - field values on grid
+        * (phi'(0), phi'(r_1), ..., phi'(r_N)) - field derivatives on grid
+        * phi''(0) or None - field second derivative at origin (ell = 0 or 2 only), or None (ell = 1 or >= 3)
+        """
+        if ell > self.model.ell_max:
+            raise ValueError(f'Bad ell value: {ell} (ell_max = {self.model.ell_max})')
+
+        # Select the sampling matrix
+        if ell == 0 and bias_val is not None:
+            sampler = self.biased_sampling_0
+        elif ell == 1 and bias_val is not None:
+            sampler = self.biased_sampling_1
+        else:
+            sampler = self.sampling[ell]
+        
+        # Construct a vector of unit variance Gaussian random numbers
+        random_vec = np.random.normal(size=sampler.shape[0])
+        
+        # If biasing, we need to fix the first value
+        if bias_val:
+            random_vec[0] = bias_val / sampler[0, 0]
+            
+        # Perform the matrix multiply to construct samples
+        samples = np.matmul(sampler, random_vec)
+
+        # Split the samples into vectors appropriately
+        N = len(self.model.grid.grid) - 1  # Number of grid points not at 0
+        if ell == 0:
+            phi0 = samples[0]
+            phip0 = 0
+            phipp0 = samples[1]
+            phir = samples[2:N+2]
+            phipr = samples[N+2:]
+        elif ell == 1:
+            phi0 = 0
+            phip0 = samples[0]
+            phipp0 = None
+            phir = samples[1:N+1]
+            phipr = samples[N+1:]
+        elif ell == 2:
+            phi0 = 0
+            phip0 = 0
+            phipp0 = samples[0]
+            phir = samples[1:N+1]
+            phipr = samples[N+1:]
+        else:
+            phi0 = 0
+            phip0 = 0
+            phipp0 = None
+            phir = samples[0:N]
+            phipr = samples[N:]
+
+        phi = np.concatenate(([phi0], phir))
+        phip = np.concatenate(([phip0], phipr))
+        
+        return phi, phip, phipp0
