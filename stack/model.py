@@ -14,8 +14,9 @@ from stack.moments import Moments
 from stack.integrals import SingleBessel, DoubleBessel
 from stack.grid import Grid
 from stack.common import Suppression
-from stack.correlations import Correlations
+from stack.correlations import Correlations, Correlations2
 from stack.peakdensity import PeakDensity
+from stack.sampling import Sampler
 
 class Model(object):
     """Master class that controls all aspects of modelling"""
@@ -37,9 +38,12 @@ class Model(object):
                  # Grid parameters
                  rmaxfactor: float = 20,
                  gridpoints: int = 10,
-                 ell_max: int = 1,
+                 ell_max: int = 2,
                  # Sampling parameters
                  sampling_cutoff_factor: float = 1.0,
+                 num_k_points: int = 20001,
+                 method: str = 'simpson',
+                 scaling: str = 'log',
                  # Number density of peaks parameters
                  peakdensity_samples: int = 1e5,
                  nu_steps: int = 50,
@@ -75,7 +79,10 @@ class Model(object):
         Sampling parameters
         :param sampling_cutoff_factor: Factor by which to multiply the Nyquist cutoff wavenumber to obtain the power
                                        spectrum cutoff wavenumber
-                                       
+        :param num_k_points: Number of points in k space to use in numerical integration
+        :param method: Either 'trapezoid' or 'simpson' for the integration method to use
+        :param scaling: Either 'linear' or 'log' for the domain to integrate over
+        
         Number density of peaks parameters
         :param peakdensity_samples: Number of samples to use
         :param nu_steps: Number of steps to sample for nu
@@ -110,6 +117,9 @@ class Model(object):
         
         # Sampling parameters
         self.sampling_cutoff_factor = sampling_cutoff_factor
+        self.num_k_points = num_k_points
+        self.method = method
+        self.scaling = scaling
         
         # Number density of peaks parameters
         self.peakdensity_samples = peakdensity_samples
@@ -141,9 +151,11 @@ class Model(object):
         self.grid = Grid(self)
         self.moments_sampling = Moments(self, Suppression.SAMPLING)
         self.correlations = Correlations(self)
+        self.correlations2 = Correlations2(self)
         # Need a class that computes expected peak shape here
         self.moments_peaks = Moments(self, Suppression.PEAKS)
         self.peakdensity = PeakDensity(self)
+        self.sampler = Sampler(self)
         
     def get_moments(self, suppression: Suppression = Suppression.RAW):
         """Return the appropriate moments class, given the suppression method"""
@@ -218,6 +230,15 @@ class Model(object):
         end_time = time.time()
         print(f'    Done in {end_time - start_time:0.2f}s')
 
+    def construct_correlations2(self, recalculate: bool = False) -> None:
+        """Construct full covariance matrices over the entire grid"""
+        print('Constructing correlations...')
+        start_time = time.time()
+        assert self.moments_sampling.ready
+        self.correlations2.construct_data(prev_timestamp=self.moments_sampling.timestamp, recalculate=recalculate)
+        end_time = time.time()
+        print(f'    Done in {end_time - start_time:0.2f}s')
+
     def construct_moments3(self, recalculate: bool = False) -> None:
         """Construct moments for the power spectrum with peaks suppression"""
         print('Constructing peaks moments of the power spectrum...')
@@ -234,5 +255,14 @@ class Model(object):
         start_time = time.time()
         assert self.moments_peaks.ready
         self.peakdensity.construct_data(prev_timestamp=self.moments_peaks.timestamp, recalculate=recalculate)
+        end_time = time.time()
+        print(f'    Done in {end_time - start_time:0.2f}s')
+
+    def construct_sampler(self, recalculate: bool = False) -> None:
+        """Initialize the sampler"""
+        print('Constructing sampler...')
+        start_time = time.time()
+        assert self.correlations2.ready
+        self.sampler.construct_data(prev_timestamp=self.moments_peaks.timestamp, recalculate=recalculate)
         end_time = time.time()
         print(f'    Done in {end_time - start_time:0.2f}s')

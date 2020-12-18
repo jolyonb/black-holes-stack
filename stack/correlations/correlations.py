@@ -74,7 +74,7 @@ class Correlations(Persistence):
         self.covariance_errs = [None] * (self.model.ell_max + 1)
 
         with open(path, 'rb') as f:
-            for ell in range(self.model.ell_max):
+            for ell in range(self.model.ell_max + 1):
                 self.covariance[ell] = np.load(f)
                 self.covariance_errs[ell] = np.load(f)
 
@@ -151,6 +151,6 @@ class Correlations(Persistence):
         
         # Save covariance matrices
         with open(self.file_path(self.filename + '_matrices.npy'), 'wb') as f:
-            for ell in range(self.model.ell_max):
+            for ell in range(self.model.ell_max + 1):
                 np.save(f, self.covariance[ell])
                 np.save(f, self.covariance_errs[ell])

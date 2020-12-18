@@ -385,10 +385,10 @@ class DoubleBessel(Integrals):
                 # Treat this like a single-bessel integral with weight k**2*P(k)*j_ell(k*rmin)
                 # For ell = 0 or 1, use sine- and cosine-weighted integration
                 # For higher ell, use Levin integration (single-Bessel)
-                if ell == 0:
-                    return ell0_osc
-                elif ell == 1:
-                    return ell1_osc
+                # if ell == 0:    # TODO: Check these carefully - are they returning garbage?
+                #     return ell0_osc
+                # elif ell == 1:
+                #     return ell1_osc
                 return levin_osc
             # Otherwise, use Levin integration (double-Bessel)
             return hi_osc
