@@ -290,7 +290,7 @@ class Correlations2(Persistence):
         random_vec = np.random.normal(size=sampler.shape[0])
         
         # If biasing, we need to fix the first value
-        if bias_val:
+        if bias_val is not None and (ell == 0 or ell == 1):
             random_vec[0] = bias_val / sampler[0, 0]
             
         # Perform the matrix multiply to construct samples

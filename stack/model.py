@@ -16,6 +16,7 @@ from stack.grid import Grid
 from stack.common import Suppression
 from stack.correlations import Correlations, Correlations2
 from stack.peakdensity import PeakDensity
+from stack.sampling import Sampler
 
 class Model(object):
     """Master class that controls all aspects of modelling"""
@@ -154,6 +155,7 @@ class Model(object):
         # Need a class that computes expected peak shape here
         self.moments_peaks = Moments(self, Suppression.PEAKS)
         self.peakdensity = PeakDensity(self)
+        self.sampler = Sampler(self)
         
     def get_moments(self, suppression: Suppression = Suppression.RAW):
         """Return the appropriate moments class, given the suppression method"""
@@ -253,5 +255,14 @@ class Model(object):
         start_time = time.time()
         assert self.moments_peaks.ready
         self.peakdensity.construct_data(prev_timestamp=self.moments_peaks.timestamp, recalculate=recalculate)
+        end_time = time.time()
+        print(f'    Done in {end_time - start_time:0.2f}s')
+
+    def construct_sampler(self, recalculate: bool = False) -> None:
+        """Initialize the sampler"""
+        print('Constructing sampler...')
+        start_time = time.time()
+        assert self.correlations2.ready
+        self.sampler.construct_data(prev_timestamp=self.moments_peaks.timestamp, recalculate=recalculate)
         end_time = time.time()
         print(f'    Done in {end_time - start_time:0.2f}s')

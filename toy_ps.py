@@ -3,9 +3,9 @@ Quick and dirty test suite for the full stack (uses a toy analytic power spectru
 """
 from stack import Model
 
-def load_model(model_name, method, scaling, recalculate):
-    model = Model(model_name=model_name, n_efolds=15, n_fields=4, mpsi=0.1, m0=10.0, verbose=True,
-                  test_ps=True, ell_max=4, num_k_points=20001, method=method, scaling=scaling)
+def main():
+    model = Model(model_name='toy_ps', n_efolds=15, n_fields=4, mpsi=0.1, m0=10.0, verbose=True,
+                  test_ps=True, ell_max=4)
     model.construct_powerspectrum()
     model.construct_moments()
     model.construct_singlebessel()
@@ -13,22 +13,13 @@ def load_model(model_name, method, scaling, recalculate):
     model.construct_grid()
     model.construct_moments2()
     model.construct_correlations()
-    model.construct_correlations2(recalculate)
-    # model.construct_moments3()
-    # model.construct_peakdensity()
+    model.construct_correlations2()
+    model.construct_moments3()
+    model.construct_peakdensity()
+    model.construct_sampler()
     
-    return model
+    model.sampler.generate_sample(1, 1)
 
-def main():
-    model_log_simp = load_model('toy_ps_simp_log', 'simpson', 'log', False)
-
-    ell = 1
-    bias = 100
-    phi, phip, phipp = model_log_simp.correlations2.generate_sample(ell=ell, bias_val=bias)
-    
-    print(phi)
-    print(phip)
-    print(phipp)
 
 if __name__ == '__main__':
     main()
