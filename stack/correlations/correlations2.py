@@ -256,7 +256,7 @@ class Correlations2(Persistence):
 
     def save_data(self) -> None:
         """Save precomputed values to file"""
-        # Save covariance matrices
+        # Save covariance and sampling matrices
         with open(self.file_path(self.filename + '_matrices.npy'), 'wb') as f:
             for ell in range(self.model.ell_max + 1):
                 np.save(f, self.covariance[ell])
@@ -265,6 +265,15 @@ class Correlations2(Persistence):
             np.save(f, self.biased_sampling_1)
             np.save(f, self.biased_covariance_0)
             np.save(f, self.biased_covariance_1)
+        
+        # Save a CSV version of everything for human readability
+        for ell in range(self.model.ell_max + 1):
+            np.savetxt(self.file_path(self.filename + f'_matrices_cov_{ell}.csv'), self.covariance[ell], delimiter=',')
+            np.savetxt(self.file_path(self.filename + f'_matrices_sample_{ell}.csv'), self.sampling[ell], delimiter=',')
+        np.savetxt(self.file_path(self.filename + '_matrices_bias_sample_0.csv'), self.biased_sampling_0, delimiter=',')
+        np.savetxt(self.file_path(self.filename + '_matrices_bias_sample_1.csv'), self.biased_sampling_1, delimiter=',')
+        np.savetxt(self.file_path(self.filename + '_matrices_bias_cov_0.csv'), self.biased_covariance_0, delimiter=',')
+        np.savetxt(self.file_path(self.filename + '_matrices_bias_cov_1.csv'), self.biased_covariance_1, delimiter=',')
 
     def generate_sample(self, ell: int, bias_val: Optional[float] = None):
         """

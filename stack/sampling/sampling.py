@@ -42,11 +42,6 @@ class Sampler(Persistence):
 
     def generate_sample(self, num: int, bias: float) -> None:
         """Generate sample with the given number and bias"""
-        
-        # Treat alpha = 1 specially
-        # Treat ell = 0, 1, 2 specially
-        results = []
-
         # Construct the filename for the CSV output
         path = os.path.join(self.model.path, 'samples', str(num))
         os.makedirs(path, exist_ok=True)
@@ -60,6 +55,15 @@ class Sampler(Persistence):
         Phi00 = np.zeros(self.model.gridpoints + 1)
         Phi00p = np.zeros(self.model.gridpoints + 1)
         hessian = np.zeros((3, 3))
+        
+        H = [
+            np.array([[0, 1, 0], [1, 0, 0], [0, 0, 0]]),  # m = -2
+            np.array([[0, 0, 0], [0, 0, 1], [0, 1, 0]]),  # m = -1
+            np.array([[-1, 0, 0], [0, -1, 0], [0, 0, 2]]) / np.sqrt(3),  # m = 0
+            np.array([[0, 0, 1], [0, 0, 0], [1, 0, 0]]),  # m = 1
+            np.array([[1, 0, 0], [0, -1, 0], [0, 0, 0]]),  # m = 2
+        ]
+        
         with open(filename, 'w') as f:
             for alpha in range(1, self.model.n_fields + 1):
                 for ell in range(0, self.model.ell_max + 1):
@@ -93,8 +97,15 @@ class Sampler(Persistence):
                         # Construct the contribution to the chi-squared field 00 mode
                         Phi00 += phi * phi
                         Phi00p += phi * phip
-                        # Construct the contribution to the hessian
-                        # TODO
 
+                        # Construct the contribution to the hessian
+                        if ell == 0:
+                            hessian += np.eye(3) * phipp * 2 * bias / root_4_pi
+                        elif ell == 2:
+                            hessian += bias * phipp * np.sqrt(15 / 4 / np.pi) * H[m + 2]
+                            
+        # Insert coefficients
         Phi00 /= root_4_pi
         Phi00p *= 2 / root_4_pi
+
+        # Save the Phi00 field
