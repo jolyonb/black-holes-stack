@@ -154,3 +154,8 @@ class Correlations(Persistence):
             for ell in range(self.model.ell_max + 1):
                 np.save(f, self.covariance[ell])
                 np.save(f, self.covariance_errs[ell])
+
+        # Save a CSV version of everything for human readability
+        for ell in range(self.model.ell_max + 1):
+            np.savetxt(self.file_path(self.filename + f'_matrices_cov_{ell}.csv'), self.covariance[ell], delimiter=',')
+            np.savetxt(self.file_path(self.filename + f'_matrices_cov_errs_{ell}.csv'), self.covariance_errs[ell], delimiter=',')
