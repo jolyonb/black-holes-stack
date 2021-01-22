@@ -286,8 +286,8 @@ class PowerSpectrum(Persistence):
             hankelarg = 2 * np.exp(-0.5 * mupsi2 * endN) * np.sqrt(muphi2) / mupsi2
             pk0val = np.pi / 2 / mupsi2 * np.exp(-3*endN) * np.abs(hankel1(nu, hankelarg))**2 / (2 * np.pi)**3
             # Note: differs from Alan's expression by 1/(2pi)^3; from definition of power spectrum
-            self.spectrum = np.concat(([pk0val], self.spectrum))
-            self.kvals = np.concat(([0], self.kvals))
+            self.spectrum = np.concatenate(([pk0val], self.spectrum))
+            self.kvals = np.concatenate(([0], self.kvals))
             self.min_k = 0
 
         # Normalize the spectrum so that the first value is 1
