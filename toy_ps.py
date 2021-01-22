@@ -19,7 +19,18 @@ def main():
     model.construct_sampler()
     
     model.sampler.generate_sample(1, 1)
-
+    
+    
+    # TO DO LIST
+    # * Check k=0 contributions work in logarithmic correlation computations (same answers as linear)
+    # * Fix hessian implementation to account for alpha index
+    # * Check covariance matrices agree for real P(k)
+    # * Implement linear evolution
+    # * Create LaTeX guide to code and equations implemented
+    # * Save output of generated samples
+    # * Send Alan cov matrix elements we've checked
+    # * Add in Alan's power spectrum and test
+    
 
 if __name__ == '__main__':
     main()

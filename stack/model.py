@@ -35,6 +35,7 @@ class Model(object):
                  num_modes: int = 1001,
                  max_k: float = 250,
                  test_ps: bool = False,
+                 include_0: bool = True,
                  # Grid parameters
                  rmaxfactor: float = 20,
                  gridpoints: int = 10,
@@ -66,10 +67,11 @@ class Model(object):
         :param potential_r: Power of the potential
         
         Power spectrum parameters
-        :param min_k: Minimum k to compute power spectrum at
+        :param min_k: Minimum k to compute power spectrum at (must be nonzero)
         :param num_modes: Number of logarithmic steps to take for modes
         :param max_k: Maximum k to compute power spectrum at
         :param test_ps: Use a dummy power spectrum
+        :param include_0: Includes the point at k=0
         
         Grid parameters
         :param rmaxfactor: Number of FWHMs to go out to get to rmax
@@ -109,6 +111,7 @@ class Model(object):
         self.num_modes = num_modes
         self.max_k = max_k
         self.test_ps = test_ps
+        self.include_0 = include_0
         
         # Grid parameters
         self.rmaxfactor = rmaxfactor
