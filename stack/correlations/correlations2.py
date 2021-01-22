@@ -99,10 +99,9 @@ class Correlations2(Persistence):
         scaling = self.model.scaling
         
         # Construct some things we'll need
-        N = len(r_grid)
         min_k = self.model.powerspectrum.min_k
         max_k = self.model.powerspectrum.max_k
-        max_k = min(max_k, self.model.grid.sampling_cutoff * 6)  # Move this into the power spectrum class
+        max_k = min(max_k, self.model.grid.sampling_cutoff * 6)  # TODO: Move this into the power spectrum class
 
         # Set up the integration method
         w_vec = np.ones(numpoints) * 2
@@ -124,15 +123,20 @@ class Correlations2(Persistence):
             k_grid = np.linspace(min_k, max_k, numpoints, endpoint=True)
             w_vec *= k_grid[1] - k_grid[0]
         elif scaling == 'log':
+            if self.model.include_0:
+                # Adjust k value for the logarithmic grid construction.
+                min_k = self.model.min_k
             k_grid = np.geomspace(min_k, max_k, numpoints, endpoint=True)
-            # w_vec *= np.log(k_grid[1] / k_grid[0]) * k_grid
             w_vec *= np.log(max_k / min_k) / (numpoints - 1) * k_grid
+            if self.model.include_0:
+                # Add in a trapezoid rule contribution from k=0 and k=min_k.
+                # Note that the k=0 point doesn't contribute, as all integrals have powers of k.
+                # Hence, just modify the min_k coefficient.
+                w_vec[0] += min_k / 2
         else:
             raise ValueError()
 
         # Evaluate power spectrum
-        M = len(k_grid)
-        assert M == numpoints
         pk_grid = np.array([self.model.powerspectrum(k, Suppression.SAMPLING) for k in k_grid])
 
         # Compute A matrix. Each row is a value of alpha.

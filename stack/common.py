@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from stack import Model
 
 model_params = ['n_efolds', 'n_fields', 'mpsi', 'm0', 'potential_r',            # Inflation model
-                'min_k', 'num_modes', 'max_k', 'test_ps',                       # Power spectrum
+                'min_k', 'num_modes', 'max_k', 'test_ps', 'include_0',          # Power spectrum
                 'gridpoints', 'rmaxfactor',                                     # Grid
                 'sampling_cutoff_factor', 'num_k_points', 'method', 'scaling',  # Sampling parameters
 ]

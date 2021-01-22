@@ -10,6 +10,7 @@ import pandas as pd
 from numpy import exp, log, pi, log10, expm1
 from scipy.integrate import ode
 from scipy.interpolate import InterpolatedUnivariateSpline
+from scipy.special import hankel1
 
 from typing import TYPE_CHECKING
 
@@ -94,6 +95,8 @@ class PowerSpectrum(Persistence):
         if self.model.test_ps:
             self.min_k = self.model.min_k
             self.max_k = self.model.max_k
+            if self.model.include_0:
+                self.min_k = 0
             return
         self.construct_grid()
         self.construct_spectrum()
@@ -105,7 +108,7 @@ class PowerSpectrum(Persistence):
         """
         if self.model.test_ps:
             # Approximate analytic fit to power spectrum
-            value = 100 / (1 + (20 * k)**2 + (5 * k)**4 + k**6)
+            value = 1 / (1 + (20 * k)**2 + (5 * k)**4 + k**6)
         else:
             value = self.interp(k)
         if suppression == Suppression.RAW:
@@ -275,7 +278,17 @@ class PowerSpectrum(Persistence):
         Rend = np.array(Rend)
 
         # Compute the power spectrum!
-        self.spectrum = Rend**2 / (2*pi)**3 / 2 / kvals
+        self.spectrum = Rend**2 / 2 / kvals / (2 * np.pi)**3
         
-        # Normalize the spectrum so that the first value is 100
-        self.spectrum *= 100 / self.spectrum[0]
+        # Add in the k = 0 value as requested
+        if self.model.include_0:
+            nu = np.sqrt(9 + 4 * muphi2) / mupsi2
+            hankelarg = 2 * np.exp(-0.5 * mupsi2 * endN) * np.sqrt(muphi2) / mupsi2
+            pk0val = np.pi / 2 / mupsi2 * np.exp(-3*endN) * np.abs(hankel1(nu, hankelarg))**2 / (2 * np.pi)**3
+            # Note: differs from Alan's expression by 1/(2pi)^3; from definition of power spectrum
+            self.spectrum = np.concat(([pk0val], self.spectrum))
+            self.kvals = np.concat(([0], self.kvals))
+            self.min_k = 0
+
+        # Normalize the spectrum so that the first value is 1
+        self.spectrum /= self.spectrum[0]
