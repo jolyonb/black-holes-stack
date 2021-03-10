@@ -154,6 +154,11 @@ class PowerSpectrum(Persistence):
         startN = log(8 * 10**(-8) * kvals**4) / 4.0 - 1
         # Compute times to record field values at. Each mode is initialized at startN, and has to finish at endN.
         readN = sorted(list(set(list(endN - startN))))
+        # Add in early time steps so we have the full evolution
+        extraN = list(np.arange(0, readN[0], 0.1))
+        if extraN[-1] >= readN[0]:
+            extraN = extraN[0:-1]
+        readN = extraN + readN
 
         # Compute initial condition corrections (field values and derivatives)
         correction01 = exp(startN) / (2 * kvals2)
