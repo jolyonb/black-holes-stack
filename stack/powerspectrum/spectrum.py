@@ -152,22 +152,8 @@ class PowerSpectrum(Persistence):
         # Figure out the time to start integrating from. Each mode has its own value of N.
         # N = 0 is the waterfall transition
         startN = log(8 * 10**(-8) * kvals**4) / 4.0 - 1
-        # We need each time to differ from endN by a factor of an integer/10, so that our
-        # time stepper will land on the desired value without needing to perform any interpolation.
-        # Start by taking the floor values of all startN entries in the first decimal place
-        # (negative numbers become more negative).
-        startN = np.floor(10 * startN) / 10
-        # We now have integer start times. Figure out the decimal part of the ending N (hundredths column).
-        decpart = 10 * endN - np.floor(10 * endN)
-        if decpart > 0:
-            # Divide by 10
-            decpart /= 10
-            # Add this to all of the startN values and subtract 0.1
-            startN += decpart - 0.1
-        # Eg: endN is 15.23
-        # startN values are all integers; we need to subtract 0.07 from all startN values to land on 15.23.
-        # decpart is computed as 0.03, which is added to all start values; 0.1 is then subtracted.
-        minN = np.min(startN)
+        # Compute times to record field values at. Each mode is initialized at startN, and has to finish at endN.
+        readN = sorted(list(set(list(endN - startN))))
 
         # Compute initial condition corrections (field values and derivatives)
         correction01 = exp(startN) / (2 * kvals2)
@@ -241,11 +227,10 @@ class PowerSpectrum(Persistence):
         times = [startN]
 
         # Perform integration
-        while integrator.successful() and integrator.t < endN - minN:
-            newN = integrator.t + 0.1
-            if newN > endN - minN:
-                newN = endN - minN + 1e-8
+        for newN in readN:
             integrator.integrate(newN)
+            if not integrator.successful():
+                raise ValueError('Integration failed')
 
             # Save results
             timevals = integrator.t + startN
@@ -257,7 +242,7 @@ class PowerSpectrum(Persistence):
             Rpvals.append((integrator.y[num_k:2*num_k] - 1) * Rval)
 
             if self.model.verbose:
-                print(f"    {integrator.t} / {endN - minN}")
+                print(f"    {integrator.t} / {readN[-1]}")
 
         assert integrator.successful()
         
@@ -270,13 +255,14 @@ class PowerSpectrum(Persistence):
         self.df_rpvals = pd.DataFrame(Rpvals, columns=list(kvals))
         self.df_times = pd.DataFrame(times, columns=list(kvals))
         
-        # For each k value, construct an interpolator over the R values and times to get the R value at N = endN
-        Rend = []
-        for idx, k in enumerate(kvals):
-            interp = InterpolatedUnivariateSpline(times[:, idx], Rvals[:, idx], k=3, ext='raise')
-            Rend.append(interp(endN))
-        Rend = np.array(Rend)
-
+        # For each k value, find the R value when the mode's time value is endN
+        Rend = np.zeros_like(kvals)
+        for idx in range(len(times)):
+            for kidx in range(len(times[idx])):
+                if abs(times[idx, kidx] - endN) < 3e-15:
+                    Rend[kidx] = Rvals[idx, kidx]
+        assert np.all(Rend > 0)
+        
         # Compute the power spectrum!
         self.spectrum = Rend**2 / 2 / kvals / (2 * np.pi)**3
         
