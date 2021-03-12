@@ -149,71 +149,82 @@ class PowerSpectrum(Persistence):
         kvals2 = kvals**2
         num_k = len(kvals)
 
-        # Figure out the time to start integrating from. Each mode has its own value of N.
-        # N = 0 is the waterfall transition
-        startN = log(8 * 10**(-8) * kvals**4) / 4.0 - 1
-        # We need each time to differ from endN by a factor of an integer/10, so that our
-        # time stepper will land on the desired value without needing to perform any interpolation.
-        # Start by taking the floor values of all startN entries in the first decimal place
-        # (negative numbers become more negative).
-        startN = np.floor(10 * startN) / 10
-        # We now have integer start times. Figure out the decimal part of the ending N (hundredths column).
-        decpart = 10 * endN - np.floor(10 * endN)
-        if decpart > 0:
-            # Divide by 10
-            decpart /= 10
-            # Add this to all of the startN values and subtract 0.1
-            startN += decpart - 0.1
-        # Eg: endN is 15.23
-        # startN values are all integers; we need to subtract 0.07 from all startN values to land on 15.23.
-        # decpart is computed as 0.03, which is added to all start values; 0.1 is then subtracted.
-        minN = np.min(startN)
-
-        # Compute initial condition corrections (field values and derivatives)
-        correction01 = exp(startN) / (2 * kvals2)
-        correction21 = correction01 * (muphi2 / 2) * (1 - exp(-mupsi2 * startN))
-        correction1 = correction01 + correction21
-        prime_correction01 = correction01
-        prime_correction21 = correction21 + mupsi2 * correction01 * (muphi2 / 2) * exp(-mupsi2 * startN)
-        prime_correction1 = prime_correction01 + prime_correction21
-
-        correction03 = - exp(3 * startN) / (8 * kvals**4)
-        correction23 = - 0.5 * correction03 * muphi2 * (4 + exp(-mupsi2 * startN) * (mupsi2**2 - 5 * mupsi2 - 4))
-        correction43 = - 1.25 * correction03 * muphi2**2 * (1 - exp(-mupsi2 * startN))**2
-        correction2 = correction03 + correction23 + correction43
-        prime_correction03 = 3 * correction03
-        prime_correction23 = 3 * correction23 + 0.5 * mupsi2 * correction03 * muphi2 * exp(-mupsi2 * startN) * (mupsi2**2 - 5 * mupsi2 - 4)
-        prime_correction43 = 3 * correction43 - 2.5 * correction03 * muphi2**2 * (1 - exp(-mupsi2 * startN)) * exp(-mupsi2 * startN) * mupsi2
-        prime_correction2 = prime_correction03 + prime_correction23 + prime_correction43
+        def compute_corrections(k, startN):
+            """Computes corrections for a given k and N value. Can use vector or scalar k values."""
+            # Compute initial condition corrections (field values and derivatives)
+            correction01 = exp(startN) / (2 * k*k)
+            correction21 = correction01 * (muphi2 / 2) * (1 - exp(-mupsi2 * startN))
+            correction1 = correction01 + correction21
+            prime_correction01 = correction01
+            prime_correction21 = correction21 + mupsi2 * correction01 * (muphi2 / 2) * exp(-mupsi2 * startN)
+            prime_correction1 = prime_correction01 + prime_correction21
+    
+            correction03 = - exp(3 * startN) / (8 * k*k*k*k)
+            correction23 = - 0.5 * correction03 * muphi2 * (4 + exp(-mupsi2 * startN) * (mupsi2**2 - 5 * mupsi2 - 4))
+            correction43 = - 1.25 * correction03 * muphi2**2 * (1 - exp(-mupsi2 * startN))**2
+            correction2 = correction03 + correction23 + correction43
+            prime_correction03 = 3 * correction03
+            prime_correction23 = 3 * correction23 + 0.5 * mupsi2 * correction03 * muphi2 * exp(-mupsi2 * startN) * (mupsi2**2 - 5 * mupsi2 - 4)
+            prime_correction43 = 3 * correction43 - 2.5 * correction03 * muphi2**2 * (1 - exp(-mupsi2 * startN)) * exp(-mupsi2 * startN) * mupsi2
+            prime_correction2 = prime_correction03 + prime_correction23 + prime_correction43
+            
+            correction05 = exp(5 * startN) / (16 * k*k*k*k*k*k)
+            correction25 = - 0.25 * muphi2 * correction05 * (86 + exp(-mupsi2 * startN) * (mupsi2**4 - 14 * mupsi2**3 + 53 * mupsi2**2 - 24 * mupsi2 - 86))
+            correction45 = - 0.25 * muphi2**2 * correction05 * (29 - exp(-mupsi2 * startN) * (9 * mupsi2**2 - 65 * mupsi2 + 58) + exp(-2 * mupsi2 * startN) * (14 * mupsi2**2 - 65 * mupsi2 + 29))
+            correction65 = 15 / 8 * muphi2**3 * correction05 * (1 - exp(-mupsi2 * startN))**3
+            correction3 = correction05 + correction25 + correction45 + correction65
+            prime_correction05 = 5 * correction05
+            prime_correction25 = 5 * correction25 + 0.25 * muphi2 * correction05 * exp(-mupsi2 * startN) * (mupsi2**4 - 14 * mupsi2**3 + 53 * mupsi2**2 - 24 * mupsi2 - 86) * mupsi2
+            prime_correction45 = 5 * correction45 - 0.25 * muphi2**2 * correction05 * (mupsi2 * exp(-mupsi2 * startN) * (9 * mupsi2**2 - 65 * mupsi2 + 58) - 2 * mupsi2 * exp(-2 * mupsi2 * startN) * (14 * mupsi2**2 - 65 * mupsi2 + 29))
+            prime_correction65 = 5 * correction65 + 45 / 8 * muphi2**3 * correction05 * (1 - exp(-mupsi2 * startN))**2 * exp(-mupsi2 * startN) * mupsi2
+            prime_correction3 = prime_correction05 + prime_correction25 + prime_correction45 + prime_correction65
+            
+            return correction1, correction2, correction3, prime_correction1, prime_correction2, prime_correction3
         
-        correction05 = exp(5 * startN) / (16 * kvals**6)
-        correction25 = - 0.25 * muphi2 * correction05 * (86 + exp(-mupsi2 * startN) * (mupsi2**4 - 14 * mupsi2**3 + 53 * mupsi2**2 - 24 * mupsi2 - 86))
-        correction45 = - 0.25 * muphi2**2 * correction05 * (29 - exp(-mupsi2 * startN) * (9 * mupsi2**2 - 65 * mupsi2 + 58) + exp(-2 * mupsi2 * startN) * (14 * mupsi2**2 - 65 * mupsi2 + 29))
-        correction65 = 15 / 8 * muphi2**3 * correction05 * (1 - exp(-mupsi2 * startN))**3
-        correction3 = correction05 + correction25 + correction45 + correction65
-        prime_correction05 = 5 * correction05
-        prime_correction25 = 5 * correction25 + 0.25 * muphi2 * correction05 * exp(-mupsi2 * startN) * (mupsi2**4 - 14 * mupsi2**3 + 53 * mupsi2**2 - 24 * mupsi2 - 86) * mupsi2
-        prime_correction45 = 5 * correction45 - 0.25 * muphi2**2 * correction05 * (mupsi2 * exp(-mupsi2 * startN) * (9 * mupsi2**2 - 65 * mupsi2 + 58) - 2 * mupsi2 * exp(-2 * mupsi2 * startN) * (14 * mupsi2**2 - 65 * mupsi2 + 29))
-        prime_correction65 = 5 * correction65 + 45 / 8 * muphi2**3 * correction05 * (1 - exp(-mupsi2 * startN))**2 * exp(-mupsi2 * startN) * mupsi2
-        prime_correction3 = prime_correction05 + prime_correction25 + prime_correction45 + prime_correction65
+        # Compute the startN values for each mode. N = 0 is the waterfall transition
+        # Start with an estimate
+        startN = log(8 * 10 ** (-8) * kvals ** 4) / 4.0
+        oldN = startN - 1
+        # Polish the estimate
+        for idx, k in enumerate(kvals):
+            while True:
+                c1, c2, c3, pc1, pc2, pc3 = compute_corrections(k, startN[idx])
+                # Assume that c1:c2 ~ c2:c3 ~ c3:c4 ~ e^(2*startN)/k^2
+                # Require c4 to be sufficiently small that c1 + c4 = c1 to floating point precision.
+                # This requires c4 / c1 ~ 1e-15. Hence, c1:c2 ~ 1e-5, c1:c3 ~ 1e-10 will do what we need.
+                if abs(c3 / c1) < 1e-10:
+                    break
+                # Step back in time a little bit
+                startN[idx] -= 0.01
+        # Compute times to record field values at. Each mode is initialized at startN, and has to finish at endN.
+        readN = sorted(list(set(list(endN - startN))))
+        # Add in early time steps so we have the full evolution
+        extraN = list(np.arange(0.1, readN[0], 0.1))
+        if extraN[-1] >= readN[0]:
+            extraN = extraN[0:-1]
+        readN = extraN + readN
 
         # Set up the initial conditions
-        correction = correction1 + correction2 + correction3
-        prime_correction = prime_correction1 + prime_correction2 + prime_correction3
-        R0 = exp(-startN) + correction
+        c1, c2, c3, pc1, pc2, pc3 = compute_corrections(kvals, startN)  # Computing on vector kvals this time
+        correction = c1 + c2 + c3
+        prime_correction = pc1 + pc2 + pc3
+        # R0 = exp(-startN) + correction
         # Rdot0 = - exp(-startN) + prime_correction
 
         # Convert to delta = log(R) + N = log(R * exp(N))
-        delta0 = log(R0 * exp(startN))  # To avoid catastropic loss of precision due to cancellation (could probably improve)
+        # delta0 = log(R0 * exp(startN))    # Affected by catastrophic loss of precision due to cancellation
+        # To avoid catastropic loss of precision due to cancellation (see R0 expression above)
+        delta0 = np.log1p(exp(startN) * correction)  # log1p = log(1+x) for small x;
         # deltadot0 = Rdot0 / R0 + 1    # Affected by catastrophic loss of precision due to cancellation
         # Better is to do this expansion:
         # deltadot0 = (- exp(-startN) + prime_correction) / (exp(-startN) + correction) + 1
         # deltadot0 = (- 1 + exp(startN) * prime_correction) / (1 + exp(startN) * correction) + 1
         # deltadot0 = (- 1 + exp(startN) * prime_correction) * (1 - exp(startN) * correction + (exp(startN) * correction)**2 - (exp(startN) * correction)**3) + 1 + O(correction^4)
-        # Turns out we need to go to 4th order to get enough digits!
+        # We've neglected 4th order corrections above as below floating point precision; while they're included here,
+        # they should be irrelevant.
         deltadot0 = (exp(startN) * prime_correction * (1 - exp(startN) * correction + (exp(startN) * correction)**2 - (exp(startN) * correction)**3 + (exp(startN) * correction)**4)
                      + exp(startN) * correction - (exp(startN) * correction) ** 2 + (exp(startN) * correction) ** 3 - (exp(startN) * correction) ** 4)
-        
+
         ics = np.concatenate([delta0, deltadot0])
 
         def derivs(t: float, x: np.array) -> np.array:
@@ -241,11 +252,10 @@ class PowerSpectrum(Persistence):
         times = [startN]
 
         # Perform integration
-        while integrator.successful() and integrator.t < endN - minN:
-            newN = integrator.t + 0.1
-            if newN > endN - minN:
-                newN = endN - minN + 1e-8
+        for newN in readN:
             integrator.integrate(newN)
+            if not integrator.successful():
+                raise ValueError('Integration failed')
 
             # Save results
             timevals = integrator.t + startN
@@ -257,7 +267,7 @@ class PowerSpectrum(Persistence):
             Rpvals.append((integrator.y[num_k:2*num_k] - 1) * Rval)
 
             if self.model.verbose:
-                print(f"    {integrator.t} / {endN - minN}")
+                print(f"    {integrator.t} / {readN[-1]}")
 
         assert integrator.successful()
         
@@ -270,13 +280,14 @@ class PowerSpectrum(Persistence):
         self.df_rpvals = pd.DataFrame(Rpvals, columns=list(kvals))
         self.df_times = pd.DataFrame(times, columns=list(kvals))
         
-        # For each k value, construct an interpolator over the R values and times to get the R value at N = endN
-        Rend = []
-        for idx, k in enumerate(kvals):
-            interp = InterpolatedUnivariateSpline(times[:, idx], Rvals[:, idx], k=3, ext='raise')
-            Rend.append(interp(endN))
-        Rend = np.array(Rend)
-
+        # For each k value, find the R value when the mode's time value is endN
+        Rend = np.zeros_like(kvals)
+        for idx in range(len(times)):
+            for kidx in range(len(times[idx])):
+                if abs(times[idx, kidx] - endN) < 1e-14:
+                    Rend[kidx] = Rvals[idx, kidx]
+        assert np.all(Rend > 0)
+        
         # Compute the power spectrum!
         self.spectrum = Rend**2 / 2 / kvals / (2 * np.pi)**3
         
