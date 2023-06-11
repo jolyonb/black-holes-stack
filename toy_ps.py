@@ -7,7 +7,7 @@ def main():
     model = Model(model_name='toy_ps', n_efolds=15, n_fields=4, mpsi=0.1, m0=10.0, verbose=True,
                   test_ps=True, ell_max=4)
     model.construct_powerspectrum()
-    # model.construct_moments()
+    model.construct_moments()
     # model.construct_singlebessel()
     # model.construct_doublebessel()
     # model.construct_grid()
@@ -31,6 +31,7 @@ def main():
     # * Save output of generated samples
     # * Send Alan cov matrix elements we've checked
     # * Add in Alan's power spectrum and test
+    # * Add droop back in to the chi squared spherical part sampling
     
 
 if __name__ == '__main__':

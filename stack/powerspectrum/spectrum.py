@@ -183,8 +183,7 @@ class PowerSpectrum(Persistence):
         
         # Compute the startN values for each mode. N = 0 is the waterfall transition
         # Start with an estimate
-        startN = log(8 * 10 ** (-8) * kvals ** 4) / 4.0
-        oldN = startN - 1
+        startN = np.ceil(log(8 * 10 ** (-8) * kvals ** 4) / 4.0)
         # Polish the estimate
         for idx, k in enumerate(kvals):
             while True:
@@ -195,7 +194,7 @@ class PowerSpectrum(Persistence):
                 if abs(c3 / c1) < 1e-10:
                     break
                 # Step back in time a little bit
-                startN[idx] -= 0.01
+                startN[idx] -= 0.03125
         # Compute times to record field values at. Each mode is initialized at startN, and has to finish at endN.
         readN = sorted(list(set(list(endN - startN))))
         # Add in early time steps so we have the full evolution
