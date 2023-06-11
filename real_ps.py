@@ -8,17 +8,17 @@ def main():
 
     model.construct_powerspectrum()
     model.construct_moments()
-    model.construct_singlebessel()
-    model.construct_doublebessel()
-    model.construct_grid()
+    # model.construct_singlebessel()
+    # model.construct_doublebessel()
+    # model.construct_grid()
     model.construct_moments2()
-    model.construct_correlations()
-    model.construct_correlations2()
-    model.construct_moments3()
-    model.construct_peakdensity()
-    model.construct_sampler()
+    # model.construct_correlations()
+    # model.construct_correlations2()
+    # model.construct_moments3()
+    # model.construct_peakdensity()
+    # model.construct_sampler()
 
-    model.sampler.generate_sample(1, 1)
+    # model.sampler.generate_sample(1, 1)
 
 
 if __name__ == '__main__':

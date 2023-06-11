@@ -8,6 +8,7 @@ from __future__ import annotations
 import os
 from math import sqrt, exp
 import time
+import numpy as np
 
 from stack.powerspectrum import PowerSpectrum
 from stack.moments import Moments
@@ -41,7 +42,7 @@ class Model(object):
                  gridpoints: int = 10,
                  ell_max: int = 2,
                  # Sampling parameters
-                 sampling_cutoff_factor: float = 1.0,
+                 sampling_cutoff_factor: float = 5 * np.pi / np.sqrt(2),
                  num_k_points: int = 20001,
                  method: str = 'simpson',
                  scaling: str = 'log',
@@ -219,8 +220,9 @@ class Model(object):
         """Construct moments for the power spectrum with sampling suppression"""
         print('Constructing sampling moments of the power spectrum...')
         start_time = time.time()
-        assert self.grid.ready
-        self.moments_sampling.construct_data(prev_timestamp=self.grid.timestamp, recalculate=recalculate)
+        # assert self.grid.ready
+        self.moments_sampling.construct_data(prev_timestamp=self.powerspectrum.timestamp, recalculate=recalculate)
+        # self.moments_sampling.construct_data(prev_timestamp=self.grid.timestamp, recalculate=recalculate)
         end_time = time.time()
         print(f'    Done in {end_time - start_time:0.2f}s')
 
